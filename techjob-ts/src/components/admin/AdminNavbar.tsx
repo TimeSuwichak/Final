@@ -7,6 +7,7 @@ import { CgFileDocument } from "react-icons/cg";
 import { BsBoxes } from "react-icons/bs";
 import { TbAlertHexagon } from "react-icons/tb";
 import { HiMenu, HiX } from "react-icons/hi"; // ✅ ไอคอนเปิด/ปิดเมนู
+import { ModeToggle } from "../common/mode-toggle";
 
 
 export default function AdminNavbar() {
@@ -18,7 +19,7 @@ export default function AdminNavbar() {
   };
 
   return (
-    <div className="flex h-screen bg-[#1a1a1f]">
+    <div className="flex h-screen ">
       {/* ✅ ปุ่มเปิดเมนู (เฉพาะมือถือ) */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -83,6 +84,8 @@ export default function AdminNavbar() {
             </Link>
           </nav>
         </div>
+
+        <ModeToggle/>
 
         {/* Sign Out */}
         <div className="p-4">
