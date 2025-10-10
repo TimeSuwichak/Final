@@ -13,7 +13,7 @@ import AdminNavbar from "./components/admin/AdminNavbar";
 import Datauser from "./pages/admin/Datauser";
 import Report from "./pages/admin/Report";
 import WorkOders from "./pages/admin/WorkOders";
-
+import MaterialPage from "./pages/admin/Material";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -39,6 +39,10 @@ const router = createBrowserRouter([
       {
         path: "WorkOders",
         element:<WorkOders/>,
+      },
+            {
+        path: "Material",
+        element:<MaterialPage/>,
       },
     ],
   },

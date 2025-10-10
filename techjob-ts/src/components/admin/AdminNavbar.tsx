@@ -63,7 +63,7 @@ export default function AdminNavbar() {
             </Link>
 
             <Link
-              to="/admin/datauser"
+              to="/admin/material"
               className="bg-[#19182A] text-white py-2 px-4 rounded-lg hover:bg-[#222]"
             >
               <BsBoxes className=" inline mr-2" /> คลังอุปกรณ์/วัสดุ
