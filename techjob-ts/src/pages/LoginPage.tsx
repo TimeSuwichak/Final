@@ -21,9 +21,9 @@ export default function LoginPage() {
     }
   };
 
-  const handleRegisterClick = () => {
-    navigate("/register");
-  };
+  // const handleRegisterClick = () => {
+  //   navigate("/register");
+  // };
 
   return (
     <div className="min-h-screen  flex items-center justify-center">
