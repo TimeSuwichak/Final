@@ -1,164 +1,257 @@
 // MaterialPage.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 
-// (1) กำหนด Type ของหมวดหมู่วัสดุ เพื่อให้เลือกใช้ได้สะดวกและไม่ผิดพลาด
-type MaterialCategory = 'วัสดุโครงสร้าง' | 'วัสดุก่อและฉาบ' | 'วัสดุหลังคาและฝ้าเพดาน' | 'วัสดุประตูและหน้าต่าง' | 'วัสดุตกแต่งและพื้นผิว' | 'วัสดุงานระบบไฟฟ้า' | 'วัสดุงานระบบประปาและสุขาภิบาล' | 'เครื่องมือและวัสดุสิ้นเปลือง';
+// (1) กำหนด Type ของหมวดหมู่วัสดุ เพิ่ม 'วัสดุอื่นๆ' สำหรับของที่ผู้ใช้เพิ่มเอง
+type MaterialCategory = 'วัสดุโครงสร้าง' | 'วัสดุก่อและฉาบ' | 'วัสดุหลังคาและฝ้าเพดาน' | 'วัสดุประตูและหน้าต่าง' | 'วัสดุตกแต่งและพื้นผิว' | 'วัสดุงานระบบไฟฟ้า' | 'วัสดุงานระบบประปาและสุขาภิบาล' | 'เครื่องมือและวัสดุสิ้นเปลือง' | 'วัสดุอื่นๆ';
 
-// (2) กำหนด Type (Interface) ของข้อมูลวัสดุแต่ละชิ้น
-// เปรียบเสมือนพิมพ์เขียวข้อมูลว่าวัสดุ 1 ชิ้นต้องมีข้อมูลอะไรบ้าง
+// (2) Interface ของ Material ยังคงเหมือนเดิม
 interface Material {
   id: number;
   name: string;
   category: MaterialCategory;
   quantity: number;
-  unit: string; // หน่วยนับ เช่น ชิ้น, เมตร, ถุง, กล่อง
-  lowStockThreshold: number; // จำนวนที่แจ้งเตือนว่าของใกล้หมด
+  unit: string;
+  lowStockThreshold: number;
 }
 
-// (3) สร้างข้อมูลวัสดุตัวอย่าง (Mock Data)
-// ในสถานการณ์จริง ข้อมูลส่วนนี้จะมาจากฐานข้อมูลหรือ API
-const sampleMaterials: Material[] = [
-  { id: 1, name: 'ปูนซีเมนต์', category: 'วัสดุโครงสร้าง', quantity: 80, unit: 'ถุง', lowStockThreshold: 50 },
+// (3) *** ใหม่: สร้างรายการวัสดุที่กำหนดไว้ล่วงหน้าตามแต่ละหมวดหมู่ ***
+// นี่คือฐานข้อมูลความรู้ของแอปเรา ทำให้ผู้ใช้เลือกจากรายการได้เลย
+const predefinedMaterials: Record<Exclude<MaterialCategory, 'วัสดุอื่นๆ'>, string[]> = {
+    'วัสดุโครงสร้าง': ['ปูนซีเมนต์ TPI (แดง)', 'ทรายหยาบ', 'หินคลุก', 'เหล็กเส้น DB12', 'เหล็กกล่อง 4x2 นิ้ว'],
+    'วัสดุก่อและฉาบ': ['อิฐมอญ', 'อิฐมวลเบา G4', 'ปูนก่อสำเร็จ', 'ปูนฉาบสำเร็จ'],
+    'วัสดุหลังคาและฝ้าเพดาน': ['กระเบื้องลอนคู่', 'แผ่นเมทัลชีท', 'ฉนวนกันความร้อน Stay Cool', 'แผ่นยิปซัม 9มม.', 'โครงซีลายน์'],
+    'วัสดุประตูและหน้าต่าง': ['วงกบไม้สังเคราะห์', 'บานประตู HDF', 'หน้าต่างอลูมิเนียมสำเร็จรูป', 'ลูกบิดประตู', 'บานพับ'],
+    'วัสดุตกแต่งและพื้นผิว': ['สีทาภายใน TOA', 'สีทาภายนอก Jotun', 'กระเบื้องแกรนิตโต้ 60x60', 'กาวซีเมนต์ (ปูกระเบื้อง)', 'ยาแนว'],
+    'วัสดุงานระบบไฟฟ้า': ['สายไฟ VAF 2x2.5', 'ท่อร้อยสายไฟ PVC (เหลือง)', 'สวิตช์ไฟ', 'ปลั๊กไฟ', 'ตู้คอนซูมเมอร์'],
+    'วัสดุงานระบบประปาและสุขาภิบาล': ['ท่อ PVC 4 หุน (ฟ้า)', 'ก๊อกน้ำ', 'ข้องอ 90 องศา', 'สามทาง', 'โถสุขภัณฑ์'],
+    'เครื่องมือและวัสดุสิ้นเปลือง': ['สกรูเกลียวปล่อย 1 นิ้ว', 'ตะปู', 'ใบตัดเหล็ก 4 นิ้ว', 'ถุงมือผ้า', 'แปรงทาสี'],
+};
+
+// (4) สร้าง Array ของหมวดหมู่ทั้งหมดสำหรับใช้ใน Dropdown
+const categories = Object.keys(predefinedMaterials) as Exclude<MaterialCategory, 'วัสดุอื่นๆ'>[];
+
+// ข้อมูลเริ่มต้นบางส่วน
+const initialMaterials: Material[] = [
+  { id: 1, name: 'ปูนซีเมนต์ TPI (แดง)', category: 'วัสดุโครงสร้าง', quantity: 80, unit: 'ถุง', lowStockThreshold: 50 },
   { id: 2, name: 'อิฐมอญ', category: 'วัสดุก่อและฉาบ', quantity: 4500, unit: 'ก้อน', lowStockThreshold: 5000 },
   { id: 3, name: 'สายไฟ VAF 2x2.5', category: 'วัสดุงานระบบไฟฟ้า', quantity: 8, unit: 'ม้วน', lowStockThreshold: 10 },
-  { id: 4, name: 'สีทาภายใน', category: 'วัสดุตกแต่งและพื้นผิว', quantity: 15, unit: 'ถัง', lowStockThreshold: 20 },
-  { id: 5, name: 'สกรูเกลียวปล่อย 1 นิ้ว', category: 'เครื่องมือและวัสดุสิ้นเปลือง', quantity: 45, unit: 'กล่อง', lowStockThreshold: 50 },
-  { id: 6, name: 'ท่อ PVC 4 หุน', category: 'วัสดุงานระบบประปาและสุขาภิบาล', quantity: 120, unit: 'เส้น', lowStockThreshold: 100 },
+  { id: 4, name: 'สีทาภายใน TOA', category: 'วัสดุตกแต่งและพื้นผิว', quantity: 15, unit: 'ถัง', lowStockThreshold: 20 },
 ];
 
-// (4) สร้าง Array ของหมวดหมู่ทั้งหมด เพื่อนำไปสร้างปุ่ม Filter
-const categories: MaterialCategory[] = ['วัสดุโครงสร้าง', 'วัสดุก่อและฉาบ', 'วัสดุหลังคาและฝ้าเพดาน', 'วัสดุประตูและหน้าต่าง', 'วัสดุตกแต่งและพื้นผิว', 'วัสดุงานระบบไฟฟ้า', 'วัสดุงานระบบประปาและสุขาภิบาล', 'เครื่องมือและวัสดุสิ้นเปลือง'];
-
-
 const MaterialPage = () => {
+  // (5) State จัดการข้อมูลหลัก และการกรอง
+  const [materials, setMaterials] = useState<Material[]>(initialMaterials);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<MaterialCategory | 'ทั้งหมด'>('ทั้งหมด');
+  
+  // (6) *** ใหม่: State ที่ซับซ้อนขึ้นสำหรับจัดการฟอร์มเพิ่มวัสดุ ***
+  const [formCategory, setFormCategory] = useState<Exclude<MaterialCategory, 'วัสดุอื่นๆ'>>(categories[0]);
+  const [formMaterialName, setFormMaterialName] = useState<string>(predefinedMaterials[categories[0]][0]);
+  const [customMaterialName, setCustomMaterialName] = useState('');
+  const [formQuantity, setFormQuantity] = useState('10');
+  const [formUnit, setFormUnit] = useState('ชิ้น');
+  const [formThreshold, setFormThreshold] = useState('5');
+  
+  // (7) *** ใหม่: State สำหรับระบบจำลอง ***
+  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+  const [simulationSpeed, setSimulationSpeed] = useState(2000); // ms (2 วินาที)
+  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null); // useRef สำหรับเก็บ ID ของ interval
 
-  // (5) สร้าง State สำหรับจัดการข้อมูลในหน้านี้
-  // materials: เก็บรายการวัสดุทั้งหมด
-  const [materials, setMaterials] = useState<Material[]>(sampleMaterials);
-  // selectedCategory: เก็บหมวดหมู่ที่ผู้ใช้เลือกสำหรับกรองข้อมูล
-  const [selectedCategory, setSelectedCategory] = useState<MaterialCategory | 'ทั้งหมด'>('ทั้งหมด');
-  
-  // (6) สร้าง State สำหรับเก็บข้อมูลจากฟอร์ม "เพิ่มวัสดุ"
-  // ใช้ object เดียวเพื่อจัดการ state ของฟอร์มทั้งหมดให้ง่ายขึ้น
-  const [newMaterialForm, setNewMaterialForm] = useState({
-      name: '',
-      category: categories[0], // ตั้งค่าเริ่มต้นเป็นหมวดหมู่แรก
-      quantity: '0',
-      unit: '',
-      lowStockThreshold: '10'
-  });
-  
-  // (7) ฟังก์ชันสำหรับจัดการการเปลี่ยนแปลงข้อมูลในฟอร์ม
-  // เมื่อผู้ใช้พิมพ์หรือเลือกข้อมูลในฟอร์ม มันจะอัปเดต state `newMaterialForm`
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value } = e.target;
-      setNewMaterialForm(prevState => ({
-          ...prevState,
-          [name]: value
-      }));
-  };
-  
-  // (8) ฟังก์ชันสำหรับเพิ่มวัสดุใหม่เมื่อกดปุ่ม "เพิ่ม"
+  // (8) ฟังก์ชันสำหรับเพิ่มวัสดุใหม่ (ปรับปรุงให้รองรับทั้งแบบเลือกและแบบกำหนดเอง)
   const handleAddMaterial = (e: React.FormEvent) => {
-      e.preventDefault(); // ป้องกันไม่ให้หน้าเว็บโหลดใหม่เมื่อกด submit form
-      
-      const newMaterial: Material = {
-          id: Date.now(), // ใช้ timestamp ปัจจุบันเป็น ID ชั่วคราว (ในแอปจริงควรใช้ ID จากฐานข้อมูล)
-          name: newMaterialForm.name,
-          category: newMaterialForm.category as MaterialCategory,
-          quantity: parseInt(newMaterialForm.quantity, 10), // แปลง string เป็น number
-          unit: newMaterialForm.unit,
-          lowStockThreshold: parseInt(newMaterialForm.lowStockThreshold, 10),
-      };
-      
-      // เพิ่มวัสดุใหม่เข้าไปใน state `materials`
-      setMaterials(prevMaterials => [...prevMaterials, newMaterial]);
-      
-      // ล้างค่าในฟอร์ม (ยังไม่ได้ทำในโค้ดนี้เพื่อให้ง่าย)
+    e.preventDefault();
+    
+    // ตรวจสอบว่ากำลังเพิ่มวัสดุแบบกำหนดเองหรือไม่
+    const isCustom = formMaterialName === 'CUSTOM';
+    const name = isCustom ? customMaterialName : formMaterialName;
+    const category = isCustom ? 'วัสดุอื่นๆ' : formCategory;
+
+    if (!name.trim()) {
+        alert("กรุณากรอกชื่อวัสดุ");
+        return;
+    }
+
+    const newMaterial: Material = {
+      id: Date.now(),
+      name,
+      category,
+      quantity: parseInt(formQuantity, 10) || 0,
+      unit: formUnit,
+      lowStockThreshold: parseInt(formThreshold, 10) || 0,
+    };
+    
+    setMaterials(prev => [...prev, newMaterial]);
   };
 
-  // (9) กรองข้อมูลวัสดุตามหมวดหมู่ที่เลือก
-  // ใช้ useMemo เพื่อให้การกรองนี้ทำงานเมื่อ `materials` หรือ `selectedCategory` เปลี่ยนแปลงเท่านั้น
-  // ช่วยเพิ่มประสิทธิภาพ (Performance) ไม่ให้ต้องกรองใหม่ทุกครั้งที่ re-render
-  const filteredMaterials = useMemo(() => {
-    if (selectedCategory === 'ทั้งหมด') {
-      return materials;
+  // (9) *** ใหม่: ฟังก์ชันสำหรับกดปุ่ม "เบิก/สั่งซื้อ" ***
+  // ในที่นี้จะทำการจำลองการเติมสต็อกให้เต็ม
+  const handleRestockMaterial = (materialId: number) => {
+    setMaterials(prevMaterials =>
+      prevMaterials.map(material =>
+        material.id === materialId
+          ? { ...material, quantity: material.lowStockThreshold + 50 } // เติมของให้มากกว่าจุดแจ้งเตือน 50 หน่วย
+          : material
+      )
+    );
+  };
+  
+  // (10) *** ใหม่: Logic ของระบบจำลองการใช้สต็อกด้วย useEffect ***
+  useEffect(() => {
+    // ถ้า isSimulationRunning เป็น false ให้เคลียร์ interval แล้วหยุดการทำงาน
+    if (!isSimulationRunning) {
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+      }
+      return;
     }
-    return materials.filter(material => material.category === selectedCategory);
-  }, [materials, selectedCategory]);
 
+    // ถ้า isSimulationRunning เป็น true ให้สร้าง interval ขึ้นมา
+    simulationIntervalRef.current = setInterval(() => {
+      setMaterials(prev => {
+        if (prev.length === 0) return [];
+        // สุ่ม index ของวัสดุที่จะลดจำนวน
+        const randomIndex = Math.floor(Math.random() * prev.length);
+        // สุ่มจำนวนที่จะลด (1-5 หน่วย)
+        const amountToDecrease = Math.floor(Math.random() * 5) + 1;
+
+        return prev.map((material, index) => {
+          if (index === randomIndex) {
+            const newQuantity = Math.max(0, material.quantity - amountToDecrease); // ไม่ให้ติดลบ
+            return { ...material, quantity: newQuantity };
+          }
+          return material;
+        });
+      });
+    }, simulationSpeed);
+
+    // *** Cleanup Function: ส่วนที่สำคัญมาก ***
+    // ฟังก์ชันนี้จะถูกเรียกเมื่อ component ถูก unmount หรือเมื่อ dependencies (isSimulationRunning, simulationSpeed) เปลี่ยนไป
+    // เพื่อป้องกัน memory leak จาก interval ที่ทำงานค้างอยู่
+    return () => {
+      if (simulationIntervalRef.current) {
+        clearInterval(simulationIntervalRef.current);
+      }
+    };
+  }, [isSimulationRunning, simulationSpeed]);
+
+
+  // (11) กรองข้อมูลสำหรับแสดงในตาราง (เหมือนเดิม)
+  const filteredMaterials = useMemo(() => {
+    if (selectedCategoryFilter === 'ทั้งหมด') return materials;
+    return materials.filter(m => m.category === selectedCategoryFilter);
+  }, [materials, selectedCategoryFilter]);
+  
+  // (12) *** ใหม่: รายการวัสดุใน Dropdown จะเปลี่ยนตามหมวดหมู่ที่เลือกในฟอร์ม ***
+  const materialOptions = useMemo(() => {
+      return predefinedMaterials[formCategory] || [];
+  }, [formCategory]);
 
   return (
     <div className="p-4">
-      <p className="text-center border p-2 text-xl font-bold mb-4">หน้าคลังวัสดุ</p>
+      <p className="text-center border p-2 text-xl font-bold mb-4">หน้าคลังวัสดุ (เวอร์ชันปรับปรุง)</p>
 
-      {/* === ส่วนฟอร์มสำหรับเพิ่มวัสดุ === */}
+      {/* === ส่วนฟอร์มสำหรับเพิ่มวัสดุ (ปรับปรุงใหม่) === */}
       <div className="border p-4 mb-4">
           <h2 className="text-lg font-bold mb-2">เพิ่มวัสดุใหม่</h2>
-          <form onSubmit={handleAddMaterial} className="flex flex-wrap gap-4 items-end">
-              <input name="name" onChange={handleFormChange} placeholder="ชื่อวัสดุ" className="border p-1"/>
-              <select name="category" onChange={handleFormChange} className="border p-1">
-                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
-              <input name="quantity" type="number" onChange={handleFormChange} placeholder="จำนวน" className="border p-1"/>
-              <input name="unit" onChange={handleFormChange} placeholder="หน่วยนับ" className="border p-1"/>
-              <input name="lowStockThreshold" type="number" onChange={handleFormChange} placeholder="จุดแจ้งเตือน" className="border p-1"/>
-              <button type="submit" className="border px-4 py-1 bg-gray-200">เพิ่ม</button>
+          <form onSubmit={handleAddMaterial} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+              {/* เลือกหมวดหมู่ */}
+              <div>
+                  <label className="block text-sm font-medium">หมวดหมู่</label>
+                  <select value={formCategory} onChange={e => {
+                      setFormCategory(e.target.value as Exclude<MaterialCategory, 'วัสดุอื่นๆ'>);
+                      setFormMaterialName(predefinedMaterials[e.target.value as keyof typeof predefinedMaterials][0]); // ตั้งค่า default ของวัสดุ
+                  }} className="border p-1 w-full">
+                      {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+              </div>
+
+              {/* เลือกชื่อวัสดุ (หรือกำหนดเอง) */}
+              <div>
+                  <label className="block text-sm font-medium">ชื่อวัสดุ</label>
+                  <select value={formMaterialName} onChange={e => setFormMaterialName(e.target.value)} className="border p-1 w-full">
+                      {materialOptions.map(name => <option key={name} value={name}>{name}</option>)}
+                      <option value="CUSTOM">-- เพิ่มวัสดุอื่น ๆ --</option>
+                  </select>
+              </div>
+              
+              {/* ช่องกรอกชื่อวัสดุเอง (จะแสดงเมื่อเลือก 'เพิ่มวัสดุอื่นๆ') */}
+              {formMaterialName === 'CUSTOM' && (
+                  <div>
+                      <label className="block text-sm font-medium">ระบุชื่อวัสดุเอง</label>
+                      <input value={customMaterialName} onChange={e => setCustomMaterialName(e.target.value)} placeholder="เช่น 'กระเบื้องลายหินอ่อน'" className="border p-1 w-full"/>
+                  </div>
+              )}
+              
+              {/* กรอกจำนวน, หน่วย, และจุดแจ้งเตือน */}
+              <input value={formQuantity} onChange={e => setFormQuantity(e.target.value)} type="number" placeholder="จำนวน" className="border p-1"/>
+              <input value={formUnit} onChange={e => setFormUnit(e.target.value)} placeholder="หน่วยนับ" className="border p-1"/>
+              <input value={formThreshold} onChange={e => setFormThreshold(e.target.value)} type="number" placeholder="จุดแจ้งเตือน" className="border p-1"/>
+
+              <button type="submit" className="border px-4 py-1 bg-gray-200 hover:bg-gray-300 col-span-full md:col-span-1">เพิ่ม</button>
           </form>
       </div>
       
-      {/* === ส่วนสำหรับ Filter หมวดหมู่ === */}
-      <div className="mb-4">
-        <p className="font-bold mb-2">เลือกหมวดหมู่:</p>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setSelectedCategory('ทั้งหมด')} className="border px-2 py-1">
-            ทั้งหมด
-          </button>
-          {categories.map(category => (
-            <button key={category} onClick={() => setSelectedCategory(category)} className="border px-2 py-1">
-              {category}
+      {/* === ส่วนควบคุมระบบจำลอง *** */}
+      <div className="border p-4 mb-4">
+        <h3 className="text-md font-bold mb-2">ระบบจำลองการเบิกจ่ายวัสดุ</h3>
+        <div className="flex items-center gap-4">
+            <button onClick={() => setIsSimulationRunning(prev => !prev)} className="border px-4 py-1 bg-blue-100">
+                {isSimulationRunning ? 'หยุดจำลอง' : 'เริ่มจำลอง'}
             </button>
-          ))}
+            <div>
+                <label>ความเร็ว: </label>
+                <select value={simulationSpeed} onChange={e => setSimulationSpeed(Number(e.target.value))} className="border p-1">
+                    <option value={3000}>ช้า (3 วินาที)</option>
+                    <option value={2000}>ปกติ (2 วินาที)</option>
+                    <option value={500}>เร็ว (0.5 วินาที)</option>
+                </select>
+            </div>
+            <p>สถานะ: {isSimulationRunning ? 'ทำงาน' : 'หยุด'}</p>
         </div>
       </div>
 
-      {/* === ส่วนตารางแสดงผล === */}
+      {/* === Filter (ใช้หมวดหมู่ทั้งหมดรวมถึง 'วัสดุอื่นๆ') === */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button onClick={() => setSelectedCategoryFilter('ทั้งหมด')} className="border px-2 py-1">ทั้งหมด</button>
+        {[...categories, 'วัสดุอื่นๆ'].map(cat => <button key={cat} onClick={() => setSelectedCategoryFilter(cat)} className="border px-2 py-1">{cat}</button>)}
+      </div>
+
+      {/* === ตารางแสดงผล (ปรับปรุงเรื่องสีและปุ่ม) === */}
       <div className="border">
         <table className="w-full">
-          {/* หัวตาราง */}
           <thead>
-            <tr className="border-b bg-gray-50">
+            <tr className="border-b bg-muted/50"> {/* ใช้สีจาก shadcn theme: muted */}
               <th className="p-2 text-left">ชื่อวัสดุ</th>
               <th className="p-2 text-left">หมวดหมู่</th>
               <th className="p-2 text-left">จำนวนคงเหลือ</th>
-              <th className="p-2 text-left">หน่วยนับ</th>
               <th className="p-2 text-left">สถานะ</th>
+              <th className="p-2 text-left">การดำเนินการ</th>
             </tr>
           </thead>
-          {/* เนื้อหาตาราง */}
           <tbody>
-            {/* (10) วน Loop ข้อมูลที่ผ่านการกรองแล้วเพื่อสร้างแถวของตาราง */}
             {filteredMaterials.map(material => {
-              
-              // (11) ตรวจสอบเงื่อนไขว่าวัสดุใกล้หมดสต็อกหรือไม่
               const isLowStock = material.quantity <= material.lowStockThreshold;
-
-              // (12) กำหนด class ให้กับแถวเมื่อของใกล้หมด เพื่อให้เห็นเด่นชัด
-              const rowClass = isLowStock ? 'bg-red-100' : '';
+              // *** ใหม่: ใช้ class ที่อิงกับ theme ของ shadcn ***
+              // bg-destructive/10 คือสีแดงโปร่งแสง 10%, text-destructive คือสีตัวอักษรแดง
+              const rowClass = isLowStock ? 'bg-destructive/10' : '';
 
               return (
                 <tr key={material.id} className={`border-b ${rowClass}`}>
                   <td className="p-2">{material.name}</td>
                   <td className="p-2">{material.category}</td>
-                  <td className="p-2">{material.quantity}</td>
-                  <td className="p-2">{material.unit}</td>
+                  <td className="p-2">{material.quantity} {material.unit}</td>
                   <td className="p-2">
-                    {/* (13) แสดงข้อความแจ้งเตือนในคอลัมน์ "สถานะ" */}
                     {isLowStock ? (
-                      <span className="text-red-600 font-bold">ใกล้หมด</span>
+                      <span className="font-bold text-destructive">ใกล้หมด</span>
                     ) : (
-                      <span>ปกติ</span>
+                      <span className="text-green-600">ปกติ</span>
+                    )}
+                  </td>
+                  <td className="p-2">
+                    {isLowStock && (
+                      <button onClick={() => handleRestockMaterial(material.id)} className="border px-2 py-1 text-sm bg-blue-500 text-white">
+                        เบิก/สั่งซื้อ
+                      </button>
                     )}
                   </td>
                 </tr>
