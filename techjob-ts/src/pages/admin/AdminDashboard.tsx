@@ -74,19 +74,72 @@ export default function AdminDashboard() {
                             <TabsTrigger value="finish">เสร็จ</TabsTrigger>
                         </TabsList>
                         <TabsContent value="newjob">
-                            <div>
+                            <div className=" grid grid-cols-3 gap-3">
                                 <Card>
+                                    {/* ส่วนหัว: ใส่ชื่องานและชื่อหัวหน้า */}
                                     <CardHeader>
-                                        <CardTitle>งานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
-                                        <CardDescription>รายละเอียดงาน </CardDescription>
-
+                                        <CardTitle>ชื่องานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
+                                        <CardDescription>หัวหน้างาน: คุณสมศักดิ์</CardDescription>
                                     </CardHeader>
+
+                                    {/* ส่วนเนื้อหา: ใส่รูป, จำนวนคน, และรายละเอียด */}
                                     <CardContent>
-                                        <p>Card Content</p>
+                                        {/* รูปภาพ (ใช้ URL placeholder ไปก่อน) */}
+                                        <img
+                                            src="https://earthcraftvirginia.org/wp-content/uploads/2022/08/CCCon_0.jpg"
+                                            alt="ภาพหน้างาน"
+                                            className="w-full rounded-md mb-4" // ใส่ w-full ให้เต็ม, rounded-md ให้ขอบมน, mb-4 เว้นระยะล่าง
+                                        />
+
+                                        {/* จำนวนสมาชิก */}
+                                        <p className="font-semibold">จำนวนสมาชิก: 5 คน</p>
+
+                                        {/* รายละเอียดงาน (เอาแค่ย่อหน้าเดียวสั้นๆ) */}
+                                        <p className="text-sm text-slate-600 mt-2">
+                                            นี่คือส่วนของรายละเอียดงานแบบย่อๆ เพื่อให้ผู้ใช้งานเห็นภาพรวมของงาน
+                                            ก่อนที่จะกดเข้าไปอ่านเพิ่มเติม...
+                                        </p>
                                     </CardContent>
+
+                                    {/* ส่วนท้าย: ใส่ปุ่ม */}
                                     <CardFooter>
-                                        <p>Card Footer</p>
+                                        <Button>อ่านรายละเอียดเพิ่มเติม</Button>
                                     </CardFooter>
+
+                                </Card>
+                                <Card>
+                                    {/* ส่วนหัว: ใส่ชื่องานและชื่อหัวหน้า */}
+                                    <CardHeader>
+                                        <CardTitle>ชื่องานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
+                                        <CardDescription>หัวหน้างาน: คุณสมศักดิ์</CardDescription>
+                                    </CardHeader>
+
+                                    {/* ส่วนเนื้อหา: ใส่รูป, จำนวนคน, และรายละเอียด */}
+                                    <CardContent>
+                                        {/* รูปภาพ (ใช้ URL placeholder ไปก่อน) */}
+                                        <div className="relative w-full h-48 overflow-hidden rounded-md mb-4">
+                                            <img
+                                                src="https://earthcraftvirginia.org/wp-content/uploads/2022/08/CCCon_0.jpg"
+                                                alt="ภาพหน้างาน"
+                                                className="absolute top-0 left-0 w-full h-full object-cover" // ใส่ w-full ให้เต็ม, rounded-md ให้ขอบมน, mb-4 เว้นระยะล่าง
+                                            />
+                                        </div>
+
+                                        {/* จำนวนสมาชิก */}
+                                        <p className="font-semibold">จำนวนสมาชิก: 5 คน</p>
+
+                                        {/* รายละเอียดงาน (เอาแค่ย่อหน้าเดียวสั้นๆ) */}
+                                        <p className="text-sm text-slate-600 mt-2">
+                                            นี่คือส่วนของรายละเอียดงานแบบย่อๆ เพื่อให้ผู้ใช้งานเห็นภาพรวมของงาน
+                                            ก่อนที่จะกดเข้าไปอ่านเพิ่มเติม...
+                                        </p>
+                                    </CardContent>
+
+                                    {/* ส่วนท้าย: ใส่ปุ่ม */}
+                                    <CardFooter>
+                                        <Button>อ่านรายละเอียดเพิ่มเติม</Button>
+                                    </CardFooter>
+
                                 </Card>
                             </div>
                         </TabsContent>
