@@ -89,7 +89,7 @@ export default function AdminNavbar() {
             </NavLink>
 
             <NavLink
-              to="/admin/settings"
+              to="/admin/setting"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
