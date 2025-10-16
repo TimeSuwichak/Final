@@ -1,9 +1,9 @@
 import React from 'react'
 
-function setting() {
+function Setting() {
   return (
-    <div>setting</div>
+    <div>sdsd</div>
   )
 }
 
-export default setting
+export default Setting

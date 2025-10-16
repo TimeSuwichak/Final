@@ -15,6 +15,7 @@ import Report from "./pages/admin/Report";
 import WorkOders from "./pages/admin/WorkOders";
 import MaterialPage from "./pages/admin/Material";
 import { Settings } from "lucide-react";
+import Setting from "./pages/commom/Setting";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       },
       {
         path: "Setting",
-        element:<Settings/>
+        element: <Setting/>,
       }
     ],
   },
