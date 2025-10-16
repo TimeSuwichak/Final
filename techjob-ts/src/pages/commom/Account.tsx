@@ -1,115 +1,103 @@
-import { useState } from "react"
+import React from 'react'
 
-export default function Account() {
-  const [activeMenu, setActiveMenu] = useState("")
-
+function Account() {
   return (
-    <div className="bg-black min-h-screen text-gray-300">
-      {/* Header */}
-      <header className="flex justify-between items-center px-6 py-4 bg-neutral-950 border-b border-gray-800">
-        <h2 className="text-2xl font-bold text-white">Setting Dashboard</h2>
-        <button className="bg-[#5F5AFF] hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition">
-          CREATE JOB
-        </button>
-      </header>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <div
-          className="w-64 bg-neutral-950 p-4 flex flex-col justify-between border-r border-gray-800"
-          style={{ height: "calc(100vh - 68px)" }}
-        >
-          <div>
-            <input
-              type="text"
-              placeholder="search..."
-              className="w-full p-2 bg-black border border-gray-800 rounded-lg text-lg text-white focus:outline-none focus:border-gray-600 mb-4"
-            />
-            <ul className="space-y-1">
-              {[
-                "ตั้งค่าโปรไฟล์",
-                "ตั้งค่าบัญชี",
-                "UI Theme",
-                "ความปลอดภัย",
-                "การตั้งค่าระบบ",
-                "การตั้งค่าการแจ้งเตือน",
-              ].map((item) => (
-                <li
-                  key={item}
-                  onClick={() => setActiveMenu(item)}
-                  className={`p-2 rounded-lg text-lg cursor-pointer transition ${
-                    activeMenu === item
-                      ? "bg-gray-800 text-white"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                  }`}
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="mt-auto pt-4 border-t border-gray-800">
-            <button className="w-full bg-red-900 text-white p-2 rounded-lg hover:bg-red-800 transition">
-              ลบบัญชี
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 bg-black text-white">
-          {activeMenu === "" && (
-            <div className="flex justify-center items-center h-full text-center text-gray-600">
-              <div>
-                <svg
-                  className="w-20 h-20 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="text-lg text-gray-400">
-                  หน้าว่างเปล่า โปรดเลือกเมนู หรือค้นหาการตั้งค่า
-                </p>
-              </div>
-            </div>
-          )}
-
-          {activeMenu === "ตั้งค่าโปรไฟล์" && (
-            <div>
-              <h3 className="text-2xl font-semibold mb-4">ตั้งค่าโปรไฟล์</h3>
-              <p>คุณสามารถแก้ไขชื่อ, อีเมล หรือรูปโปรไฟล์ได้ที่นี่</p>
-            </div>
-          )}
-
-          {activeMenu === "ตั้งค่าบัญชี" && (
-            <div>
-              <h3 className="text-2xl font-semibold mb-4">ตั้งค่าบัญชี</h3>
-              <p>ตั้งค่ารหัสผ่าน, การยืนยันตัวตน และข้อมูลเข้าสู่ระบบ</p>
-            </div>
-          )}
-
-          {activeMenu === "UI Theme" && (
-            <div>
-              <h3 className="text-2xl font-semibold mb-4">UI Theme</h3>
-              <p>ปรับสีพื้นหลังหรือธีมของระบบได้ที่นี่</p>
-            </div>
-          )}
-          {activeMenu === "Security" && (
-            <div>
-              <h3 className="text-2xl font-semibold mb-4">Security</h3>
-              <p>ปรับสีพื้นหลังหรือธีมของระบบได้ที่นี่</p>
-            </div>
-          )}
-        </main>
-      </div>
+    <div className="space-y-8 text-white w-full p-6">
+    <div className="mb-8">
+        <h3 className="text-2xl font-extrabold text-white">ตั้งค่าบัญชี</h3>
+        <p className="text-gray-400 text-lg pt-2 border-b border-gray-800 pb-4">
+            จัดการภาษา การแจ้งเตือน และข้อมูลติดต่อฉุกเฉิน
+        </p>
     </div>
+    <div className="p-6 bg-neutral-900 rounded-xl shadow-xl space-y-4 border-l-4 border-[#5F5AFF]">
+        <h3 className="text-xl font-bold border-b border-gray-800 pb-3 text-gray-200">ตั้งค่าโซนเวลา</h3>
+        <div className="flex justify-between items-center py-2">
+            <label htmlFor="timezone" className="text-lg w-1/3 text-gray-300">โซนเวลา</label>
+            <select id="timezone" className="p-2 bg-black border border-gray-700 rounded-lg w-2/3 focus:ring-[#5F5AFF] focus:border-[#5F5AFF] text-white transition duration-200">
+                <option className="bg-neutral-900">Asia/Bangkok (UTC+7)</option>
+                <option className="bg-neutral-900">America/New York (UTC-5)</option>
+                <option className="bg-neutral-900">Europe/London (UTC+0)</option>
+                <option className="bg-neutral-900">Asia/Tokyo (UTC+9)</option>
+            </select>
+        </div>
+    </div>
+
+    <div className="p-6 bg-neutral-900 rounded-xl shadow-xl space-y-5 border-l-4 border-gray-700 hover:border-l-4 hover:border-[#5F5AFF] transition duration-300">
+    <h3 className="text-2xl font-bold border-b border-gray-800 pb-3 text-white">การแจ้งเตือนและการสื่อสาร</h3>
+    <div className="space-y-3 pt-2">
+        <p className="text-gray-400 font-bold border-b border-gray-800 pb-2 text-base">ช่องทางการแจ้งเตือน</p>
+        <div className="flex items-center space-x-10">
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input 
+                    type="checkbox" 
+                    defaultChecked 
+                    className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md h-5 w-5 focus:ring-[#5F5AFF] transition duration-150" 
+                />
+                <span className="text-gray-200 text-lg group-hover:text-white transition duration-150">อีเมล</span>
+            </label>
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input 
+                    type="checkbox" 
+                    defaultChecked 
+                    className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md h-5 w-5 focus:ring-[#5F5AFF] transition duration-150" 
+                />
+                <span className="text-gray-200 text-lg group-hover:text-white transition duration-150">Push Notification</span>
+            </label>
+        </div>
+    </div>
+    <div className="space-y-3 pt-4 border-t border-gray-800">
+        <p className="text-gray-400 font-bold border-b border-gray-800 pb-2 text-base">แจ้งเตือนเมื่อเกิดกิจกรรม</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 pt-2">
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input type="checkbox" defaultChecked className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md focus:ring-[#5F5AFF]" />
+                <span className="text-gray-300 group-hover:text-white transition">ผู้ใช้ใหม่/การลงทะเบียน</span>
+            </label>
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input type="checkbox" className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md focus:ring-[#5F5AFF]" />
+                <span className="text-gray-300 group-hover:text-white transition">การแก้ไขข้อมูลสำคัญ</span>
+            </label>
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input type="checkbox" defaultChecked className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md focus:ring-[#5F5AFF]" />
+                <span className="text-gray-300 group-hover:text-white transition">ปัญหาระบบ/ข้อผิดพลาด</span>
+            </label>
+            <label className="flex items-center space-x-3 cursor-pointer group">
+                <input type="checkbox" className="form-checkbox text-[#5F5AFF] bg-black border-gray-600 rounded-md focus:ring-[#5F5AFF]" />
+                <span className="text-gray-300 group-hover:text-white transition">รายงานรายสัปดาห์</span>
+            </label>
+        </div>
+    </div>
+</div>
+    <div className="p-6 bg-neutral-900 rounded-xl shadow-xl space-y-4">
+        <h3 className="text-xl font-bold border-b border-gray-800 pb-3 text-gray-200">ข้อมูลติดต่อสำรอง/ฉุกเฉิน</h3>
+        
+        <div className="grid grid-cols-1 gap-5 pt-2">
+            <div>
+                <label htmlFor="emergency_email" className="block text-gray-400 font-medium mb-2">อีเมลสำรอง</label>
+                <input 
+                    type="email" 
+                    id="emergency_email" 
+                    defaultValue="backup@oreo.com" 
+                    className="w-full p-3 bg-black border border-gray-700 rounded-lg focus:ring-2 focus:ring-[#5F5AFF] focus:border-transparent text-white transition duration-200" 
+                />
+            </div>
+            <div>
+                <label htmlFor="emergency_phone" className="block text-gray-400 font-medium mb-2">เบอร์โทรสำรอง</label>
+                <input 
+                    type="text" 
+                    id="emergency_phone" 
+                    defaultValue="08xxxxxxxx" 
+                    className="w-full p-3 bg-black border border-gray-700 rounded-lg focus:ring-2 focus:ring-[#5F5AFF] focus:border-transparent text-white transition duration-200" 
+                />
+            </div>
+        </div>
+        <div className="flex justify-end pt-3">
+            <button className="px-6 py-2 bg-[#5F5AFF] text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
+                บันทึกข้อมูลติดต่อสำรอง
+            </button>
+        </div>
+    </div>
+</div>
   )
 }
+
+export default Account
