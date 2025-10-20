@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 
 import {
     Dialog,
@@ -63,14 +63,42 @@ export default function AdminDashboard() {
 
     // 1. State สำหรับเก็บ "รายการงานทั้งหมด"
     // เราใส่ initialJobs เข้าไปเพื่อให้มีข้อมูลเริ่มต้น 1 งาน
-    const [jobs, setJobs] = useState(initialJobs);
+    // เปลี่ยนจากการกำหนดค่าเริ่มต้นตรงๆ เป็นการใช้ฟังก์ชัน
+    const [jobs, setJobs] = useState(() => {
+        // ลองดึงข้อมูลจาก localStorage ที่เราตั้งชื่อว่า 'myJobs'
+        const savedJobs = localStorage.getItem('myJobs');
+        // ถ้ามีข้อมูลที่เคยเซฟไว้
+        if (savedJobs) {
+            // ให้แปลงข้อมูลจาก string กลับเป็น array/object แล้วใช้เป็นค่าเริ่มต้น
+            return JSON.parse(savedJobs);
+        } else {
+            // ถ้าไม่มีข้อมูลเก่า ก็ให้ใช้ initialJobs เป็นค่าเริ่มต้น
+            return initialJobs;
+        }
+    });
 
+    // useEffect จะทำงานทุกครั้งที่ค่าใน [ ] เปลี่ยนไป
+    useEffect(() => {
+        // ทุกครั้งที่ 'jobs' state เปลี่ยน (มีงานเพิ่ม)
+        // ให้เอาข้อมูล jobs ล่าสุดไปเซฟลง localStorage
+        localStorage.setItem('myJobs', JSON.stringify(jobs));
+    }, [jobs]); // <-- บอกให้ useEffect ทำงานเมื่อ `jobs` เปลี่ยนแปลงเท่านั้น
     // 2. State สำหรับเก็บ "ตัวเลขสรุปบนแดชบอร์ด"
-    const [stats, setStats] = useState({
-        new: initialJobs.length, // เริ่มต้นให้นับจากจำนวนงานแรก
+
+const [stats, setStats] = useState({
+        new: jobs.length,
         inProgress: 12,
         completed: 89,
     });
+
+    // เราต้องใช้ useEffect อีกตัวเพื่ออัปเดตตัวเลขบนแดชบอร์ด
+    // เมื่อ jobs มีการเปลี่ยนแปลง (เช่น เพิ่มงานใหม่)
+    useEffect(() => {
+        setStats(prevStats => ({
+            ...prevStats,
+            new: jobs.length
+        }));
+    }, [jobs]);
 
     // 3. State สำหรับควบคุมการเปิด/ปิด Dialog โดยเฉพาะ
     // ทำให้เราสามารถสั่งปิด Dialog จากโค้ดได้
@@ -142,21 +170,21 @@ export default function AdminDashboard() {
                             {/* 1.1 งานใหม่ */}
                             <div className="flex flex-col items-center gap-2">
                                 <FaRegFileAlt className="h-6 w-6 text-blue-500" />
-                                
+
                                 <p className="text-sm text-muted-foreground">งานใหม่</p>
                                 <p className="text-2xl font-bold">{stats.new}</p>
                             </div>
                             {/* 1.2 กำลังดำเนินงาน */}
                             <div className="flex flex-col items-center gap-2">
                                 <FaSyncAlt className="h-6 w-6 text-amber-500 animate-spin" style={{ animationDuration: '2s' }} />
-                                
+
                                 <p className="text-sm text-muted-foreground">กำลังทำ</p>
                                 <p className="text-2xl font-bold">{stats.inProgress}</p>
                             </div>
                             {/* 1.3 เสร็จสิ้น */}
                             <div className="flex flex-col items-center gap-2">
                                 <FaCheckCircle className="h-6 w-6 text-green-500" />
-                                
+
                                 <p className="text-sm text-muted-foreground">เสร็จสิ้น</p>
                                 <p className="text-2xl font-bold">{stats.completed}</p>
                             </div>
@@ -238,7 +266,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             </div>
-            <ShowCard jobs={jobs}/>
+            <ShowCard jobs={jobs} />
         </div >
 
     );

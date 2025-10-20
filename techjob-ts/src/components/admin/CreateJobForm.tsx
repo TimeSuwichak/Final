@@ -29,8 +29,18 @@ export function CreateJobForm({ onSubmit }) {
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            // สร้าง URL ชั่วคราวสำหรับรูปภาพที่เลือกเพื่อแสดงผล
-            setImagePreview(URL.createObjectURL(file));
+            // 1. สร้างเครื่องมือ FileReader ขึ้นมา
+            const reader = new FileReader();
+
+            // 2. สั่งให้ reader เริ่มอ่านไฟล์และแปลงเป็น Base64
+            reader.readAsDataURL(file);
+
+            // 3. ตั้งค่าว่า "เมื่อไหร่ที่แปลงไฟล์เสร็จเรียบร้อย" ให้ทำอะไรต่อ
+            reader.onloadend = () => {
+                // reader.result จะมีค่าเป็นข้อความ Base64 (เช่น "data:image/jpeg;base64,...")
+                // เราเอามันไปเก็บใน State เพื่อแสดงตัวอย่าง
+                setImagePreview(reader.result as string);
+            };
         }
     };
 
@@ -112,7 +122,7 @@ export function CreateJobForm({ onSubmit }) {
                     <Label htmlFor="location" className="text-right">
                         เลือกหัวหน้างาน
                     </Label>
-                    <TeamLeadSelector/>
+                    <TeamLeadSelector />
                 </div>
                 {/* ช่องเลือกช่าง */}
                 <div className="grid grid-cols-4 items-center gap-4">
