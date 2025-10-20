@@ -41,6 +41,7 @@ import {
 } from "react-icons/fa";
 import { CreateJobForm } from "@/components/admin/CreateJobForm";
 import ShowCard from "@/components/admin/ShowCard";
+import { user } from "@/Data/user";
 
 // ======================= DATA จำลอง =======================
 // ปกติข้อมูลนี้จะมาจาก Database แต่เราจะจำลองขึ้นมาก่อน
@@ -267,6 +268,7 @@ const [stats, setStats] = useState({
                 </div>
             </div>
             <ShowCard jobs={jobs} />
+
         </div >
 
     );
