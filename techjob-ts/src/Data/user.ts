@@ -1,8 +1,16 @@
- export const user = [
+export const user = [
     {
-        id:1,
-        name:"thomas",
-        position:"Infrastructure Systems Engineer",
-        department:"Network & Security Department"
+        id: 1,
+        fname: "หมูแแดง",
+        lname: "เทคโน",
+        position: "วิศวกรระบบโครงสร้างพื้นฐาน",
+        department: "แผนกระบบเครือข่ายและความปลอดภัย"
+    },
+    {
+        id: 2,
+        fname: "รีฟ",
+        lname: "บาสุก้า",
+        position: "วิศวกรระบบโครงสร้างพื้นฐาน",
+        department: "แผนกระบบเครือข่ายและความปลอดภัย"
     },
 ]
