@@ -17,7 +17,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +34,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Search } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 // รายชื่อสุ่มภาษาไทย
 const thaiNames = [
@@ -65,6 +77,10 @@ export default function Datauser() {
   const [filterType, setFilterType] = useState("ทั้งหมด")
   const [filterPosition, setFilterPosition] = useState("ทั้งหมด")
 
+  // ✅ state สำหรับ popup
+  const [openEdit, setOpenEdit] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+
   const pageSize = 10
 
   // กรองข้อมูลด้วย search, filterType และ filterPosition
@@ -90,7 +106,6 @@ export default function Datauser() {
     <div className="w-full space-y-4">
       {/* Search + Filters */}
       <div className="flex flex-col md:flex-row justify-between gap-2 items-center">
-        {/* Search box */}
         <div className="flex items-center gap-2 w-full md:w-1/2">
           <div className="relative w-full">
             <Search className="absolute left-2 top-2.5 text-muted-foreground w-4 h-4" />
@@ -106,9 +121,7 @@ export default function Datauser() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex items-center gap-2">
-          {/* Filter: ตำแหน่ง */}
           <Select
             value={filterPosition}
             onValueChange={(v) => {
@@ -120,7 +133,7 @@ export default function Datauser() {
               <SelectValue placeholder="เลือกตำแหน่ง" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ทั้งหมด">ทั้งหมด</SelectItem>
+              <SelectItem value="ทั้งหมด">เลือกตำแหน่ง (ทั้งหมด)</SelectItem>
               <SelectItem value="ช่าง">ช่าง</SelectItem>
               <SelectItem value="หัวหน้าช่าง">หัวหน้าช่าง</SelectItem>
               <SelectItem value="แอดมิน">แอดมิน</SelectItem>
@@ -128,7 +141,6 @@ export default function Datauser() {
             </SelectContent>
           </Select>
 
-          {/* Filter: ประเภท */}
           <Select
             value={filterType}
             onValueChange={(v) => {
@@ -140,7 +152,7 @@ export default function Datauser() {
               <SelectValue placeholder="เลือกประเภท" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ทั้งหมด">ทั้งหมด</SelectItem>
+              <SelectItem value="ทั้งหมด">เลือกประเภท (ทั้งหมด)</SelectItem>
               <SelectItem value="ไฟฟ้า">ไฟฟ้า</SelectItem>
               <SelectItem value="เครื่องกล">เครื่องกล</SelectItem>
               <SelectItem value="โยธา">โยธา</SelectItem>
@@ -191,7 +203,12 @@ export default function Datauser() {
                       <DropdownMenuItem onClick={() => alert(`ดูข้อมูลของ ${item.name}`)}>
                         ดูรายละเอียด
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => alert(`แก้ไข ${item.name}`)}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedUser(item)
+                          setOpenEdit(true)
+                        }}
+                      >
                         แก้ไข
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -221,6 +238,20 @@ export default function Datauser() {
       <div className="flex justify-end">
         <PaginationDemo page={page} setPage={setPage} totalPages={totalPages} />
       </div>
+
+      {/* ✅ Popup (Modal) แก้ไข */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>แก้ไขข้อมูลผู้ใช้</DialogTitle>
+          </DialogHeader>
+
+          {/* ตอนนี้ยังว่างเปล่า */}
+          <div className="py-6 text-center text-muted-foreground">
+            (ยังไม่มีข้อมูลใน popup — จะเพิ่มฟอร์มแก้ไขภายหลัง)
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -236,36 +267,22 @@ function PaginationDemo({
   totalPages: number
 }) {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
-
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={() => setPage(Math.max(1, page - 1))}
-          />
+          <PaginationPrevious href="#" onClick={() => setPage(Math.max(1, page - 1))} />
         </PaginationItem>
-
         {pages.map((p) => (
           <PaginationItem key={p}>
-            <PaginationLink
-              href="#"
-              isActive={page === p}
-              onClick={() => setPage(p)}
-            >
+            <PaginationLink href="#" isActive={page === p} onClick={() => setPage(p)}>
               {p}
             </PaginationLink>
           </PaginationItem>
         ))}
-
         {totalPages > 5 && <PaginationEllipsis />}
-
         <PaginationItem>
-          <PaginationNext
-            href="#"
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-          />
+          <PaginationNext href="#" onClick={() => setPage(Math.min(totalPages, page + 1))} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
