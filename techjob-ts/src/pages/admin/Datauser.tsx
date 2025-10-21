@@ -102,7 +102,7 @@ export default function Datauser() {
       {/* Search + Filters */}
       <div className="flex flex-col md:flex-row justify-between gap-2 items-center">
         <div className="flex items-center gap-2 w-full md:w-1/2">
-          <div className="relative w-full">
+          <div className="relative w-full ml-10">
             <Search className="absolute left-2 top-2.5 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="ค้นหาชื่อหรืออีเมล..."
@@ -111,7 +111,7 @@ export default function Datauser() {
                 setQuery(e.target.value)
                 setPage(1)
               }}
-              className="pl-8"
+              className="pl-8 "
             />
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function Datauser() {
             {pagedData.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-3 bg-white rounded-lg p-3 shadow-sm"
+                className="flex items-center justify-between gap-3 rounded-lg p-3 shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <img src={item.urlImage} alt={item.name} className="w-10 h-10 rounded-full object-cover" />
