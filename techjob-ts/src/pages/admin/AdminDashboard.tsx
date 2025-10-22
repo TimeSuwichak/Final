@@ -1,16 +1,15 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuRadioGroup,
-    DropdownMenuRadioItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { AppWindowIcon, CodeIcon } from "lucide-react"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 import {
     Card,
@@ -29,8 +28,107 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 
+import {
+    FaRegFileAlt,
+    FaSyncAlt,
+    FaCheckCircle,
+    FaUserCheck,
+    FaUserClock,
+    FaUserTimes,
+    FaPlusSquare,
+    FaExclamationTriangle,
+    FaChartBar
+} from "react-icons/fa";
+import { CreateJobForm } from "@/components/admin/CreateJobForm";
+import ShowCard from "@/components/admin/ShowCard";
+import { user } from "@/Data/user";
+
+// ======================= DATA จำลอง =======================
+// ปกติข้อมูลนี้จะมาจาก Database แต่เราจะจำลองขึ้นมาก่อน
+const initialJobs = [
+    {
+        id: 'JOB-001',
+        title: 'ซ่อมหลังคารั่วซึม อาคาร C',
+        teamLead: 'คุณสมศักดิ์ ดีพร้อม',
+        members: 3,
+        imageUrl: 'https://images.unsplash.com/photo-1564078516393-cf04bd966897?w=500&q=80',
+        description: 'ซ่อมแซมหลังคาบริเวณดาดฟ้าอาคาร C เนื่องจากมีรอยรั่วซึมหลังฝนตกหนัก ต้องตรวจสอบและอุดรอยรั่วทั้งหมด'
+    }
+];
+
+// ==========================================================
+
 export default function AdminDashboard() {
     const [position, setPosition] = React.useState("bottom")
+    // ▼▼▼ ส่วนที่เพิ่มเข้ามา ▼▼▼
+
+    // 1. State สำหรับเก็บ "รายการงานทั้งหมด"
+    // เราใส่ initialJobs เข้าไปเพื่อให้มีข้อมูลเริ่มต้น 1 งาน
+    // เปลี่ยนจากการกำหนดค่าเริ่มต้นตรงๆ เป็นการใช้ฟังก์ชัน
+    const [jobs, setJobs] = useState(() => {
+        // ลองดึงข้อมูลจาก localStorage ที่เราตั้งชื่อว่า 'myJobs'
+        const savedJobs = localStorage.getItem('myJobs');
+        // ถ้ามีข้อมูลที่เคยเซฟไว้
+        if (savedJobs) {
+            // ให้แปลงข้อมูลจาก string กลับเป็น array/object แล้วใช้เป็นค่าเริ่มต้น
+            return JSON.parse(savedJobs);
+        } else {
+            // ถ้าไม่มีข้อมูลเก่า ก็ให้ใช้ initialJobs เป็นค่าเริ่มต้น
+            return initialJobs;
+        }
+    });
+
+    // useEffect จะทำงานทุกครั้งที่ค่าใน [ ] เปลี่ยนไป
+    useEffect(() => {
+        // ทุกครั้งที่ 'jobs' state เปลี่ยน (มีงานเพิ่ม)
+        // ให้เอาข้อมูล jobs ล่าสุดไปเซฟลง localStorage
+        localStorage.setItem('myJobs', JSON.stringify(jobs));
+    }, [jobs]); // <-- บอกให้ useEffect ทำงานเมื่อ `jobs` เปลี่ยนแปลงเท่านั้น
+    // 2. State สำหรับเก็บ "ตัวเลขสรุปบนแดชบอร์ด"
+
+const [stats, setStats] = useState({
+        new: jobs.length,
+        inProgress: 12,
+        completed: 89,
+    });
+
+    // เราต้องใช้ useEffect อีกตัวเพื่ออัปเดตตัวเลขบนแดชบอร์ด
+    // เมื่อ jobs มีการเปลี่ยนแปลง (เช่น เพิ่มงานใหม่)
+    useEffect(() => {
+        setStats(prevStats => ({
+            ...prevStats,
+            new: jobs.length
+        }));
+    }, [jobs]);
+
+    // 3. State สำหรับควบคุมการเปิด/ปิด Dialog โดยเฉพาะ
+    // ทำให้เราสามารถสั่งปิด Dialog จากโค้ดได้
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // 4. ฟังก์ชันสำหรับ "เพิ่มงานใหม่" (นี่คือหัวใจของระบบ)
+    const handleCreateJob = (newJobData) => {
+        // สร้าง ID ใหม่ที่ไม่ซ้ำใคร (แบบง่ายที่สุดคือใช้วันที่และเวลาปัจจุบัน)
+        const newJob = {
+            ...newJobData,
+            id: `JOB-${Date.now()}`
+        };
+
+        // อัปเดต State รายการงานทั้งหมด
+        // โดยเอางานใหม่มาใส่ไว้บนสุดของ list
+        setJobs(prevJobs => [newJob, ...prevJobs]);
+
+        // อัปเดต State ตัวเลขบนแดชบอร์ด
+        setStats(prevStats => ({
+            ...prevStats,
+            new: prevStats.new + 1, // บวกจำนวนงานใหม่เพิ่ม 1
+        }));
+
+        // สั่งปิด Dialog หลังจากสร้างงานเสร็จเรียบร้อย
+        setIsDialogOpen(false);
+        console.log("New Job Created!", newJob);
+    };
+
+    // ▲▲▲ สิ้นสุดส่วนที่เพิ่มเข้ามา ▲▲▲
     return (
 
         <div className="flex-1 p-4 md:p-8 bg-background">
@@ -40,182 +138,136 @@ export default function AdminDashboard() {
                     ข้อมูลภาพรวม
                 </h2>
 
-                <button className="bg-[#5F5AFF] px-4 py-2 rounded-lg hover:bg-[#4b48c7] transition-colorsdark:bg-[#4b48c7] dark:hover:bg-[#5F5AFF] text-white ">
-                    + CREATE JOB
-                </button>
+                {/* ▼▼▼ แก้ไขปุ่ม ให้กลายเป็นตัวเปิด Dialog ▼▼▼ */}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-[#5F5AFF] hover:bg-[#4b48c7] text-white">
+                            + CREATE JOB
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[725px]">
+                        <DialogHeader>
+                            <DialogTitle>สร้างใบงานใหม่</DialogTitle>
+                            <DialogDescription>
+                                กรอกรายละเอียดข้อมูลใบงานให้ครบถ้วนเพื่อมอบหมายงาน
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {/* เราจะเอาฟอร์มที่สร้างใน Step 3 มาใส่ตรงนี้ */}
+                        {/* โดยส่งฟังก์ชัน handleCreateJob เข้าไปให้ฟอร์มเอาไว้เรียกใช้ */}
+                        <CreateJobForm onSubmit={handleCreateJob} />
+
+                    </DialogContent>
+                </Dialog>
             </div>
 
-            <div className="bg-card border border-border rounded-xl h-[600px] p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
-                    <div className="border border-border rounded-lg flex  justify-between p-5 text-muted-foreground ">
-                        <p>งานใหม่</p>
-                        <p>กำลังดำเนินงาน</p>
-                        <p>เสร็จสิ้น</p>
+            <div className="bg-card shadow-sm rounded-xl p-4 md:p-6">
+                {/* โครงสร้าง Grid 4 ช่องของคุณ (ไม่ต้องแก้) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* ==================== ช่องที่ 1: สถานะงาน (โครงสร้างเดิม) ==================== */}
+                    <div className="border border-border rounded-lg p-4 flex flex-col justify-center">
+                        <div className="flex justify-around items-center text-center">
+                            {/* 1.1 งานใหม่ */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaRegFileAlt className="h-6 w-6 text-blue-500" />
+
+                                <p className="text-sm text-muted-foreground">งานใหม่</p>
+                                <p className="text-2xl font-bold">{stats.new}</p>
+                            </div>
+                            {/* 1.2 กำลังดำเนินงาน */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaSyncAlt className="h-6 w-6 text-amber-500 animate-spin" style={{ animationDuration: '2s' }} />
+
+                                <p className="text-sm text-muted-foreground">กำลังทำ</p>
+                                <p className="text-2xl font-bold">{stats.inProgress}</p>
+                            </div>
+                            {/* 1.3 เสร็จสิ้น */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaCheckCircle className="h-6 w-6 text-green-500" />
+
+                                <p className="text-sm text-muted-foreground">เสร็จสิ้น</p>
+                                <p className="text-2xl font-bold">{stats.completed}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="border border-border rounded-lg flex items-center justify-between text-muted-foreground">
-                        <p className="mx-auto">ออนไลน์</p>
-                        <p className="mx-auto">อยู่ในระหว่างการทำงาน</p>
+
+                    {/* ==================== ช่องที่ 2: สถานะช่าง (โครงสร้างเดิม) ==================== */}
+                    <div className="border border-border rounded-lg p-4 flex flex-col gap-3">
+                        <h3 className="font-semibold text-center text-foreground">สถานะของช่าง</h3>
+                        <div className="flex justify-around items-center text-center">
+                            {/* 2.1 ออนไลน์ */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaUserCheck className="h-6 w-6 text-green-500" />
+                                <p className="text-2xl font-bold">8</p>
+                                <p className="text-sm text-muted-foreground">ออนไลน์</p>
+                            </div>
+                            {/* 2.2 กำลังทำงาน */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaUserClock className="h-6 w-6 text-amber-500" />
+                                <p className="text-2xl font-bold">12</p>
+                                <p className="text-sm text-muted-foreground">กำลังทำงาน</p>
+                            </div>
+                            {/* 2.3 ออฟไลน์ */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaUserTimes className="h-6 w-6 text-slate-400" />
+                                <p className="text-2xl font-bold">3</p>
+                                <p className="text-sm text-muted-foreground">ออฟไลน์</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="border border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                        <p>วัสดุที่เพิ่มเข้ามา</p>
-                        <p>วัสดุที่ใกล้หมด</p>
+
+                    {/* ==================== ช่องที่ 3: วัสดุ (โครงสร้างเดิม) ==================== */}
+                    <div className="border border-border rounded-lg p-4 flex flex-col justify-center">
+                        <div className="flex justify-around items-center text-center">
+                            {/* 3.1 วัสดุที่เพิ่มเข้ามา */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaPlusSquare className="h-6 w-6 text-primary" />
+                                <p className="text-2xl font-bold">4</p>
+                                <p className="text-sm text-muted-foreground">เพิ่มล่าสุด</p>
+                            </div>
+                            {/* 3.2 วัสดุใกล้หมด */}
+                            <div className="flex flex-col items-center gap-2">
+                                <FaExclamationTriangle className="h-6 w-6 text-destructive" />
+                                <p className="text-2xl font-bold">2</p>
+                                <p className="text-sm text-muted-foreground">ใกล้หมด</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="border border-border rounded-lg flex items-center justify-center text-muted-foreground">
-                        ช่องที่ 4
+
+                    {/* ==================== ช่องที่ 4: กราฟ (โครงสร้างเดิม) ==================== */}
+                    <div className="border border-border rounded-lg p-4 flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                            <FaChartBar className="h-5 w-5 text-muted-foreground" />
+                            <h3 className="font-semibold text-foreground">สถิติงาน (7 วันล่าสุด)</h3>
+                        </div>
+                        {/* ส่วนจำลองกราฟแท่ง */}
+                        <div className="flex-1 flex items-end justify-between gap-2 text-center">
+                            <div className="w-full flex flex-col items-center gap-1">
+                                <div className="w-full bg-border rounded-t-sm h-16"></div>
+                                <p className="text-xs text-muted-foreground">จ</p>
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-1">
+                                <div className="w-full bg-border rounded-t-sm h-24"></div>
+                                <p className="text-xs text-muted-foreground">อ</p>
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-1">
+                                <div className="w-full bg-primary/50 rounded-t-sm h-32"></div>
+                                <p className="text-xs text-muted-foreground">พ</p>
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-1">
+                                <div className="w-full bg-border rounded-t-sm h-20"></div>
+                                <p className="text-xs text-muted-foreground">พฤ</p>
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-1">
+                                <div className="w-full bg-border rounded-t-sm h-28"></div>
+                                <p className="text-xs text-muted-foreground">ศ</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div className="border border-border flex  mt-10">
-                <Tabs>
-                    <TabsList>
-                        <TabsTrigger value="newjob">ใบงานใหม่</TabsTrigger>
-                        <TabsTrigger value="prosate">กำลังดำเนินงาน</TabsTrigger>
-                        <TabsTrigger value="finish">เสร็จ</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="newjob">
-                        <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ">
-                            <Card>
-                                {/* ส่วนหัว: ใส่ชื่องานและชื่อหัวหน้า */}
-                                <CardHeader>
-                                    <CardTitle>ชื่องานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
-                                    <CardDescription>หัวหน้างาน: คุณสมศักดิ์</CardDescription>
-                                </CardHeader>
-
-                                {/* ส่วนเนื้อหา: ใส่รูป, จำนวนคน, และรายละเอียด */}
-                                <CardContent>
-                                    {/* รูปภาพ (ใช้ URL placeholder ไปก่อน) */}
-                                    <div className=" w-full">
-                                        <img
-                                            src="https://s.isanook.com/tr/0/ud/287/1436859/gth.jpg?ip/crop/w670h402/q80/jpg"
-                                            alt="ภาพหน้างาน"
-                                            className=" w-full h-50  object-center rounded-2xl" // ใส่ w-full ให้เต็ม, rounded-md ให้ขอบมน, mb-4 เว้นระยะล่าง
-                                        />
-                                    </div>
-                                    <div className="mt-14">
-                                        {/* จำนวนสมาชิก */}
-                                        <p className="font-semibold">จำนวนสมาชิก: 5 คน</p>
-                                        {/* รายละเอียดงาน */}
-                                        <p className="text-sm text-slate-600 mt-2">
-                                            นี่คือส่วนของรายละเอียดงานแบบย่อๆ เพื่อให้ผู้ใช้งานเห็นภาพรวมของงาน
-                                            ก่อนที่จะกดเข้าไปอ่านเพิ่มเติม...
-                                        </p>
-                                    </div>
-                                </CardContent>
-
-                                {/* ส่วนท้าย: ใส่ปุ่ม */}
-                                <CardFooter>
-                                    <Button>อ่านรายละเอียดเพิ่มเติม</Button>
-                                </CardFooter>
-                            </Card>
-                            <Card>
-                                {/* ส่วนหัว: ใส่ชื่องานและชื่อหัวหน้า */}
-                                <CardHeader>
-                                    <CardTitle>ชื่องานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
-                                    <CardDescription>หัวหน้างาน: คุณสมศักดิ์</CardDescription>
-                                </CardHeader>
-
-                                {/* ส่วนเนื้อหา: ใส่รูป, จำนวนคน, และรายละเอียด */}
-                                <CardContent>
-                                    {/* รูปภาพ (ใช้ URL placeholder ไปก่อน) */}
-                                    <div className=" w-full">
-                                        <img
-                                            src="https://s.isanook.com/tr/0/ud/287/1436859/gth.jpg?ip/crop/w670h402/q80/jpg"
-                                            alt="ภาพหน้างาน"
-                                            className=" w-full h-50  object-center rounded-2xl" // ใส่ w-full ให้เต็ม, rounded-md ให้ขอบมน, mb-4 เว้นระยะล่าง
-                                        />
-                                    </div>
-                                    <div className="mt-14">
-                                        {/* จำนวนสมาชิก */}
-                                        <p className="font-semibold">จำนวนสมาชิก: 5 คน</p>
-                                        {/* รายละเอียดงาน */}
-                                        <p className="text-sm text-slate-600 mt-2">
-                                            นี่คือส่วนของรายละเอียดงานแบบย่อๆ เพื่อให้ผู้ใช้งานเห็นภาพรวมของงาน
-                                            ก่อนที่จะกดเข้าไปอ่านเพิ่มเติม...
-                                        </p>
-                                    </div>
-                                </CardContent>
-
-                                {/* ส่วนท้าย: ใส่ปุ่ม */}
-                                <CardFooter>
-                                    <Button>อ่านรายละเอียดเพิ่มเติม</Button>
-                                </CardFooter>
-                            </Card>
-                            <Card>
-                                {/* ส่วนหัว: ใส่ชื่องานและชื่อหัวหน้า */}
-                                <CardHeader>
-                                    <CardTitle>ชื่องานเชื่อมต่อท่อระบายน้ำคอนโด SPU</CardTitle>
-                                    <CardDescription>หัวหน้างาน: คุณสมศักดิ์</CardDescription>
-                                </CardHeader>
-
-                                {/* ส่วนเนื้อหา: ใส่รูป, จำนวนคน, และรายละเอียด */}
-                                <CardContent>
-                                    {/* รูปภาพ (ใช้ URL placeholder ไปก่อน) */}
-                                    <div className=" w-full">
-                                        <img
-                                            src="https://s.isanook.com/tr/0/ud/287/1436859/gth.jpg?ip/crop/w670h402/q80/jpg"
-                                            alt="ภาพหน้างาน"
-                                            className=" w-full h-50  object-center rounded-2xl" // ใส่ w-full ให้เต็ม, rounded-md ให้ขอบมน, mb-4 เว้นระยะล่าง
-                                        />
-                                    </div>
-                                    <div className="mt-14">
-                                        {/* จำนวนสมาชิก */}
-                                        <p className="font-semibold">จำนวนสมาชิก: 5 คน</p>
-                                        {/* รายละเอียดงาน */}
-                                        <p className="text-sm text-slate-600 mt-2">
-                                            นี่คือส่วนของรายละเอียดงานแบบย่อๆ เพื่อให้ผู้ใช้งานเห็นภาพรวมของงาน
-                                            ก่อนที่จะกดเข้าไปอ่านเพิ่มเติม...
-                                        </p>
-                                    </div>
-                                </CardContent>
-
-                                {/* ส่วนท้าย: ใส่ปุ่ม */}
-                                <CardFooter>
-                                    <Button>อ่านรายละเอียดเพิ่มเติม</Button>
-                                </CardFooter>
-                            </Card>
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="prosate">
-                        <div>
-                            <Card className="w-[350px]">
-                                {" "}
-                                {/* สามารถปรับความกว้างได้ตามต้องการ */}
-                                {/* <CardHeader> คือส่วนหัวของการ์ด */}
-                                <CardHeader>
-                                    {/* <CardTitle> ใช้สำหรับแสดง "ชื่องาน" */}
-                                    <CardTitle>ชื่องาน: Frontend Developer</CardTitle>
-                                    {/* <CardDescription> ใช้สำหรับแสดง "ชื่อหัวหน้างาน" */}
-                                    <CardDescription>หัวหน้างาน: สมชาย ใจดี</CardDescription>
-                                </CardHeader>
-                                {/* <CardContent> คือส่วนเนื้อหาหลักของการ์ด */}
-                                <CardContent>
-                                    {/* แสดง "รูปภาพงาน" */}
-                                    <img
-                                        src="https://i.redd.it/p196q3meb2s61.jpg" // URL ของรูปภาพตัวอย่าง
-                                        alt="Job Image" // คำอธิบายรูปภาพ
-                                        className="rounded-md mb-4" // จัดสไตล์ให้รูปภาพมีความโค้งมนและมีระยะห่างด้านล่าง
-                                    />
-                                    {/* แสดง "รายละเอียดงาน" แบบย่อ */}
-                                    <p className="text-sm text-muted-foreground truncate">
-                                        รายละเอียดงาน: พัฒนาและดูแลส่วนติดต่อผู้ใช้ (UI)
-                                        ของเว็บไซต์และแอปพลิเคชันด้วยเทคโนโลยีล่าสุด
-                                        เพื่อให้ผู้ใช้ได้รับประสบการณ์ที่ดีที่สุด
-                                    </p>
-                                </CardContent>
-                                {/* <CardFooter> คือส่วนท้ายของการ์ด */}
-                                <CardFooter>
-                                    {/* <Button> คือ "ปุ่มดูรายละเอียด" */}
-                                    <Button className="w-full">ดูรายละเอียดงาน</Button>
-                                </CardFooter>
-                            </Card>
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="finish">
-                        <h1>เสร็จ</h1>
-                    </TabsContent>
-                </Tabs>
-            </div >
+            <ShowCard jobs={jobs} />
 
         </div >
 
