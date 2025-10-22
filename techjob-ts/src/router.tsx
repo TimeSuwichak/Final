@@ -21,6 +21,8 @@ import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
 import Settings from "./pages/admin/Settings";
+import UserDashboard from "./pages/user/UserDashboard";
+import UserSidebar from "./components/user/UserSidebar";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -79,6 +81,17 @@ const router = createBrowserRouter([
         path : "System",
         element:<System/>
       }
+    ],
+  },
+
+  {
+    path: "/user",
+    element: <UserSidebar />, // ✅ ใช้ UserNavbar เป็น Layout หลักของ USER
+    children: [
+      {
+        path: "UserDashboard",
+        element: <UserDashboard />,
+      },
     ],
   },
 

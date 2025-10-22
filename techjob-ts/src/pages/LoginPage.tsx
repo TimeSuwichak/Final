@@ -27,8 +27,8 @@ export default function LoginPage() {
       // ผู้ดูแล (Admin): เชื่อมไปยังหน้า AdminDashboard
       navigate("/admin/AdminDashboard");
     } else if (email === MOCK_CREDENTIALS.TECH.email && password === MOCK_CREDENTIALS.TECH.password) {
-      // ช่าง (Common/Technician): เชื่อมไปยังหน้า Notification (ตามโครงสร้างโฟลเดอร์)
-      navigate("/common/Notification");
+      // ช่าง (Common/Technician): เชื่อมไปยังหน้า UserDashboard
+      navigate("/user/UserDashboard");
     } else {
       // Credentials ไม่ถูกต้อง
       setLoginError("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง");
