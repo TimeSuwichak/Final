@@ -23,6 +23,8 @@ import Account from "./pages/commom/Account";
 import Settings from "./pages/admin/Settings";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserSidebar from "./components/user/UserSidebar";
+import LeaderSidebar from "./components/leader/LeaderSidebar";
+import LeaderDashboard from "./pages/leader/LeaderDashboard";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -47,39 +49,39 @@ const router = createBrowserRouter([
       },
       {
         path: "WorkOders",
-        element:<WorkOders/>,
+        element: <WorkOders />,
       },
-            {
+      {
         path: "Material",
-        element:<MaterialPage/>,
+        element: <MaterialPage />,
       },
       {
         path: "setting",
-        element:<Settings/>
+        element: <Settings />
       },
       {
         path: "Account",
-        element:<Account/>
+        element: <Account />
       },
       {
         path: "Profile",
-        element:<Profile/>
+        element: <Profile />
       },
       {
         path: "Notification",
-        element:<Notification/>
+        element: <Notification />
       },
       {
         path: "Security",
-        element:<Security/>
+        element: <Security />
       },
       {
         path: "Theme",
-        element:<Theme/>
+        element: <Theme />
       },
       {
-        path : "System",
-        element:<System/>
+        path: "System",
+        element: <System />
       }
     ],
   },
@@ -91,6 +93,17 @@ const router = createBrowserRouter([
       {
         path: "UserDashboard",
         element: <UserDashboard />,
+      },
+    ],
+  },
+
+  {
+    path: "/leader",
+    element: <LeaderSidebar />, // ✅ ใช้ UserNavbar เป็น Layout หลักของ USER
+    children: [
+      {
+        path: "LeaderDashboard",
+        element: <LeaderDashboard />,
       },
     ],
   },
