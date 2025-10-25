@@ -6,116 +6,116 @@ import { X } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
+    Command,
+    CommandGroup,
+    CommandItem,
+    CommandList,
 } from "@/components/ui/command"
 import { Command as CommandPrimitive } from "cmdk"
 
-// --- ข้อมูลจำลองของช่าง ---
-const TECHNICIANS = [
-  { id: "tech-01", name: "สมชาย ใจดี" },
-  { id: "tech-02", name: "วิชัย มีสุข" },
-  { id: "tech-03", name: "มานะ อดทน" },
-  { id: "tech-04", name: "ปิติ ยินดี" },
-  { id: "tech-05", name: "สมศักดิ์ รักสงบ" },
-  { id: "tech-05", name: "หมูแดง เทคโน" },
-];
-// --------------------------
+// 1. รับ props เข้ามา:
+//    - technicians: Array ของ object ช่างที่กรองแล้ว
+//    - onSelectionChange: ฟังก์ชันจากแม่ ที่จะถูกเรียกเมื่อมีการ เพิ่ม/ลบ ช่าง
+//    - selectedTechs: Array ของช่างที่ถูกเลือกอยู่
+//    - disabled: boolean
+export function MultiSelectTechnician({ technicians = [], onSelectionChange, selectedTechs = [], disabled }) {
+    const inputRef = React.useRef<HTMLInputElement>(null)
+    const [inputValue, setInputValue] = React.useState("")
+    const [open, setOpen] = React.useState(false);
 
-export function MultiSelectTechnician() {
-  // State สำหรับเก็บค่าที่พิมพ์ในช่อง input
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const [inputValue, setInputValue] = React.useState("")
-  
-  // State สำหรับเก็บ "ช่างที่ถูกเลือก" (เป็น array เพราะเลือกได้หลายอัน)
-  const [selected, setSelected] = React.useState([TECHNICIANS[0]]); // เลือกสมชายเป็นค่าเริ่มต้น
+    // 2. ไม่ใช้ State ภายในสำหรับเก็บค่าที่เลือกแล้ว แต่จะใช้ prop 'selectedTechs' แทน
 
-  // State สำหรับควบคุมการเปิด/ปิด dropdown
-  const [open, setOpen] = React.useState(false);
+    // 3. ฟังก์ชันสำหรับ "ลบ" ช่าง (เรียก onSelectionChange)
+    const handleUnselect = React.useCallback((technician) => {
+        // สร้าง array ใหม่โดยกรองเอาคนที่ต้องการลบออก
+        const newSelection = selectedTechs.filter(s => s.id !== technician.id);
+        // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
+        onSelectionChange(newSelection);
+    }, [selectedTechs, onSelectionChange]) // Dependency array
 
-  // ฟังก์ชันสำหรับ "ลบ" ช่างออกจากรายการที่เลือก
-  const handleUnselect = React.useCallback((technician) => {
-    setSelected(prev => prev.filter(s => s.id !== technician.id))
-  }, [])
+    // 4. ฟังก์ชันสำหรับ "เพิ่ม" ช่าง (เรียก onSelectionChange)
+    const handleSelect = (technician) => {
+        setInputValue("") // เคลียร์ช่องค้นหา
+        // สร้าง array ใหม่โดยเพิ่มคนใหม่เข้าไป
+        const newSelection = [...selectedTechs, technician];
+        // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
+        onSelectionChange(newSelection);
+    }
 
-  // ฟังก์ชันสำหรับ "เพิ่ม" ช่างเข้าไปในรายการที่เลือก
-  const handleSelect = (technician) => {
-    setInputValue("") // เคลียร์ช่องค้นหา
-    setSelected(prev => [...prev, technician]) // เพิ่มช่างคนใหม่เข้าไป
-  }
-
-  return (
-    <Command onKeyDown={(e) => {
-        // จัดการการกด backspace เพื่อลบ tag ล่าสุด
+    // 5. จัดการการกด Backspace (เรียก onSelectionChange)
+    const handleKeyDown = React.useCallback((e) => {
         if (e.key === "Backspace" && inputValue === "") {
-            setSelected(prev => prev.slice(0, -1))
+            // สร้าง array ใหม่โดยลบตัวสุดท้ายออก
+            const newSelection = selectedTechs.slice(0, -1);
+            // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
+            onSelectionChange(newSelection);
         }
-    }} className="overflow-visible bg-transparent">
+    }, [inputValue, selectedTechs, onSelectionChange]); // Dependency array
 
-      {/* ส่วน Input ที่แสดง Tag */}
-      <div className="group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-        <div className="flex flex-wrap gap-1">
-          {selected.map((technician) => {
-            return (
-              <Badge key={technician.id} variant="secondary">
-                {technician.name}
-                <button
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleUnselect(technician);
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onClick={() => handleUnselect(technician)}
-                >
-                  <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                </button>
-              </Badge>
-            )
-          })}
-          {/* Input จริงๆ ที่ใช้พิมพ์ค้นหา */}
-          <CommandPrimitive.Input
-            ref={inputRef}
-            value={inputValue}
-            onValueChange={setInputValue}
-            onBlur={() => setOpen(false)}
-            onFocus={() => setOpen(true)}
-            placeholder="เลือกช่าง..."
-            className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-          />
-        </div>
-      </div>
+    // 6. ใช้ prop 'technicians' แทน TECHNICIANS เดิม
+    const availableOptions = technicians.filter(tech => !selectedTechs.some(s => s.id === tech.id));
 
-      {/* ส่วน Dropdown ที่แสดงตัวเลือก */}
-      <div className="relative mt-2">
-        {open && selected.length < TECHNICIANS.length ? (
-          <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
-            <CommandList>
-              <CommandGroup heading="รายชื่อช่าง">
-                {TECHNICIANS.filter(tech => !selected.some(s => s.id === tech.id)).map((technician) => (
-                  <CommandItem
-                    key={technician.id}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onSelect={() => handleSelect(technician)}
-                    className={"cursor-pointer"}
-                  >
-                    {technician.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </div>
-        ) : null}
-      </div>
-    </Command>
-  )
+    return (
+        // 7. เพิ่มเงื่อนไข disabled ให้กับ Command และ Input
+        <Command onKeyDown={!disabled ? handleKeyDown : undefined} className="overflow-visible bg-transparent">
+            <div className={`group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${disabled ? 'bg-muted opacity-50 cursor-not-allowed' : ''}`}>
+                <div className="flex flex-wrap gap-1">
+                    {/* 8. วนลูปจาก prop 'selectedTechs' */}
+                    {selectedTechs.map((technician) => {
+                        return (
+                            <Badge key={technician.id} variant="secondary">
+                                {technician.fname} {technician.lname} {/* แสดงชื่อเต็ม */}
+                                <button
+                                    type="button" // Important for forms
+                                    disabled={disabled} // ปิดปุ่มลบด้วย
+                                    className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50"
+                                    onClick={() => handleUnselect(technician)}
+                                    // Add mouse down prevention to keep focus
+                                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                >
+                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                </button>
+                            </Badge>
+                        )
+                    })}
+                    <CommandPrimitive.Input
+                        ref={inputRef}
+                        value={inputValue}
+                        onValueChange={setInputValue}
+                        onBlur={() => setOpen(false)}
+                        onFocus={() => setOpen(true)}
+                        placeholder={disabled ? "กรุณาเลือกแผนกก่อน" : "เลือกทีมช่าง..."}
+                        disabled={disabled} // ปิด input ด้วย
+                        className="ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+                    />
+                </div>
+            </div>
+            <div className="relative mt-2">
+                {/* 9. ใช้ availableOptions ที่กรองแล้ว */}
+                {open && !disabled && availableOptions.length > 0 ? (
+                    <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+                        <CommandList>
+                            <CommandGroup heading="รายชื่อช่างในแผนก">
+                                {availableOptions.map((technician) => (
+                                    <CommandItem
+                                        key={technician.id}
+                                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                        onSelect={() => handleSelect(technician)}
+                                        className={"cursor-pointer"}
+                                    >
+                                        {technician.fname} {technician.lname} {/* แสดงชื่อเต็ม */}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </CommandList>
+                    </div>
+                ) : null}
+                 {open && !disabled && availableOptions.length === 0 && selectedTechs.length < technicians.length && (
+                    <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in p-2 text-sm text-muted-foreground">
+                        ไม่พบช่างที่ตรงกับคำค้นหา หรือ เลือกครบแล้ว
+                    </div>
+                 )}
+            </div>
+        </Command>
+    )
 }
