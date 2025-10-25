@@ -67,6 +67,13 @@ export default function AdminNavbar() {
               <MdEngineering className=" inline mr-2" /> การเข้างานช่าง
             </NavLink>
 
+                        <NavLink
+              to="/user/report-problem"
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+            >
+              <TbAlertHexagon className="inline mr-2" /> แจ้งปัญหา
+            </NavLink>
+
             <NavLink
               to="/admin/setting"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }

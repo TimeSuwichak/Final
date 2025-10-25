@@ -25,6 +25,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import UserSidebar from "./components/user/UserSidebar";
 import LeaderSidebar from "./components/leader/LeaderSidebar";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
+import ReportProblem from "./pages/user/ReportProblem"
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -93,6 +94,10 @@ const router = createBrowserRouter([
       {
         path: "UserDashboard",
         element: <UserDashboard />,
+      },
+      {
+        path: "report-problem",
+        element: <ReportProblem />,
       },
     ],
   },
