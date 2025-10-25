@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 // ไอคอนลูกศรจาก lucide-react
 import { ChevronDown, ChevronUp } from "lucide-react"
-// ดึงข้อมูลจำลองผู้ใช้
+// ข้อมูลผู้ใช้
 import { user } from "@/Data/user"
 
 // หมวดหมู่ของการแจ้งปัญหา (mock data)
@@ -100,7 +100,7 @@ const Report = () => {
         <h1 className="text-2xl font-bold">การแจ้งปัญหา</h1>
       </div>
 
-      {/* ส่วนแบบฟอร์มเพิ่มการแจ้ง */}
+      {/* ส่วนแบบฟอร์มเพิ่มการแจ้ง. */}
       <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-semibold">การจำลอง</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
