@@ -246,7 +246,7 @@ const Report = () => {
                               <p className="text-base">{report.position}</p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">4. แผนก:</p>
+                              <p className="text-sm font-medium text-muted-foreground">4. แผนก.:</p>
                               <p className="text-base">{report.department}</p>
                             </div>
                             <div className="space-y-1 md:col-span-2">
