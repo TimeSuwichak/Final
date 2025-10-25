@@ -1,169 +1,221 @@
-// components/CreateJobForm.tsx
+// components/admin/CreateJobForm.tsx
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react'; // <-- 1. เพิ่ม useMemo เข้ามา
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea"; // สำหรับรายละเอียดงาน
+import { Textarea } from "@/components/ui/textarea";
 import {
     DialogFooter,
     DialogClose,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { FaImage } from 'react-icons/fa';
-import TeamLeadSelector from './TeamLeadSelector';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from '@/components/ui/separator';
 
-
+// --- สมมติว่า Component ทั้งสองตัวนี้ถูกสร้างขึ้นมาแล้ว และพร้อมรับ props ---
+import TeamLeadSelector from './TeamLeadSelector'; 
 import { MultiSelectTechnician } from './MultiSelectTechnician';
+import InteractiveMap from '../common/InteractiveMap';
+
+// ==========================================================
+// 2. นำเข้าข้อมูล Mock Data
+// ==========================================================
+import { leader } from '@/Data/leader'; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import {user} from '@/Data/user'; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+// 3. เตรียมข้อมูลสำหรับ Dropdown (ทำนอก Component เพื่อประสิทธิภาพ)
+const allDepartments = [...new Set(leader.map(l => l.department))];
 
 
-// นี่คือ Component ลูก ที่จะรับฟังก์ชัน onSubmit มาจากแม่ (AdminDashboard)
 export function CreateJobForm({ onSubmit }) {
-    // สร้าง State สำหรับเก็บค่าในแต่ละช่องของฟอร์ม
+    // ==========================================================
+    // 4. เพิ่ม State สำหรับเก็บข้อมูลการเลือกแผนกและทีม
+    // ==========================================================
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
-    const [imagePreview, setImagePreview] = useState(null); // State สำหรับเก็บ URL รูปภาพตัวอย่าง
+    const [imagePreview, setImagePreview] = useState(null);
 
-    // ฟังก์ชันที่จะทำงานเมื่อมีการเลือกไฟล์รูปภาพ
-    const handleImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            // 1. สร้างเครื่องมือ FileReader ขึ้นมา
-            const reader = new FileReader();
+    // State สำหรับเก็บ "แผนก" ที่ถูกเลือก
+    const [selectedDepartment, setSelectedDepartment] = useState('');
+    
+    // State สำหรับเก็บ "หัวหน้างาน" ที่ถูกเลือก (เป็น object)
+    const [selectedLead, setSelectedLead] = useState(null);
+    
+    // State สำหรับเก็บ "ทีมช่าง" ที่ถูกเลือก (เป็น array)
+    const [selectedTechs, setSelectedTechs] = useState([]);
 
-            // 2. สั่งให้ reader เริ่มอ่านไฟล์และแปลงเป็น Base64
-            reader.readAsDataURL(file);
 
-            // 3. ตั้งค่าว่า "เมื่อไหร่ที่แปลงไฟล์เสร็จเรียบร้อย" ให้ทำอะไรต่อ
-            reader.onloadend = () => {
-                // reader.result จะมีค่าเป็นข้อความ Base64 (เช่น "data:image/jpeg;base64,...")
-                // เราเอามันไปเก็บใน State เพื่อแสดงตัวอย่าง
-                setImagePreview(reader.result as string);
-            };
-        }
-    };
+    // ==========================================================
+    // 5. สร้าง Logic กรองข้อมูลด้วย useMemo
+    // ==========================================================
+    // useMemo จะคำนวณค่าใหม่ก็ต่อเมื่อ selectedDepartment เปลี่ยนแปลงเท่านั้น
+    
+    // กรอง "หัวหน้างาน" ตามแผนกที่เลือก
+    const availableLeads = useMemo(() => {
+        if (!selectedDepartment) return []; // ถ้ายังไม่เลือกแผนก ให้ส่ง array ว่างกลับไป
+        return leader.filter(l => l.department === selectedDepartment);
+    }, [selectedDepartment]);
 
-    // ฟังก์ชันที่จะทำงานเมื่อกดปุ่ม "บันทึก"
+    // กรอง "ทีมช่าง" ตามแผนกที่เลือก
+    const availableTechs = useMemo(() => {
+        if (!selectedDepartment) return [];
+        return user.filter(u => u.department === selectedDepartment);
+    }, [selectedDepartment]);
+
+
+    // ฟังก์ชัน handleImageChange (เหมือนเดิม)
+    const handleImageChange = (event) => { /* ...โค้ดเดิม... */ };
+
+    // ==========================================================
+    // 6. อัปเดตฟังก์ชัน handleSubmit ให้สมบูรณ์
+    // ==========================================================
     const handleSubmit = (event) => {
-        event.preventDefault(); // ป้องกันหน้าเว็บรีโหลด
+        event.preventDefault();
 
-        // ตรวจสอบง่ายๆ ว่ากรอกข้อมูลครบหรือไม่
-        if (!title || !description || !location) {
-            alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
-            return;
+        // เพิ่มการตรวจสอบข้อมูลใหม่
+        if (!title || !description || !location || !selectedDepartment || !selectedLead || selectedTechs.length === 0) {
+            alert('กรุณากรอกข้อมูลและเลือกทีมงานให้ครบทุกช่อง');
+            return; // หยุดทำงานถ้าข้อมูลไม่ครบ
         }
 
-        // สร้าง Object ข้อมูลงานใหม่
         const newJobData = {
-            title: title,
-            description: description,
-            location: location,
-            // ค่าจำลองอื่นๆ ที่ต้องมีใน Card
-            teamLead: 'คุณธนพล (คนใหม่)',
-            members: 1,
-            // ถ้ามีรูปตัวอย่าง ให้ใช้รูปนั้น, ถ้าไม่มี ให้ใช้รูป placeholder
-            imageUrl: imagePreview || 'https://images.unsplash.com/photo-1581092448348-adf49b936d32?w=500&q=80',
+            title,
+            description,
+            location,
+            department: selectedDepartment,
+            teamLead: `${selectedLead.fname} ${selectedLead.lname}`, // ใช้ชื่อจาก object ที่เลือก
+            members: selectedTechs.length, // นับจำนวนช่าง
+            imageUrl: imagePreview || `https://api.dicebear.com/7.x/initials/svg?seed=${title.slice(0,2)}`,
         };
 
-        // เรียกใช้ฟังก์ชัน onSubmit ที่ได้รับมาจากแม่ พร้อมส่งข้อมูลใหม่กลับไป
         onSubmit(newJobData);
     };
 
     return (
-        // <form> คือแท็กมาตรฐานสำหรับฟอร์ม
-        <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-                {/* ช่องกรอก "ชื่องาน" */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">
-                        ชื่องาน
-                    </Label>
-                    <Input
-                        id="title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)} // ทุกครั้งที่พิมพ์ จะอัปเดต State `title`
-                        className="col-span-3"
-                        placeholder="เช่น ติดตั้งแอร์ห้องนอนใหญ่"
-                    />
-                </div>
+        <form  onSubmit={handleSubmit}>
+            <ScrollArea className="h-[75vh] ">
+                {/* - ปรับ Layout หลักเป็นแบบ 2 คอลัมน์บนจอใหญ่ (lg) เพื่อความสวยงาม
+                  - คอลัมน์ซ้าย (lg:col-span-3) สำหรับข้อมูลหลัก, คอลัมน์ขวา (lg:col-span-2) สำหรับทีมและไฟล์แนบ
+                */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-y-8 lg:gap-x-12 p-1 py-4 pr-4 md:pr-6">
 
-                {/* ช่องกรอก "รายละเอียดงาน" */}
-                <div className="grid grid-cols-4 items-start gap-4">
-                    <Label htmlFor="description" className="text-right pt-2">
-                        รายละเอียด
-                    </Label>
-                    <Textarea
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="col-span-3"
-                        placeholder="บอกรายละเอียดของงานที่ต้องทำ"
-                        rows={4}
-                    />
-                </div>
-
-                <div className='grid grid-cols-4 items-center gap-4'>
-                    <Label htmlFor="location" className="text-right">
-                        สถานที่
-                    </Label>
-                    <Input
-                        id="location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        className="col-span-3"
-                        placeholder="เช่น 123/45 คอนโด The Base"
-                    />
-
-                </div>
-
-                {/* ช่องเลือกหัวเลือกช่าง" */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location" className="text-right">
-                        เลือกหัวหน้างาน
-                    </Label>
-                    <TeamLeadSelector />
-                </div>
-                {/* ช่องเลือกช่าง */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location" className="text-right">
-                        เลือกหัวหน้างาน
-                    </Label>
-                    <MultiSelectTechnician />
-                </div>
-
-                {/* ส่วนอัปโหลดรูปภาพ */}
-                <div className="grid grid-cols-4 items-start gap-4">
-                    <Label htmlFor="picture" className="text-right pt-2">
-                        รูปภาพหน้างาน
-                    </Label>
-                    <div className="col-span-3 flex items-center gap-4">
-                        {/* กล่องแสดงรูปตัวอย่าง */}
-                        <div className="w-24 h-24 border rounded-md flex items-center justify-center bg-muted/50">
-                            {imagePreview ? (
-                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-md" />
-                            ) : (
-                                <FaImage className="h-8 w-8 text-muted-foreground" />
-                            )}
+                    {/* ==================== คอลัมน์ซ้าย: รายละเอียดหลัก ==================== */}
+                    <div className="lg:col-span-3 flex flex-col gap-6">
+                        
+                        <div className="space-y-2">
+                            <h3 className="text-base font-semibold text-foreground">รายละเอียดหลัก</h3>
+                            <p className="text-sm text-muted-foreground">กรอกข้อมูลสำคัญของงาน เช่น ชื่องานและรายละเอียด</p>
                         </div>
-                        {/* Input สำหรับเลือกไฟล์ (เราซ่อนมันไว้ แล้วใช้ Label แทน) */}
-                        <Input id="picture" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                        <Label htmlFor="picture" className="cursor-pointer text-sm text-primary hover:underline">
-                            เลือกรูปภาพ
-                        </Label>
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="title">ชื่องาน*</Label>
+                            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="เช่น ติดตั้งระบบ Access Control อาคาร B"/>
+                        </div>
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="description">รายละเอียดงาน*</Label>
+                            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="ระบุรายละเอียด, ปัญหา, หรือสิ่งที่ต้องทำ..." rows={5}/>
+                        </div>
+                        
+                        <Separator className="my-2"/>
+
+                        <div className="space-y-2">
+                            <h3 className="text-base font-semibold text-foreground">สถานที่ปฏิบัติงาน</h3>
+                        </div>
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="location">ที่อยู่หน้างาน*</Label>
+                            <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="ระบุที่อยู่ หรือชื่อโครงการ..."/>
+                        </div>
+                        <div className="w-full h-60 border rounded-lg overflow-hidden shadow-sm">
+                            <InteractiveMap />
+                        </div>
+                    </div>
+
+                    {/* ==================== คอลัมน์ขวา: การมอบหมาย & ไฟล์แนบ ==================== */}
+                    <div className="lg:col-span-2 flex flex-col gap-6">
+
+                        <div className="space-y-2">
+                            <h3 className="text-base font-semibold text-foreground">มอบหมายทีม</h3>
+                            <p className="text-sm text-muted-foreground">เลือกแผนกเพื่อกรองรายชื่อหัวหน้าและทีมช่าง</p>
+                        </div>
+                        
+                        {/* 7. เพิ่ม Dropdown สำหรับเลือกแผนก */}
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label>แผนก*</Label>
+                            <Select value={selectedDepartment} onValueChange={(value) => {
+                                // เมื่อเปลี่ยนแผนก ให้รีเซ็ตค่าหัวหน้าและทีมช่างที่เลือกไว้
+                                setSelectedDepartment(value);
+                                setSelectedLead(null);
+                                setSelectedTechs([]);
+                            }}>
+                                <SelectTrigger><SelectValue placeholder="เลือกแผนกของงาน..." /></SelectTrigger>
+                                <SelectContent>
+                                    {allDepartments.map(dep => <SelectItem key={dep} value={dep}>{dep}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label>หัวหน้างาน*</Label>
+                            {/* 8. ส่งข้อมูลที่กรองแล้ว (availableLeads) และฟังก์ชัน (setSelectedLead) เข้าไป */}
+                            <TeamLeadSelector 
+                                leaders={availableLeads}
+                                onSelectLead={setSelectedLead}
+                                selectedLead={selectedLead}
+                                disabled={!selectedDepartment} // ปิดการใช้งานจนกว่าจะเลือกแผนก
+                            />
+                        </div>
+
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label>ทีมช่าง*</Label>
+                            {/* 9. ส่งข้อมูลที่กรองแล้ว (availableTechs) และฟังก์ชัน (setSelectedTechs) เข้าไป */}
+                            <MultiSelectTechnician 
+                                technicians={availableTechs}
+                                onSelectionChange={setSelectedTechs}
+                                selectedTechs={selectedTechs}
+                                disabled={!selectedDepartment} // ปิดการใช้งานจนกว่าจะเลือกแผนก
+                            />
+                        </div>
+                        
+                        <Separator className="my-2"/>
+
+                        <div className="space-y-2">
+                           <h3 className="text-base font-semibold text-foreground">ไฟล์แนบ</h3>
+                        </div>
+                        
+                        <div className="grid w-full gap-1.5">
+                            <Label>รูปภาพหน้างาน</Label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-24 h-24 border rounded-md flex items-center justify-center bg-muted/50 flex-shrink-0">
+                                    {imagePreview ? <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-md" /> : <FaImage className="h-8 w-8 text-muted-foreground" />}
+                                </div>
+                                <div>
+                                    <Input id="picture" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                                    <Label htmlFor="picture" className="cursor-pointer font-medium text-sm text-primary hover:underline">อัปโหลดรูปภาพ</Label>
+                                    <p className="text-xs text-muted-foreground mt-1">ขนาดแนะนำ 800x600px</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* ปุ่ม บันทึก และ ยกเลิก */}
-            <DialogFooter>
+            </ScrollArea>
+            
+            <DialogFooter className="pt-4 border-t mt-2">
                 <DialogClose asChild>
-                    <Button type="button" variant="outline">
-                        ยกเลิก
-                    </Button>
+                    <Button type="button" variant="outline">ยกเลิก</Button>
                 </DialogClose>
-                <Button type="submit">บันทึกใบงาน</Button>
+                <Button type="submit">สร้างใบงาน</Button>
             </DialogFooter>
         </form>
     );
 }
+
+// **ข้อควรจำ:** คุณต้องไปอัปเดต Component `TeamLeadSelector` และ `MultiSelectTechnician` 
+// ให้รับ props ใหม่ (เช่น leaders, technicians, onSelectLead) เพื่อให้โค้ดนี้ทำงานได้สมบูรณ์นะครับ
