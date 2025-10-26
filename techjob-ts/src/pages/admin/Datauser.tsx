@@ -60,7 +60,7 @@ import { leader } from "@/Data/leader"; // (ปรับ path ให้ตรง
 const allPersonnel = [...user, ...leader];
 const initialFormattedPersonnel = allPersonnel.map((person, index) => {
   const fullName = `${person.fname} ${person.lname}`;
-  const email = `${person.fname.toLowerCase()}.${person.lname.toLowerCase()}${person.id}@techjob.com`;
+  const email = `${person.email}`;
   return {
     id: `${person.department.slice(0, 4)}-${person.id}-${index}`,
     name: fullName,
