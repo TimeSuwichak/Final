@@ -47,11 +47,12 @@ import {
 import { Label } from "@/components/ui/label"
 import { FaImage } from "react-icons/fa"
 
+
 // ==========================================================
 // ข้อมูล Mock Data (สมมติว่า import มาจากไฟล์อื่น)
 // ==========================================================
-import { user } from "@/data/user"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
-import { leader } from "@/data/leader"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import { user } from "@/Data/user"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import { leader } from "@/Data/leader"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -59,7 +60,7 @@ import { leader } from "@/data/leader"; // (ปรับ path ให้ตรง
 const allPersonnel = [...user, ...leader];
 const initialFormattedPersonnel = allPersonnel.map((person, index) => {
   const fullName = `${person.fname} ${person.lname}`;
-  const email = `${person.fname.toLowerCase()}.${person.lname.toLowerCase()}${person.id}@techjob.com`;
+  const email = `${person.email}`;
   return {
     id: `${person.department.slice(0, 4)}-${person.id}-${index}`,
     name: fullName,
@@ -259,7 +260,7 @@ export default function Datauser() {
                     {pagedData.length > 0 ? pagedData.map((item) => (
                         <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg p-3 shadow-sm border">
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <img src={item.urlImage} alt={item.name} className="w-12 h-12 rounded-full object-cover bg-muted flex-shrink-0"/>
+                                <img src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" className="w-12 h-12 rounded-full object-cover bg-muted flex-shrink-0"/>
                                 <div className="overflow-hidden">
                                     <div className="font-medium truncate">{item.name}</div>
                                     <div className="text-sm text-muted-foreground truncate">{item.email}</div>
@@ -294,7 +295,7 @@ export default function Datauser() {
                                 <TableRow key={item.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <img src={item.urlImage} className="w-8 h-8 rounded-full object-cover bg-muted" alt={item.name} />
+                                            <img src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" className="w-8 h-8 rounded-full object-cover bg-muted" alt={item.name} />
                                             <span className="font-medium">{item.name}</span>
                                         </div>
                                     </TableCell>

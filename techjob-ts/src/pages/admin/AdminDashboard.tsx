@@ -42,6 +42,7 @@ import {
 import { CreateJobForm } from "@/components/admin/CreateJobForm";
 import ShowCard from "@/components/admin/ShowCard";
 import { user } from "@/Data/user";
+import InteractiveMap from "@/components/common/InteractiveMap";
 
 // ======================= DATA จำลอง =======================
 // ปกติข้อมูลนี้จะมาจาก Database แต่เราจะจำลองขึ้นมาก่อน
@@ -145,7 +146,7 @@ const [stats, setStats] = useState({
                             + CREATE JOB
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[725px]">
+                    <DialogContent className="sm:max-w-4xl">
                         <DialogHeader>
                             <DialogTitle>สร้างใบงานใหม่</DialogTitle>
                             <DialogDescription>

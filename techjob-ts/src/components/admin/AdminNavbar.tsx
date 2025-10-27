@@ -1,7 +1,7 @@
 import { useState } from "react";
 // ✅ 1. แก้ไข: นำเข้า NavLink แทน Link
 // NavLink เป็น Component พิเศษจาก react-router-dom ที่รู้ว่า "ตอนนี้ฉันถูกเลือกอยู่หรือเปล่า"
-import { NavLink, useNavigate, Outlet } from "react-router-dom"; 
+import { NavLink, useNavigate, Outlet } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
 import { MdEngineering } from "react-icons/md";
 import { VscGraph } from "react-icons/vsc";
@@ -10,12 +10,13 @@ import { BsBoxes } from "react-icons/bs";
 import { TbAlertHexagon } from "react-icons/tb";
 import { HiMenu, HiX } from "react-icons/hi";
 import { ModeToggle } from "../common/mode-toggle";
-
+import LogoutButton from "../auth/LogoutButton";
+import { useAuth } from "@/contexts/AuthContext"; // สำหรับดึงข้อมูล user ที่ login อยู่
 
 export default function AdminNavbar() {
   const navigate = useNavigate();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user } = useAuth();
   const handleSignOut = () => {
     navigate("/login", { replace: true });
   };
@@ -49,63 +50,82 @@ export default function AdminNavbar() {
         <div>
           <div className=" lg:p-4 lg:pl-4  md:pl-30 p-5 pl-20  text-white text-xl font-bold ">TECH JOB</div>
           <nav className="flex flex-col gap-2 px-4">
-            
+
             {/* ✅ 4. แก้ไข: เปลี่ยนจาก <Link> เป็น <NavLink> ทั้งหมด และใช้ className แบบฟังก์ชัน */}
             <NavLink
               to="/admin/admindashboard"
               // className จะรับฟังก์ชันที่ส่งค่า { isActive } มาให้
               // เราใช้ Ternary Operator (เงื่อนไข ? 'ถ้าจริง' : 'ถ้าเท็จ') เพื่อเปลี่ยน class ตามสถานะ
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <VscGraph className="inline mr-2" /> ข้อมูลภาพรวม
             </NavLink>
 
             <NavLink
               to="/admin/datauser"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <MdEngineering className=" inline mr-2" /> จัดการบัญชี
             </NavLink>
 
             <NavLink
               to="/admin/workoders"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <CgFileDocument className=" inline mr-2" /> ระบบใบงาน
             </NavLink>
 
             <NavLink
               to="/admin/material"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <BsBoxes className=" inline mr-2" /> คลังอุปกรณ์/วัสดุ
             </NavLink>
 
             <NavLink
               to="/admin/report"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <TbAlertHexagon className=" inline mr-2" /> การแจ้งปัญหา
             </NavLink>
 
             <NavLink
               to="/admin/setting"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
             </NavLink>
           </nav>
         </div>
 
-        <ModeToggle/>
+        <ModeToggle />
 
-        <div className="p-4">
-          <button
-            onClick={handleSignOut}
-            className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition"
-          >
-            ออกจากระบบ
-          </button>
+        <div className="p-4 border-t border-[#222] space-y-4">
+
+          {/* --- ส่วนโปรไฟล์ --- */}
+          {user && ( // เช็คก่อนว่ามีข้อมูล user หรือไม่
+            <div className="flex items-center gap-3">
+              {/* รูปโปรไฟล์เปล่าๆ */}
+              <div className="w-10 h-10 rounded-full bg-purple-600/50 flex items-center justify-center font-bold text-purple-200">
+                {user.fname.charAt(0)} {/* แสดงตัวอักษรแรกของชื่อ */}
+              </div>
+              {/* ชื่อและตำแหน่ง */}
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-semibold text-white truncate">{user.fname} {user.lname}</p>
+                <p className="text-xs text-gray-400 truncate">{user.role}</p>
+              </div>
+              {/* ปุ่มสลับธีม */}
+              <ModeToggle />
+            </div>
+          )}
+
+          {/* --- ปุ่ม Logout (สไตล์ใหม่) --- */}
+          {/* เราจะใช้ Component เดิม แต่ครอบด้วย div เพื่อจัดสไตล์ */}
+          <div className="w-full">
+            <LogoutButton />
+            {/* คุณอาจจะต้องไปแก้ LogoutButton.tsx ให้ Button มี className="w-full justify-start" */}
+          </div>
+
         </div>
       </div>
 

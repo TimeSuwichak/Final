@@ -1,123 +1,179 @@
-// React Hooks ที่จำเป็นสำหรับการจัดการ state และ performance
+// React Hooks ที่ใช้จัดการสถานะ (state) และประสิทธิภาพของ component
 import { useState, useMemo } from "react"
+
 // Components UI จาก shadcn/ui สำหรับสร้างตาราง
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-// Component Input สำหรับช่องค้นหา
+// ช่องค้นหา
 import { Input } from "@/components/ui/input"
-// Component Button สำหรับปุ่มกด
+// ปุ่มกด
 import { Button } from "@/components/ui/button"
-// Components สำหรับสร้าง Dropdown (Select)
+// Dropdown (Select)
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// กล่องข้อความหลายบรรทัด
+import { Textarea } from "@/components/ui/textarea"
 // ไอคอนลูกศรจาก lucide-react
 import { ChevronDown, ChevronUp } from "lucide-react"
+// ข้อมูลผู้ใช้
+import { user } from "@/Data/user"
 
-// --- Mock Data (ข้อมูลจำลอง) ---
-// รายชื่อข้อมูลตัวอย่าง
-const thaiNames = [
-  "จักริน","รัตนา","ชยวัฒน์","พรทิพย์","อนันต์", "อรพิน", "สมชาย", "สมหญิง", "กิตติ", "พิมพ์","ธนิดา", "ประยูร", "สิริพร", "มานพ", "สายใจ",
-]
-// หมวดหมู่ของการแจ้งปัญหา
-const reportCategories = ["ระบบล้ม/Error","ฟังก์ชั่นที่ใช้งานไม่ได้","ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่","อื่นๆ"]
-// แผนกต่างๆ
-const departments = ["ช่าง", "แอดมิน", "หัวหน้าช่าง", "ผู้บริหาร"]
-// ประเภทของงาน
-const reportTypes = ["ไฟฟ้า", "เครื่องกล", "โยธา"]
+// หมวดหมู่ของการแจ้งปัญหา (mock data)
+const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เนานะนำฟีเจอร์ใหม่", "อื่นๆ"]
 
-// สร้างข้อมูลการแจ้งปัญหาจำลองจำนวน 20 รายการ
-const mockReports = Array.from({ length: 20 }).map((_, i) => {
-  // วนลูปข้อมูลจาก array ด้านบนมาใช้งาน
-  const technicianName = thaiNames[i % thaiNames.length]
-  const category = reportCategories[i % reportCategories.length]
-  const department = departments[i % departments.length]
-  const type = reportTypes[i % reportTypes.length]
+// กำหนดรูปแบบของข้อมูลแต่ละรายการ (TypeScript interface)
+interface ReportEntry {
+  id: number
+  name: string
+  category: string
+  position: string
+  department: string
+  description: string
+  reportDate: string
+}
 
-  // return โครงสร้างข้อมูลของ report แต่ละรายการ
-  return {
-    id: i + 1, // ID ที่ไม่ซ้ำกัน
-    category, // หมวดหมู่
-    title: `${category}ไม่ได้`, // หัวข้อ (สร้างจากหมวดหมู่)
-    department, // แผนก
-    type, // ประเภท
-    technicianName, // ชื่อผู้แจ้ง
-    details: { // ข้อมูลรายละเอียดเพิ่มเติม
-      reporterName: technicianName,
-      position: ["ช่าง", "แอดมิน", "ผู้บริหาร"][i % 3], // ตำแหน่ง
-      reportDate: "15/01/2568", // วันที่แจ้ง
-      description: "พบปัญหาการทำงานผิดปกติ ต้องการการตรวจสอบและซ่อมแซม", // รายละเอียดปัญหา
-    },
-  }
-})
-
-// --- Component หลัก ---
+// Component หลัก
 const Report = () => {
-  // --- State Management (การจัดการสถานะของ Component) ---
-  // State สำหรับเก็บข้อความในช่องค้นหา
-  const [searchQuery, setSearchQuery] = useState("")
-  // State สำหรับเก็บหมวดหมู่ที่ถูกเลือก (ค่าเริ่มต้นคือ "ทั้งหมด")
-  const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด")
-  // State สำหรับเก็บ ID ของแถวที่ถูกกดขยาย (ใช้ Set เพื่อประสิทธิภาพในการเพิ่ม/ลบ)
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+  // 📦 ส่วนของ State (สถานะที่ใช้ภายใน component)
+  const [searchQuery, setSearchQuery] = useState("") // คำค้นหา
+  const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด") // หมวดหมู่ที่เลือก
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set()) // เก็บ id ของแถวที่ขยาย
+  const [selectedUserId, setSelectedUserId] = useState<string>("") // ผู้แจ้งปัญหา
+  const [selectedReportCategory, setSelectedReportCategory] = useState<string>("") // หมวดหมู่ที่เลือกในแบบฟอร์ม
+  const [reportDescription, setReportDescription] = useState<string>("") // รายละเอียดปัญหา
+  const [reports, setReports] = useState<ReportEntry[]>([]) // เก็บรายการการแจ้งทั้งหมด
 
-  // --- Data Filtering (การกรองข้อมูล) ---
-  // ใช้ useMemo เพื่อให้คำนวณข้อมูลที่ต้องกรองใหม่ต่อเมื่อ searchQuery หรือ selectedCategory เปลี่ยนแปลงเท่านั้น
+  // ฟังก์ชันเพิ่มการแจ้งปัญหาใหม่
+  const handleAddReport = () => {
+    if (!selectedUserId || !selectedReportCategory || !reportDescription.trim()) {
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน")
+      return
+    }
+
+    const selectedUser = user.find((u) => u.id.toString() === selectedUserId)
+    if (!selectedUser) return
+
+    // สร้าง object การแจ้งปัญหาใหม่
+    const newReport: ReportEntry = {
+      id: Date.now(), // ใช้ timestamp เป็น id
+      name: `${selectedUser.fname} ${selectedUser.lname}`,
+      category: selectedReportCategory,
+      position: selectedUser.position,
+      department: selectedUser.department,
+      description: reportDescription,
+      reportDate: new Date().toLocaleString("th-TH"), // วันที่และเวลาที่บันทึก
+    }
+
+    // เพิ่มข้อมูลใหม่เข้า state
+    setReports([...reports, newReport])
+
+    // เคลียร์ฟอร์ม
+    setSelectedUserId("")
+    setSelectedReportCategory("")
+    setReportDescription("")
+  }
+
+  // กรองข้อมูลตามการค้นหาและหมวดหมู่
   const filteredReports = useMemo(() => {
-    return mockReports.filter((report) => {
-      // ตรวจสอบว่าข้อความค้นหาตรงกับ title, ชื่อผู้แจ้ง, หรือแผนกหรือไม่ (แปลงเป็นตัวพิมพ์เล็กทั้งหมดก่อนเทียบ)
+    return reports.filter((report) => {
       const matchesSearch =
-        report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.technicianName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        report.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
         report.department.toLowerCase().includes(searchQuery.toLowerCase())
 
-      // ตรวจสอบว่าหมวดหมู่ที่เลือกคือ "ทั้งหมด" หรือตรงกับหมวดหมู่ของ report หรือไม่
       const matchesCategory = selectedCategory === "ทั้งหมด" || report.category === selectedCategory
-
-      // คืนค่า true หากตรงกับเงื่อนไขทั้งสองอย่าง
       return matchesSearch && matchesCategory
     })
-  }, [searchQuery, selectedCategory]) // Dependencies: ให้ re-run ฟังก์ชันนี้เมื่อค่าเหล่านี้เปลี่ยน
+  }, [searchQuery, selectedCategory, reports])
 
-  // --- Event Handlers (ฟังก์ชันจัดการเหตุการณ์) ---
-  // ฟังก์ชันสำหรับสลับการแสดง/ซ่อนรายละเอียดของแถว
+  // ฟังก์ชันสำหรับเปิด/ปิดรายละเอียดแต่ละแถว
   const toggleRow = (id: number) => {
-    const newExpanded = new Set(expandedRows) // คัดลอก Set เดิม
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id) // ถ้ามี ID นี้อยู่แล้ว (แถวกำลังเปิด) ให้ลบออก (ปิดแถว)
-    } else {
-      newExpanded.add(id) // ถ้ายังไม่มี (แถวกำลังปิด) ให้เพิ่มเข้าไป (เปิดแถว)
-    }
-    setExpandedRows(newExpanded) // อัปเดต state
+    const newExpanded = new Set(expandedRows)
+    if (newExpanded.has(id)) newExpanded.delete(id)
+    else newExpanded.add(id)
+    setExpandedRows(newExpanded)
   }
 
-  // --- JSX (ส่วนที่แสดงผลบนหน้าจอ) ---
+  // ส่วนแสดงผล (JSX)
   return (
     <div className="w-full space-y-6 p-6">
-      {/* ส่วนหัวข้อของหน้า */}
+      {/* หัวข้อหน้า */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">การแจ้งปัญหา</h1>
       </div>
 
-      {/* กล่องสีขาวที่ครอบฟิลเตอร์และตาราง */}
+      {/* ส่วนแบบฟอร์มเพิ่มการแจ้ง. */}
       <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
-        {/* ส่วนของฟิลเตอร์ (ค้นหาและหมวดหมู่) */}
+        <h2 className="text-lg font-semibold">การจำลอง</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* เลือกชื่อผู้แจ้ง */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">ชื่อ</label>
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <SelectTrigger className="border-2">
+                <SelectValue placeholder="เลือกชื่อ" />
+              </SelectTrigger>
+              <SelectContent>
+                {user.map((u) => (
+                  <SelectItem key={u.id} value={u.id.toString()}>
+                    {u.fname} {u.lname}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* เลือกหมวดหมู่ */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">หมวดหมู่</label>
+            <Select value={selectedReportCategory} onValueChange={setSelectedReportCategory}>
+              <SelectTrigger className="border-2">
+                <SelectValue placeholder="เลือกหมวดหมู่" />
+              </SelectTrigger>
+              <SelectContent>
+                {reportCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* รายละเอียดเพิ่มเติม */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">การอ้างอง</label>
+          <Textarea
+            placeholder="เพิ่มเติม..."
+            value={reportDescription}
+            onChange={(e) => setReportDescription(e.target.value)}
+            className="border-2 min-h-[100px]"
+          />
+        </div>
+
+        {/* ปุ่มเพิ่มข้อมูล */}
+        <div className="flex justify-end">
+          <Button onClick={handleAddReport}>เพิ่ม</Button>
+        </div>
+      </div>
+
+      {/* ส่วนตารางแสดงข้อมูล */}
+      <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
+        {/* ฟิลเตอร์ค้นหา + หมวดหมู่ */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-              {/* ช่อง Input สำหรับค้นหา */}
-              <Input
-                placeholder="ค้นหา..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)} // เมื่อพิมพ์ ให้อัปเดต state searchQuery
-                className="pr-10 border-2"
-              />
-            </div>
-            {/* ปุ่มสำหรับล้างข้อความในช่องค้นหา */}
+            <Input
+              placeholder="ค้นหา..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 border-2"
+            />
             <Button variant="default" onClick={() => setSearchQuery("")}>
               ยกเลิก
             </Button>
           </div>
         </div>
 
-        {/* ส่วนของ Dropdown สำหรับเลือกหมวดหมู่ */}
+        {/* Dropdown เลือกหมวดหมู่ */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium whitespace-nowrap">เลือกหมวดหมู่</span>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -126,7 +182,6 @@ const Report = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ทั้งหมด">ทั้งหมด</SelectItem>
-              {/* วนลูปสร้างตัวเลือกจาก reportCategories */}
               {reportCategories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
                   {cat}
@@ -136,51 +191,42 @@ const Report = () => {
           </Select>
         </div>
 
-        {/* ส่วนของตาราง */}
+        {/* ตารางข้อมูล */}
         <div className="rounded-lg border overflow-hidden">
           <Table>
-            {/* ส่วนหัวของตาราง (Header) */}
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead>ชื่อผู้แจ้ง</TableHead>
+                <TableHead>ชื่อ</TableHead>
                 <TableHead>หมวดหมู่</TableHead>
                 <TableHead>ตำแหน่ง</TableHead>
-                <TableHead>ประเภท</TableHead>
+                <TableHead>แผนก</TableHead>
                 <TableHead className="text-center">เพิ่มเติม</TableHead>
               </TableRow>
             </TableHeader>
-            {/* ส่วนเนื้อหาของตาราง (Body) */}
+
             <TableBody>
-              {/* วนลูปข้อมูลที่ผ่านการกรองแล้วมาแสดงผล */}
               {filteredReports.map((report) => (
-                // ใช้ Fragment (<>) เพื่อครอบคลุมแถวหลักและแถวรายละเอียด
                 <>
-                  {/* แถวหลักของข้อมูล */}
+                  {/* แถวหลัก */}
                   <TableRow key={report.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">{report.technicianName}</TableCell>
+                    <TableCell className="font-medium">{report.name}</TableCell>
                     <TableCell>{report.category}</TableCell>
-                    <TableCell>{report.details.position}</TableCell>
-                    <TableCell>{report.type}</TableCell>
+                    <TableCell>{report.position}</TableCell>
+                    <TableCell>{report.department}</TableCell>
                     <TableCell className="text-center">
-                      {/* ปุ่มสำหรับเปิด/ปิดรายละเอียด */}
+                      {/* ปุ่มดูรายละเอียด */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleRow(report.id)} // เมื่อคลิกจะเรียกฟังก์ชัน toggleRow
+                        onClick={() => toggleRow(report.id)}
                         className="flex-right gap-1 justify-end"
                       >
-                        ดู
-                        {/* แสดงไอคอนลูกศรขึ้น/ลง ตามสถานะของแถว */}
-                        {expandedRows.has(report.id) ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        ดู {expandedRows.has(report.id) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </Button>
                     </TableCell>
                   </TableRow>
-                  
-                  {/* แถวรายละเอียด (จะแสดงก็ต่อเมื่อ ID ของแถวอยู่ใน expandedRows) */}
+
+                  {/* แถวรายละเอียด */}
                   {expandedRows.has(report.id) && (
                     <TableRow key={`${report.id}-details`}>
                       <TableCell colSpan={5} className="bg-muted/20 p-6">
@@ -189,15 +235,23 @@ const Report = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
                               <p className="text-sm font-medium text-muted-foreground">1. ชื่อผู้แจ้ง:</p>
-                              <p className="text-base">{report.details.reporterName}</p>
+                              <p className="text-base">{report.name}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm font-medium text-muted-foreground">2. วันที่แจ้ง:</p>
-                              <p className="text-base">{report.details.reportDate}</p>
+                              <p className="text-base">{report.reportDate}</p>
                             </div>
-                            <div className="space-y-1 ">
-                              <p className="text-sm font-medium text-muted-foreground">3. รายละเอียดปัญหา:</p>
-                              <p className="text-base">{report.details.description}</p>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">3. ตำแหน่ง:</p>
+                              <p className="text-base">{report.position}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-muted-foreground">4. แผนก.:</p>
+                              <p className="text-base">{report.department}</p>
+                            </div>
+                            <div className="space-y-1 md:col-span-2">
+                              <p className="text-sm font-medium text-muted-foreground">5. รายละเอียดปัญหา:</p>
+                              <p className="text-base">{report.description}</p>
                             </div>
                           </div>
                         </div>
@@ -206,8 +260,8 @@ const Report = () => {
                   )}
                 </>
               ))}
-              
-              {/* แสดงข้อความ "ไม่พบข้อมูล" เมื่อไม่มีข้อมูลที่ตรงกับเงื่อนไขการค้นหา */}
+
+              {/* แสดงเมื่อไม่พบข้อมูล */}
               {filteredReports.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
@@ -223,5 +277,5 @@ const Report = () => {
   )
 }
 
-// ส่งออก Component เพื่อให้ไฟล์อื่นสามารถนำไปใช้งานได้w
+// ✅ ส่งออก component
 export default Report
