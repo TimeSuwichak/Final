@@ -61,14 +61,14 @@ export default function AdminNavbar() {
             </NavLink>
 
             <NavLink
-              to="/admin/datauser"
+              to="#"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
             >
               <MdEngineering className=" inline mr-2" /> การเข้างานช่าง
             </NavLink>
 
             <NavLink
-              to="/admin/setting"
+              to="#"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
             >
               <FaCog className="inline mr-2" /> การตั้งค่า

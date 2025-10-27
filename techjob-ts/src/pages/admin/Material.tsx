@@ -1,267 +1,228 @@
-// MaterialPage.tsx
+import React, { useState } from 'react';
+import { Package, Bell, TrendingDown, Layers, Search, Plus, MinusCircle } from 'lucide-react';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+// ===============================================
+// 1. TypeScript Interfaces
+// ===============================================
 
-// (1) กำหนด Type ของหมวดหมู่วัสดุ เพิ่ม 'วัสดุอื่นๆ' สำหรับของที่ผู้ใช้เพิ่มเอง
-type MaterialCategory = 'วัสดุโครงสร้าง' | 'วัสดุก่อและฉาบ' | 'วัสดุหลังคาและฝ้าเพดาน' | 'วัสดุประตูและหน้าต่าง' | 'วัสดุตกแต่งและพื้นผิว' | 'วัสดุงานระบบไฟฟ้า' | 'วัสดุงานระบบประปาและสุขาภิบาล' | 'เครื่องมือและวัสดุสิ้นเปลือง' | 'วัสดุอื่นๆ';
-
-// (2) Interface ของ Material ยังคงเหมือนเดิม
+/**
+ * Interface สำหรับโครงสร้างข้อมูลของวัสดุแต่ละรายการ
+ */
 interface Material {
-  id: number;
-  name: string;
-  category: MaterialCategory;
-  quantity: number;
-  unit: string;
-  lowStockThreshold: number;
+    id: string;
+    name: string;
+    category: 'Electrical' | 'Plumbing' | 'HVAC' | 'General';
+    stock: number; // จำนวนคงคลังปัจจุบัน
+    minStock: number; // ระดับต่ำสุดที่ต้องแจ้งเตือน
+    unit: string;
 }
 
-// (3) *** ใหม่: สร้างรายการวัสดุที่กำหนดไว้ล่วงหน้าตามแต่ละหมวดหมู่ ***
-// นี่คือฐานข้อมูลความรู้ของแอปเรา ทำให้ผู้ใช้เลือกจากรายการได้เลย
-const predefinedMaterials: Record<Exclude<MaterialCategory, 'วัสดุอื่นๆ'>, string[]> = {
-    'วัสดุโครงสร้าง': ['ปูนซีเมนต์ TPI (แดง)', 'ทรายหยาบ', 'หินคลุก', 'เหล็กเส้น DB12', 'เหล็กกล่อง 4x2 นิ้ว'],
-    'วัสดุก่อและฉาบ': ['อิฐมอญ', 'อิฐมวลเบา G4', 'ปูนก่อสำเร็จ', 'ปูนฉาบสำเร็จ'],
-    'วัสดุหลังคาและฝ้าเพดาน': ['กระเบื้องลอนคู่', 'แผ่นเมทัลชีท', 'ฉนวนกันความร้อน Stay Cool', 'แผ่นยิปซัม 9มม.', 'โครงซีลายน์'],
-    'วัสดุประตูและหน้าต่าง': ['วงกบไม้สังเคราะห์', 'บานประตู HDF', 'หน้าต่างอลูมิเนียมสำเร็จรูป', 'ลูกบิดประตู', 'บานพับ'],
-    'วัสดุตกแต่งและพื้นผิว': ['สีทาภายใน TOA', 'สีทาภายนอก Jotun', 'กระเบื้องแกรนิตโต้ 60x60', 'กาวซีเมนต์ (ปูกระเบื้อง)', 'ยาแนว'],
-    'วัสดุงานระบบไฟฟ้า': ['สายไฟ VAF 2x2.5', 'ท่อร้อยสายไฟ PVC (เหลือง)', 'สวิตช์ไฟ', 'ปลั๊กไฟ', 'ตู้คอนซูมเมอร์'],
-    'วัสดุงานระบบประปาและสุขาภิบาล': ['ท่อ PVC 4 หุน (ฟ้า)', 'ก๊อกน้ำ', 'ข้องอ 90 องศา', 'สามทาง', 'โถสุขภัณฑ์'],
-    'เครื่องมือและวัสดุสิ้นเปลือง': ['สกรูเกลียวปล่อย 1 นิ้ว', 'ตะปู', 'ใบตัดเหล็ก 4 นิ้ว', 'ถุงมือผ้า', 'แปรงทาสี'],
-};
+/**
+ * Interface สำหรับ Props ของ MaterialRow
+ */
+interface MaterialRowProps {
+    material: Material;
+    onWithdraw: (materialId: string) => void;
+}
 
-// (4) สร้าง Array ของหมวดหมู่ทั้งหมดสำหรับใช้ใน Dropdown
-const categories = Object.keys(predefinedMaterials) as Exclude<MaterialCategory, 'วัสดุอื่นๆ'>[];
+// ===============================================
+// 2. Mock Data
+// ===============================================
 
-// ข้อมูลเริ่มต้นบางส่วน
 const initialMaterials: Material[] = [
-  { id: 1, name: 'ปูนซีเมนต์ TPI (แดง)', category: 'วัสดุโครงสร้าง', quantity: 80, unit: 'ถุง', lowStockThreshold: 50 },
-  { id: 2, name: 'อิฐมอญ', category: 'วัสดุก่อและฉาบ', quantity: 4500, unit: 'ก้อน', lowStockThreshold: 5000 },
-  { id: 3, name: 'สายไฟ VAF 2x2.5', category: 'วัสดุงานระบบไฟฟ้า', quantity: 8, unit: 'ม้วน', lowStockThreshold: 10 },
-  { id: 4, name: 'สีทาภายใน TOA', category: 'วัสดุตกแต่งและพื้นผิว', quantity: 15, unit: 'ถัง', lowStockThreshold: 20 },
+    { id: 'M001', name: 'สายไฟ THW 1.5 sq.mm.', category: 'Electrical', stock: 150, minStock: 50, unit: 'เมตร' },
+    { id: 'M002', name: 'ท่อ PVC 4 นิ้ว', category: 'Plumbing', stock: 3, minStock: 5, unit: 'เส้น' }, // ใกล้หมด
+    { id: 'M003', name: 'น้ำยาแอร์ R32', category: 'HVAC', stock: 12, minStock: 10, unit: 'กระป๋อง' },
+    { id: 'M004', name: 'ตะปูเกลียว 2 นิ้ว', category: 'General', stock: 900, minStock: 1000, unit: 'ตัว' }, // ใกล้หมด
+    { id: 'M005', name: 'เทปพันเกลียว', category: 'Plumbing', stock: 85, minStock: 30, unit: 'ม้วน' },
 ];
 
-const MaterialPage = () => {
-  // (5) State จัดการข้อมูลหลัก และการกรอง
-  const [materials, setMaterials] = useState<Material[]>(initialMaterials);
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<MaterialCategory | 'ทั้งหมด'>('ทั้งหมด');
-  
-  // (6) *** ใหม่: State ที่ซับซ้อนขึ้นสำหรับจัดการฟอร์มเพิ่มวัสดุ ***
-  const [formCategory, setFormCategory] = useState<Exclude<MaterialCategory, 'วัสดุอื่นๆ'>>(categories[0]);
-  const [formMaterialName, setFormMaterialName] = useState<string>(predefinedMaterials[categories[0]][0]);
-  const [customMaterialName, setCustomMaterialName] = useState('');
-  const [formQuantity, setFormQuantity] = useState('10');
-  const [formUnit, setFormUnit] = useState('ชิ้น');
-  const [formThreshold, setFormThreshold] = useState('5');
-  
-  // (7) *** ใหม่: State สำหรับระบบจำลอง ***
-  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
-  const [simulationSpeed, setSimulationSpeed] = useState(2000); // ms (2 วินาที)
-  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null); // useRef สำหรับเก็บ ID ของ interval
+// ===============================================
+// 3. Components
+// ===============================================
 
-  // (8) ฟังก์ชันสำหรับเพิ่มวัสดุใหม่ (ปรับปรุงให้รองรับทั้งแบบเลือกและแบบกำหนดเอง)
-  const handleAddMaterial = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // ตรวจสอบว่ากำลังเพิ่มวัสดุแบบกำหนดเองหรือไม่
-    const isCustom = formMaterialName === 'CUSTOM';
-    const name = isCustom ? customMaterialName : formMaterialName;
-    const category = isCustom ? 'วัสดุอื่นๆ' : formCategory;
+// Component แถวของตารางวัสดุ
+const MaterialRow: React.FC<MaterialRowProps> = ({ material, onWithdraw }) => {
+    // Logic: ตรวจสอบว่าวัสดุใกล้หมดหรือไม่
+    const isLowStock = material.stock < material.minStock;
 
-    if (!name.trim()) {
-        alert("กรุณากรอกชื่อวัสดุ");
-        return;
-    }
-
-    const newMaterial: Material = {
-      id: Date.now(),
-      name,
-      category,
-      quantity: parseInt(formQuantity, 10) || 0,
-      unit: formUnit,
-      lowStockThreshold: parseInt(formThreshold, 10) || 0,
+    // กำหนดสีตามประเภทวัสดุ
+    const categoryColors = {
+        'Electrical': 'bg-yellow-500',
+        'Plumbing': 'bg-blue-500',
+        'HVAC': 'bg-green-500',
+        'General': 'bg-gray-500',
     };
-    
-    setMaterials(prev => [...prev, newMaterial]);
-  };
 
-  // (9) *** ใหม่: ฟังก์ชันสำหรับกดปุ่ม "เบิก/สั่งซื้อ" ***
-  // ในที่นี้จะทำการจำลองการเติมสต็อกให้เต็ม
-  const handleRestockMaterial = (materialId: number) => {
-    setMaterials(prevMaterials =>
-      prevMaterials.map(material =>
-        material.id === materialId
-          ? { ...material, quantity: material.lowStockThreshold + 50 } // เติมของให้มากกว่าจุดแจ้งเตือน 50 หน่วย
-          : material
-      )
+    return (
+        <tr className="border-b border-neutral-700 hover:bg-neutral-800 transition duration-150">
+            <td className="px-6 py-4 text-sm font-medium">{material.id}</td>
+            <td className="px-6 py-4 text-sm">{material.name}</td>
+            <td className="px-6 py-4">
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${categoryColors[material.category]} text-white`}>
+                    {material.category}
+                </span>
+            </td>
+            <td className={`px-6 py-4 text-sm font-bold ${isLowStock ? 'text-red-400' : 'text-white'}`}>
+                {material.stock.toLocaleString()} {material.unit}
+            </td>
+            <td className="px-6 py-4">
+                {isLowStock ? (
+                    <span className="flex items-center text-xs font-semibold text-red-500 bg-red-900/50 p-1 rounded-full border border-red-500">
+                        <Bell size={14} className="mr-1 animate-pulse" />
+                        ใกล้หมด!
+                    </span>
+                ) : (
+                    <span className="text-xs font-medium text-green-400">ปกติ</span>
+                )}
+            </td>
+            <td className="px-6 py-4 text-right text-sm font-medium">
+                <button
+                    onClick={() => onWithdraw(material.id)}
+                    className="flex items-center justify-center bg-[#5F5AFF] hover:bg-[#4b48c7] text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md shadow-[#5F5AFF]/40"
+                >
+                    <TrendingDown size={16} className="mr-2" />
+                    เบิกของ
+                </button>
+            </td>
+        </tr>
     );
-  };
-  
-  // (10) *** ใหม่: Logic ของระบบจำลองการใช้สต็อกด้วย useEffect ***
-  useEffect(() => {
-    // ถ้า isSimulationRunning เป็น false ให้เคลียร์ interval แล้วหยุดการทำงาน
-    if (!isSimulationRunning) {
-      if (simulationIntervalRef.current) {
-        clearInterval(simulationIntervalRef.current);
-      }
-      return;
-    }
+};
 
-    // ถ้า isSimulationRunning เป็น true ให้สร้าง interval ขึ้นมา
-    simulationIntervalRef.current = setInterval(() => {
-      setMaterials(prev => {
-        if (prev.length === 0) return [];
-        // สุ่ม index ของวัสดุที่จะลดจำนวน
-        const randomIndex = Math.floor(Math.random() * prev.length);
-        // สุ่มจำนวนที่จะลด (1-5 หน่วย)
-        const amountToDecrease = Math.floor(Math.random() * 5) + 1;
+// Component สรุปข้อมูล (Card)
+interface StatCardProps {
+    title: string;
+    value: string;
+    icon: React.ReactNode;
+    color: string;
+}
 
-        return prev.map((material, index) => {
-          if (index === randomIndex) {
-            const newQuantity = Math.max(0, material.quantity - amountToDecrease); // ไม่ให้ติดลบ
-            return { ...material, quantity: newQuantity };
-          }
-          return material;
-        });
-      });
-    }, simulationSpeed);
-
-    // *** Cleanup Function: ส่วนที่สำคัญมาก ***
-    // ฟังก์ชันนี้จะถูกเรียกเมื่อ component ถูก unmount หรือเมื่อ dependencies (isSimulationRunning, simulationSpeed) เปลี่ยนไป
-    // เพื่อป้องกัน memory leak จาก interval ที่ทำงานค้างอยู่
-    return () => {
-      if (simulationIntervalRef.current) {
-        clearInterval(simulationIntervalRef.current);
-      }
-    };
-  }, [isSimulationRunning, simulationSpeed]);
-
-
-  // (11) กรองข้อมูลสำหรับแสดงในตาราง (เหมือนเดิม)
-  const filteredMaterials = useMemo(() => {
-    if (selectedCategoryFilter === 'ทั้งหมด') return materials;
-    return materials.filter(m => m.category === selectedCategoryFilter);
-  }, [materials, selectedCategoryFilter]);
-  
-  // (12) *** ใหม่: รายการวัสดุใน Dropdown จะเปลี่ยนตามหมวดหมู่ที่เลือกในฟอร์ม ***
-  const materialOptions = useMemo(() => {
-      return predefinedMaterials[formCategory] || [];
-  }, [formCategory]);
-
-  return (
-    <div className="p-4">
-      <p className="text-center border p-2 text-xl font-bold mb-4">หน้าคลังวัสดุ (เวอร์ชันปรับปรุง)</p>
-
-      {/* === ส่วนฟอร์มสำหรับเพิ่มวัสดุ (ปรับปรุงใหม่) === */}
-      <div className="border p-4 mb-4">
-          <h2 className="text-lg font-bold mb-2">เพิ่มวัสดุใหม่</h2>
-          <form onSubmit={handleAddMaterial} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
-              {/* เลือกหมวดหมู่ */}
-              <div>
-                  <label className="block text-sm font-medium">หมวดหมู่</label>
-                  <select value={formCategory} onChange={e => {
-                      setFormCategory(e.target.value as Exclude<MaterialCategory, 'วัสดุอื่นๆ'>);
-                      setFormMaterialName(predefinedMaterials[e.target.value as keyof typeof predefinedMaterials][0]); // ตั้งค่า default ของวัสดุ
-                  }} className="border p-1 w-full">
-                      {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                  </select>
-              </div>
-
-              {/* เลือกชื่อวัสดุ (หรือกำหนดเอง) */}
-              <div>
-                  <label className="block text-sm font-medium">ชื่อวัสดุ</label>
-                  <select value={formMaterialName} onChange={e => setFormMaterialName(e.target.value)} className="border p-1 w-full">
-                      {materialOptions.map(name => <option key={name} value={name}>{name}</option>)}
-                      <option value="CUSTOM">-- เพิ่มวัสดุอื่น ๆ --</option>
-                  </select>
-              </div>
-              
-              {/* ช่องกรอกชื่อวัสดุเอง (จะแสดงเมื่อเลือก 'เพิ่มวัสดุอื่นๆ') */}
-              {formMaterialName === 'CUSTOM' && (
-                  <div>
-                      <label className="block text-sm font-medium">ระบุชื่อวัสดุเอง</label>
-                      <input value={customMaterialName} onChange={e => setCustomMaterialName(e.target.value)} placeholder="เช่น 'กระเบื้องลายหินอ่อน'" className="border p-1 w-full"/>
-                  </div>
-              )}
-              
-              {/* กรอกจำนวน, หน่วย, และจุดแจ้งเตือน */}
-              <input value={formQuantity} onChange={e => setFormQuantity(e.target.value)} type="number" placeholder="จำนวน" className="border p-1"/>
-              <input value={formUnit} onChange={e => setFormUnit(e.target.value)} placeholder="หน่วยนับ" className="border p-1"/>
-              <input value={formThreshold} onChange={e => setFormThreshold(e.target.value)} type="number" placeholder="จุดแจ้งเตือน" className="border p-1"/>
-
-              <button type="submit" className="border px-4 py-1 bg-gray-200 hover:bg-gray-300 col-span-full md:col-span-1">เพิ่ม</button>
-          </form>
-      </div>
-      
-      {/* === ส่วนควบคุมระบบจำลอง *** */}
-      <div className="border p-4 mb-4">
-        <h3 className="text-md font-bold mb-2">ระบบจำลองการเบิกจ่ายวัสดุ</h3>
-        <div className="flex items-center gap-4">
-            <button onClick={() => setIsSimulationRunning(prev => !prev)} className="border px-4 py-1 bg-blue-100">
-                {isSimulationRunning ? 'หยุดจำลอง' : 'เริ่มจำลอง'}
-            </button>
-            <div>
-                <label>ความเร็ว: </label>
-                <select value={simulationSpeed} onChange={e => setSimulationSpeed(Number(e.target.value))} className="border p-1">
-                    <option value={3000}>ช้า (3 วินาที)</option>
-                    <option value={2000}>ปกติ (2 วินาที)</option>
-                    <option value={500}>เร็ว (0.5 วินาที)</option>
-                </select>
-            </div>
-            <p>สถานะ: {isSimulationRunning ? 'ทำงาน' : 'หยุด'}</p>
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
+    <div className="flex-1 min-w-[250px] bg-neutral-900 p-6 rounded-xl border border-neutral-800 shadow-lg flex items-center justify-between">
+        <div>
+            <p className="text-neutral-400 text-sm">{title}</p>
+            <h3 className="text-3xl font-bold text-white mt-1">{value}</h3>
         </div>
-      </div>
-
-      {/* === Filter (ใช้หมวดหมู่ทั้งหมดรวมถึง 'วัสดุอื่นๆ') === */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <button onClick={() => setSelectedCategoryFilter('ทั้งหมด')} className="border px-2 py-1">ทั้งหมด</button>
-        {[...categories, 'วัสดุอื่นๆ'].map(cat => <button key={cat} onClick={() => setSelectedCategoryFilter(cat)} className="border px-2 py-1">{cat}</button>)}
-      </div>
-
-      {/* === ตารางแสดงผล (ปรับปรุงเรื่องสีและปุ่ม) === */}
-      <div className="border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50"> {/* ใช้สีจาก shadcn theme: muted */}
-              <th className="p-2 text-left">ชื่อวัสดุ</th>
-              <th className="p-2 text-left">หมวดหมู่</th>
-              <th className="p-2 text-left">จำนวนคงเหลือ</th>
-              <th className="p-2 text-left">สถานะ</th>
-              <th className="p-2 text-left">การดำเนินการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredMaterials.map(material => {
-              const isLowStock = material.quantity <= material.lowStockThreshold;
-              // *** ใหม่: ใช้ class ที่อิงกับ theme ของ shadcn ***
-              // bg-destructive/10 คือสีแดงโปร่งแสง 10%, text-destructive คือสีตัวอักษรแดง
-              const rowClass = isLowStock ? 'bg-destructive/10' : '';
-
-              return (
-                <tr key={material.id} className={`border-b ${rowClass}`}>
-                  <td className="p-2">{material.name}</td>
-                  <td className="p-2">{material.category}</td>
-                  <td className="p-2">{material.quantity} {material.unit}</td>
-                  <td className="p-2">
-                    {isLowStock ? (
-                      <span className="font-bold text-destructive">ใกล้หมด</span>
-                    ) : (
-                      <span className="text-green-600">ปกติ</span>
-                    )}
-                  </td>
-                  <td className="p-2">
-                    {isLowStock && (
-                      <button onClick={() => handleRestockMaterial(material.id)} className="border px-2 py-1 text-sm bg-blue-500 text-white">
-                        เบิก/สั่งซื้อ
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+        <div className={`p-3 rounded-full ${color} bg-opacity-20`}>
+            {React.cloneElement(icon as React.ReactElement, { size: 28, className: color.replace('bg-', 'text-') })}
+        </div>
     </div>
-  );
+);
+
+// ===============================================
+// 4. Main Component: MaterialPage
+// ===============================================
+
+const MaterialPage: React.FC = () => {
+    const [materials, setMaterials] = useState<Material[]>(initialMaterials);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const lowStockItems = materials.filter(m => m.stock < m.minStock);
+    const totalUniqueItems = materials.length;
+    const totalQuantity = materials.reduce((sum, m) => sum + m.stock, 0);
+
+    const handleWithdraw = (materialId: string) => {
+        // ในโปรเจกต์จริงต้องมีการเปิด Modal เพื่อระบุจำนวนที่ต้องการเบิก
+        // และอัพเดตข้อมูลผ่าน API หรือ Firestore
+        console.log(`ดำเนินการเบิกวัสดุ ID: ${materialId}`);
+        // ตัวอย่าง: ลดจำนวนคงคลังของวัสดุนั้นลง 10 หน่วย
+        setMaterials(prev => prev.map(m =>
+            m.id === materialId
+                ? { ...m, stock: Math.max(0, m.stock - 10) } // ป้องกันไม่ให้สต็อกติดลบ
+                : m
+        ));
+    };
+
+    const filteredMaterials = materials.filter(material =>
+        material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div className="p-8 min-h-screen bg-black text-white">
+            <h2 className="text-3xl font-extrabold mb-2">ระบบคลังวัสดุ (Inventory)</h2>
+            <p className="text-neutral-400 mb-10">ภาพรวมสถานะวัสดุคงคลังและการแจ้งเตือนเมื่อใกล้หมด</p>
+
+            {/* Statistics Cards */}
+            <div className="flex flex-wrap gap-6 mb-12">
+                <StatCard
+                    title="จำนวนวัสดุทั้งหมด (SKU)"
+                    value={totalUniqueItems.toLocaleString()}
+                    icon={<Layers />}
+                    color="text-[#5F5AFF] bg-[#5F5AFF]"
+                />
+                <StatCard
+                    title="รวมจำนวนหน่วยคงคลัง"
+                    value={totalQuantity.toLocaleString()}
+                    icon={<Package />}
+                    color="text-yellow-500 bg-yellow-500"
+                />
+                <StatCard
+                    title="รายการที่ใกล้หมด (Alert)"
+                    value={lowStockItems.length.toLocaleString()}
+                    icon={<Bell />}
+                    color="text-red-500 bg-red-500"
+                />
+            </div>
+
+            {/* Control Panel and Search */}
+            <div className="flex justify-between items-center mb-6">
+                <div className="relative w-full max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" size={20} />
+                    <input
+                        type="text"
+                        placeholder="ค้นหาตามชื่อวัสดุ หรือ ID..."
+                        className="w-full bg-neutral-900 border border-neutral-700 text-white rounded-lg py-2 pl-10 pr-4 focus:border-[#5F5AFF] focus:ring focus:ring-[#5F5AFF]/50 transition"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                {/* ปุ่มเพิ่มวัสดุใหม่ (New Material) */}
+                <button
+                    onClick={() => console.log('Open Add New Material Modal')}
+                    className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md shadow-green-600/40 ml-4"
+                >
+                    <Plus size={16} className="mr-2" />
+                    เพิ่มวัสดุใหม่
+                </button>
+            </div>
+
+
+            {/* Material Table */}
+            <div className="bg-neutral-900 rounded-xl overflow-hidden shadow-2xl border border-neutral-800">
+                <table className="min-w-full divide-y divide-neutral-700">
+                    <thead className="bg-neutral-800">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ชื่อวัสดุ</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ประเภท</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">จำนวนคงคลัง</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">สถานะ</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-neutral-400 uppercase tracking-wider">การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800">
+                        {filteredMaterials.length > 0 ? (
+                            filteredMaterials.map((material) => (
+                                <MaterialRow
+                                    key={material.id}
+                                    material={material}
+                                    onWithdraw={handleWithdraw}
+                                />
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={6} className="px-6 py-10 text-center text-neutral-500">
+                                    <MinusCircle size={24} className="mx-auto mb-2" />
+                                    ไม่พบรายการวัสดุที่ตรงกับคำค้นหา
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 };
 
 export default MaterialPage;
