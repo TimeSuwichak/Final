@@ -1,228 +1,567 @@
-import React, { useState } from 'react';
-import { Package, Bell, TrendingDown, Layers, Search, Plus, MinusCircle } from 'lucide-react';
 
-// ===============================================
-// 1. TypeScript Interfaces
-// ===============================================
+// src/pages/admin/Material.tsx
+"use client"
 
-/**
- * Interface สำหรับโครงสร้างข้อมูลของวัสดุแต่ละรายการ
- */
+import React, { useMemo, useState } from "react"
+import { Plus, Search as SearchIcon, Edit3, Trash2, Clock, Package, Bell } from "lucide-react"
+
+// shadcn/ui imports (per-file)
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+
+// -----------------------------
+// Types
+// -----------------------------
+type MainCategory = "Electrical" | "Plumbing" | "HVAC" | "General"
+
+type SubCategoryMap = {
+  [K in MainCategory]: string[]
+}
+
 interface Material {
-    id: string;
-    name: string;
-    category: 'Electrical' | 'Plumbing' | 'HVAC' | 'General';
-    stock: number; // จำนวนคงคลังปัจจุบัน
-    minStock: number; // ระดับต่ำสุดที่ต้องแจ้งเตือน
-    unit: string;
+  id: string
+  name: string
+  mainCategory: MainCategory
+  subCategory: string
+  stock: number
+  minStock: number
+  unit: string
 }
 
-/**
- * Interface สำหรับ Props ของ MaterialRow
- */
-interface MaterialRowProps {
-    material: Material;
-    onWithdraw: (materialId: string) => void;
+interface WithdrawEntry {
+  id: string
+  materialId: string
+  materialName: string
+  qty: number
+  days: number
+  hours: number
+  at: string // ISO timestamp
 }
 
-// ===============================================
-// 2. Mock Data
-// ===============================================
-
-const initialMaterials: Material[] = [
-    { id: 'M001', name: 'สายไฟ THW 1.5 sq.mm.', category: 'Electrical', stock: 150, minStock: 50, unit: 'เมตร' },
-    { id: 'M002', name: 'ท่อ PVC 4 นิ้ว', category: 'Plumbing', stock: 3, minStock: 5, unit: 'เส้น' }, // ใกล้หมด
-    { id: 'M003', name: 'น้ำยาแอร์ R32', category: 'HVAC', stock: 12, minStock: 10, unit: 'กระป๋อง' },
-    { id: 'M004', name: 'ตะปูเกลียว 2 นิ้ว', category: 'General', stock: 900, minStock: 1000, unit: 'ตัว' }, // ใกล้หมด
-    { id: 'M005', name: 'เทปพันเกลียว', category: 'Plumbing', stock: 85, minStock: 30, unit: 'ม้วน' },
-];
-
-// ===============================================
-// 3. Components
-// ===============================================
-
-// Component แถวของตารางวัสดุ
-const MaterialRow: React.FC<MaterialRowProps> = ({ material, onWithdraw }) => {
-    // Logic: ตรวจสอบว่าวัสดุใกล้หมดหรือไม่
-    const isLowStock = material.stock < material.minStock;
-
-    // กำหนดสีตามประเภทวัสดุ
-    const categoryColors = {
-        'Electrical': 'bg-yellow-500',
-        'Plumbing': 'bg-blue-500',
-        'HVAC': 'bg-green-500',
-        'General': 'bg-gray-500',
-    };
-
-    return (
-        <tr className="border-b border-neutral-700 hover:bg-neutral-800 transition duration-150">
-            <td className="px-6 py-4 text-sm font-medium">{material.id}</td>
-            <td className="px-6 py-4 text-sm">{material.name}</td>
-            <td className="px-6 py-4">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${categoryColors[material.category]} text-white`}>
-                    {material.category}
-                </span>
-            </td>
-            <td className={`px-6 py-4 text-sm font-bold ${isLowStock ? 'text-red-400' : 'text-white'}`}>
-                {material.stock.toLocaleString()} {material.unit}
-            </td>
-            <td className="px-6 py-4">
-                {isLowStock ? (
-                    <span className="flex items-center text-xs font-semibold text-red-500 bg-red-900/50 p-1 rounded-full border border-red-500">
-                        <Bell size={14} className="mr-1 animate-pulse" />
-                        ใกล้หมด!
-                    </span>
-                ) : (
-                    <span className="text-xs font-medium text-green-400">ปกติ</span>
-                )}
-            </td>
-            <td className="px-6 py-4 text-right text-sm font-medium">
-                <button
-                    onClick={() => onWithdraw(material.id)}
-                    className="flex items-center justify-center bg-[#5F5AFF] hover:bg-[#4b48c7] text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md shadow-[#5F5AFF]/40"
-                >
-                    <TrendingDown size={16} className="mr-2" />
-                    เบิกของ
-                </button>
-            </td>
-        </tr>
-    );
-};
-
-// Component สรุปข้อมูล (Card)
-interface StatCardProps {
-    title: string;
-    value: string;
-    icon: React.ReactNode;
-    color: string;
+// -----------------------------
+// Subcategory mapping
+// -----------------------------
+const SUBCATEGORIES: SubCategoryMap = {
+  Electrical: ["สายไฟ", "หลอดไฟ", "เบรกเกอร์", "ปลั๊ก/สวิตช์"],
+  Plumbing: ["ท่อ PVC", "ข้อต่อ", "ก๊อก/วาล์ว"],
+  HVAC: ["น้ำยาแอร์", "ท่อทองแดง", "คอมเพรสเซอร์"],
+  General: ["น็อต/สกรู", "เทปพันเกลียว", "ตะปู", "อุปกรณ์อื่นๆ"],
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color }) => (
-    <div className="flex-1 min-w-[250px] bg-neutral-900 p-6 rounded-xl border border-neutral-800 shadow-lg flex items-center justify-between">
+// -----------------------------
+// Initial Mock Data
+// -----------------------------
+const INITIAL_MATERIALS: Material[] = [
+  { id: "M001", name: "สายไฟ THW 1.5 sq.mm.", mainCategory: "Electrical", subCategory: "สายไฟ", stock: 150, minStock: 50, unit: "เมตร" },
+  { id: "M002", name: "ท่อ PVC 4 นิ้ว", mainCategory: "Plumbing", subCategory: "ท่อ PVC", stock: 3, minStock: 5, unit: "เส้น" },
+  { id: "M003", name: "น้ำยาแอร์ R32", mainCategory: "HVAC", subCategory: "น้ำยาแอร์", stock: 12, minStock: 10, unit: "กระป๋อง" },
+  { id: "M004", name: "ตะปูเกลียว 2 นิ้ว", mainCategory: "General", subCategory: "ตะปู", stock: 900, minStock: 1000, unit: "ตัว" },
+  { id: "M005", name: "เทปพันเกลียว", mainCategory: "General", subCategory: "เทปพันเกลียว", stock: 85, minStock: 30, unit: "ม้วน" },
+]
+
+// -----------------------------
+// Helper: format date/time
+// -----------------------------
+function formatDateTime(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleString()
+}
+
+// -----------------------------
+// Component: MaterialPage
+// -----------------------------
+export default function MaterialPage() {
+  // Materials + history
+  const [materials, setMaterials] = useState<Material[]>(INITIAL_MATERIALS)
+  const [history, setHistory] = useState<WithdrawEntry[]>([])
+
+  // UI state
+  const [query, setQuery] = useState<string>("")
+  const [filterMain, setFilterMain] = useState<string>("ทั้งหมด")
+  const [page, setPage] = useState<number>(1)
+  const pageSize = 10
+
+  // Dialogs state
+  const [openAddEdit, setOpenAddEdit] = useState(false)
+  const [editing, setEditing] = useState<Material | null>(null)
+
+  const [openWithdraw, setOpenWithdraw] = useState(false)
+  const [withdrawTarget, setWithdrawTarget] = useState<Material | null>(null)
+
+  // Form state for add/edit
+  const emptyForm = {
+    name: "",
+    mainCategory: "Electrical" as MainCategory,
+    subCategory: SUBCATEGORIES["Electrical"][0],
+    stock: 0,
+    minStock: 0,
+    unit: "",
+  }
+  const [form, setForm] = useState<typeof emptyForm>(emptyForm)
+
+  // Withdraw form
+  const [withdrawQty, setWithdrawQty] = useState<number>(0)
+  const [withdrawDays, setWithdrawDays] = useState<number>(0)
+  const [withdrawHours, setWithdrawHours] = useState<number>(0)
+
+  // Derived lists
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return materials.filter((m) => {
+      if (filterMain !== "ทั้งหมด" && m.mainCategory !== filterMain) return false
+      if (!q) return true
+      return (
+        m.name.toLowerCase().includes(q) ||
+        m.id.toLowerCase().includes(q) ||
+        m.subCategory.toLowerCase().includes(q)
+      )
+    })
+  }, [materials, query, filterMain])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const paginated = filtered.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
+
+  // Stats
+  const lowStockCount = materials.filter((m) => m.stock < m.minStock).length
+  const totalUnique = materials.length
+  const totalQty = materials.reduce((s, m) => s + m.stock, 0)
+
+  // -----------------------------
+  // Handlers: Add / Edit
+  // -----------------------------
+  function openAdd() {
+    setEditing(null)
+    setForm(emptyForm)
+    setOpenAddEdit(true)
+  }
+
+  function openEdit(m: Material) {
+    setEditing(m)
+    setForm({
+      name: m.name,
+      mainCategory: m.mainCategory,
+      subCategory: m.subCategory,
+      stock: m.stock,
+      minStock: m.minStock,
+      unit: m.unit,
+    })
+    setOpenAddEdit(true)
+  }
+
+  function saveForm() {
+    if (!form.name.trim()) {
+      alert("กรุณากรอกชื่อวัสดุ")
+      return
+    }
+    if (!form.unit.trim()) {
+      alert("กรุณาระบุหน่วย")
+      return
+    }
+
+    if (editing) {
+      // update
+      setMaterials((prev) =>
+        prev.map((p) =>
+          p.id === editing.id
+            ? { ...p, name: form.name.trim(), mainCategory: form.mainCategory, subCategory: form.subCategory, stock: Number(form.stock), minStock: Number(form.minStock), unit: form.unit.trim() }
+            : p
+        )
+      )
+    } else {
+      // create new id: M + 4-digit
+      const nextIdNumber = (materials.length > 0 ? Math.max(...materials.map(m => Number(m.id.replace(/^M0*/, "") || 0))) : 0) + 1
+      const id = `M${String(nextIdNumber).padStart(3, "0")}`
+      const newMat: Material = {
+        id,
+        name: form.name.trim(),
+        mainCategory: form.mainCategory,
+        subCategory: form.subCategory,
+        stock: Number(form.stock),
+        minStock: Number(form.minStock),
+        unit: form.unit.trim() || "ชิ้น",
+      }
+      setMaterials((prev) => [...prev, newMat])
+    }
+
+    setOpenAddEdit(false)
+  }
+
+  // -----------------------------
+  // Handlers: Withdraw
+  // -----------------------------
+  function openWithdrawDialog(m: Material) {
+    setWithdrawTarget(m)
+    setWithdrawQty(0)
+    setWithdrawDays(0)
+    setWithdrawHours(0)
+    setOpenWithdraw(true)
+  }
+
+  function confirmWithdraw() {
+    if (!withdrawTarget) return
+    if (withdrawQty <= 0) {
+      alert("จำนวนที่เบิกต้องมากกว่า 0")
+      return
+    }
+    // clamp subtract
+    setMaterials((prev) =>
+      prev.map((p) =>
+        p.id === withdrawTarget.id
+          ? { ...p, stock: Math.max(0, p.stock - withdrawQty) }
+          : p
+      )
+    )
+
+    const entry: WithdrawEntry = {
+      id: `W${Date.now()}`,
+      materialId: withdrawTarget.id,
+      materialName: withdrawTarget.name,
+      qty: withdrawQty,
+      days: Math.max(0, Math.floor(withdrawDays)),
+      hours: Math.max(0, Math.floor(withdrawHours)),
+      at: new Date().toISOString(),
+    }
+    setHistory((prev) => [entry, ...prev])
+    setOpenWithdraw(false)
+  }
+
+  // -----------------------------
+  // Handlers: Delete
+  // -----------------------------
+  function handleDelete(id: string) {
+    if (!confirm("ต้องการลบวัสดุนี้ใช่หรือไม่?")) return
+    setMaterials((prev) => prev.filter((p) => p.id !== id))
+    // optionally remove related history entries (we keep them for audit trail)
+  }
+
+  // -----------------------------
+  // UI small helpers
+  // -----------------------------
+  const mainCategories: (MainCategory | "ทั้งหมด")[] = ["ทั้งหมด", "Electrical", "Plumbing", "HVAC", "General"]
+
+  return (
+    <div className="p-6 w-full min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
         <div>
-            <p className="text-neutral-400 text-sm">{title}</p>
-            <h3 className="text-3xl font-bold text-white mt-1">{value}</h3>
+          <h1 className="text-2xl font-extrabold">ระบบคลังวัสดุ</h1>
+          <p className="text-sm text-muted-foreground mt-1">ภาพรวม จัดการ เพิ่ม / แก้ไข / เบิกวัสดุ และดูประวัติการเบิก</p>
         </div>
-        <div className={`p-3 rounded-full ${color} bg-opacity-20`}>
-            {React.cloneElement(icon as React.ReactElement, { size: 28, className: color.replace('bg-', 'text-') })}
+        <div className="flex items-center gap-2">
+          <Button onClick={openAdd} className="flex items-center">
+            <Plus className="w-4 h-4 mr-2" /> เพิ่มวัสดุใหม่
+          </Button>
         </div>
-    </div>
-);
+      </div>
 
-// ===============================================
-// 4. Main Component: MaterialPage
-// ===============================================
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardHeader className="flex items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">จำนวน SKU</CardTitle>
+            <Package className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalUnique.toLocaleString()}</div>
+            <div className="text-sm text-muted-foreground mt-1">รายการวัสดุทั้งหมด</div>
+          </CardContent>
+        </Card>
 
-const MaterialPage: React.FC = () => {
-    const [materials, setMaterials] = useState<Material[]>(initialMaterials);
-    const [searchTerm, setSearchTerm] = useState('');
+        <Card>
+          <CardHeader className="flex items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">รวมจำนวนหน่วย</CardTitle>
+            <Package className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalQty.toLocaleString()}</div>
+            <div className="text-sm text-muted-foreground mt-1">รวม stock ทุก SKU</div>
+          </CardContent>
+        </Card>
 
-    const lowStockItems = materials.filter(m => m.stock < m.minStock);
-    const totalUniqueItems = materials.length;
-    const totalQuantity = materials.reduce((sum, m) => sum + m.stock, 0);
+        <Card>
+          <CardHeader className="flex items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">รายการใกล้หมด</CardTitle>
+            <Bell className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">{lowStockCount}</div>
+            <div className="text-sm text-muted-foreground mt-1">วัสดุที่ต่ำกว่า threshold</div>
+          </CardContent>
+        </Card>
+      </div>
 
-    const handleWithdraw = (materialId: string) => {
-        // ในโปรเจกต์จริงต้องมีการเปิด Modal เพื่อระบุจำนวนที่ต้องการเบิก
-        // และอัพเดตข้อมูลผ่าน API หรือ Firestore
-        console.log(`ดำเนินการเบิกวัสดุ ID: ${materialId}`);
-        // ตัวอย่าง: ลดจำนวนคงคลังของวัสดุนั้นลง 10 หน่วย
-        setMaterials(prev => prev.map(m =>
-            m.id === materialId
-                ? { ...m, stock: Math.max(0, m.stock - 10) } // ป้องกันไม่ให้สต็อกติดลบ
-                : m
-        ));
-    };
+      {/* Controls: Search + Filter */}
+      <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
+        <div className="relative w-full md:w-1/2">
+          <SearchIcon className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="ค้นหาชื่อวัสดุ / ID / หมวดหมู่ย่อย..."
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setPage(1) }}
+          />
+        </div>
 
-    const filteredMaterials = materials.filter(material =>
-        material.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        material.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Select value={filterMain} onValueChange={(v) => { setFilterMain(v); setPage(1) }}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="กรองหมวดหมู่หลัก" />
+            </SelectTrigger>
+            <SelectContent>
+              {mainCategories.map((mc) => (
+                <SelectItem key={mc} value={mc}>{mc}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-    return (
-        <div className="p-8 min-h-screen bg-black text-white">
-            <h2 className="text-3xl font-extrabold mb-2">ระบบคลังวัสดุ (Inventory)</h2>
-            <p className="text-neutral-400 mb-10">ภาพรวมสถานะวัสดุคงคลังและการแจ้งเตือนเมื่อใกล้หมด</p>
+      {/* Table */}
+      <div className="rounded-xl border shadow-sm overflow-hidden mb-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[220px]">ID / ชื่อ</TableHead>
+              <TableHead>หมวดหมู่หลัก / ย่อย</TableHead>
+              <TableHead className="w-[160px] text-right">จำนวนคงคลัง</TableHead>
+              <TableHead className="w-[160px] text-right">ขั้นต่ำแจ้งเตือน</TableHead>
+              <TableHead className="w-[120px] text-right">หน่วย</TableHead>
+              <TableHead className="w-[160px] text-right">จัดการ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginated.length > 0 ? paginated.map((m) => {
+              const isLow = m.stock < m.minStock
+              return (
+                <TableRow key={m.id}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="font-medium">{m.name}</div>
+                      <div className="text-xs text-muted-foreground">{m.id}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">{m.mainCategory} • <span className="text-muted-foreground">{m.subCategory}</span></div>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">{m.stock.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{m.minStock.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">{m.unit}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(m)} title="แก้ไข">
+                        <Edit3 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => openWithdrawDialog(m)} title="เบิก">
+                        <Clock className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(m.id)} title="ลบ">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="mt-2">
+                      {isLow ? <Badge variant="destructive">ใกล้หมด</Badge> : <Badge>ปกติ</Badge>}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            }) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  ไม่พบรายการวัสดุที่ตรงกับคำค้นหา
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-            {/* Statistics Cards */}
-            <div className="flex flex-wrap gap-6 mb-12">
-                <StatCard
-                    title="จำนวนวัสดุทั้งหมด (SKU)"
-                    value={totalUniqueItems.toLocaleString()}
-                    icon={<Layers />}
-                    color="text-[#5F5AFF] bg-[#5F5AFF]"
-                />
-                <StatCard
-                    title="รวมจำนวนหน่วยคงคลัง"
-                    value={totalQuantity.toLocaleString()}
-                    icon={<Package />}
-                    color="text-yellow-500 bg-yellow-500"
-                />
-                <StatCard
-                    title="รายการที่ใกล้หมด (Alert)"
-                    value={lowStockItems.length.toLocaleString()}
-                    icon={<Bell />}
-                    color="text-red-500 bg-red-500"
-                />
-            </div>
-
-            {/* Control Panel and Search */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="relative w-full max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" size={20} />
-                    <input
-                        type="text"
-                        placeholder="ค้นหาตามชื่อวัสดุ หรือ ID..."
-                        className="w-full bg-neutral-900 border border-neutral-700 text-white rounded-lg py-2 pl-10 pr-4 focus:border-[#5F5AFF] focus:ring focus:ring-[#5F5AFF]/50 transition"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                {/* ปุ่มเพิ่มวัสดุใหม่ (New Material) */}
-                <button
-                    onClick={() => console.log('Open Add New Material Modal')}
-                    className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md shadow-green-600/40 ml-4"
+      {/* Pagination */}
+      <div className="flex items-center justify-end">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.max(1, p - 1)) }} />
+            </PaginationItem>
+            {/* simple numeric pages */}
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  href="#"
+                  isActive={page === i + 1}
+                  onClick={(e) => { e.preventDefault(); setPage(i + 1) }}
                 >
-                    <Plus size={16} className="mr-2" />
-                    เพิ่มวัสดุใหม่
-                </button>
-            </div>
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext href="#" onClick={(e) => { e.preventDefault(); setPage((p) => Math.min(totalPages, p + 1)) }} />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
 
-
-            {/* Material Table */}
-            <div className="bg-neutral-900 rounded-xl overflow-hidden shadow-2xl border border-neutral-800">
-                <table className="min-w-full divide-y divide-neutral-700">
-                    <thead className="bg-neutral-800">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ชื่อวัสดุ</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">ประเภท</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">จำนวนคงคลัง</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">สถานะ</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-neutral-400 uppercase tracking-wider">การดำเนินการ</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-800">
-                        {filteredMaterials.length > 0 ? (
-                            filteredMaterials.map((material) => (
-                                <MaterialRow
-                                    key={material.id}
-                                    material={material}
-                                    onWithdraw={handleWithdraw}
-                                />
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-10 text-center text-neutral-500">
-                                    <MinusCircle size={24} className="mx-auto mb-2" />
-                                    ไม่พบรายการวัสดุที่ตรงกับคำค้นหา
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+      {/* Withdraw History */}
+      <div className="mt-8">
+        <h3 className="text-lg font-medium mb-3">ประวัติการเบิก (ล่าสุด)</h3>
+        <div className="space-y-2">
+          {history.length === 0 ? (
+            <div className="text-sm text-muted-foreground">ยังไม่มีการเบิกวัสดุ</div>
+          ) : (
+            history.map((h) => (
+              <div key={h.id} className="flex items-center justify-between bg-card p-3 rounded-md border">
+                <div>
+                  <div className="font-medium">{h.materialName} — {h.qty.toLocaleString()} หน่วย</div>
+                  <div className="text-sm text-muted-foreground">
+                    ใช้เวลา {h.days} วัน {h.hours} ชั่วโมง • {formatDateTime(h.at)}
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">{h.id}</div>
+              </div>
+            ))
+          )}
         </div>
-    );
-};
+      </div>
 
-export default MaterialPage;
+      {/* -----------------------
+          Dialog: Add / Edit
+         ----------------------- */}
+      <Dialog open={openAddEdit} onOpenChange={setOpenAddEdit}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>{editing ? "แก้ไขวัสดุ" : "เพิ่มวัสดุใหม่"}</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            <div className="col-span-2">
+              <Label>ชื่อวัสดุ</Label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="เช่น สายไฟ THW 1.5 sq.mm." />
+            </div>
+
+            <div>
+              <Label>หมวดหมู่หลัก</Label>
+              <Select value={form.mainCategory} onValueChange={(v) => {
+                const mc = v as MainCategory
+                setForm({ ...form, mainCategory: mc, subCategory: SUBCATEGORIES[mc][0] })
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกหมวดหมู่หลัก" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Electrical">Electrical</SelectItem>
+                  <SelectItem value="Plumbing">Plumbing</SelectItem>
+                  <SelectItem value="HVAC">HVAC</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>หมวดหมู่ย่อย</Label>
+              <Select value={form.subCategory} onValueChange={(v) => setForm({ ...form, subCategory: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="เลือกหมวดหมู่ย่อย" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(SUBCATEGORIES[form.mainCategory] || []).map((sub) => (
+                    <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>หน่วย</Label>
+              <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="เมตร / ม้วน / ตัว / กระป๋อง" />
+            </div>
+
+            <div>
+              <Label>จำนวนคงคลัง (เริ่มต้น)</Label>
+              <Input type="number" value={String(form.stock)} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} />
+            </div>
+
+            <div>
+              <Label>ขั้นต่ำแจ้งเตือน</Label>
+              <Input type="number" value={String(form.minStock)} onChange={(e) => setForm({ ...form, minStock: Number(e.target.value) })} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenAddEdit(false)}>ยกเลิก</Button>
+            <Button onClick={saveForm}>{editing ? "บันทึกการแก้ไข" : "เพิ่มวัสดุ"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* -----------------------
+          Dialog: Withdraw
+         ----------------------- */}
+      <Dialog open={openWithdraw} onOpenChange={setOpenWithdraw}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>เบิกวัสดุ</DialogTitle>
+            <div className="text-sm text-muted-foreground mt-1">{withdrawTarget ? `${withdrawTarget.name} (${withdrawTarget.id})` : ""}</div>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>จำนวนที่ต้องการเบิก</Label>
+              <Input type="number" value={withdrawQty} onChange={(e) => setWithdrawQty(Math.max(0, Number(e.target.value || 0)))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>ใช้เวลากี่วัน</Label>
+                <Input type="number" value={withdrawDays} onChange={(e) => setWithdrawDays(Math.max(0, Number(e.target.value || 0)))} />
+              </div>
+              <div>
+                <Label>ใช้เวลากี่ชั่วโมง</Label>
+                <Input type="number" value={withdrawHours} onChange={(e) => setWithdrawHours(Math.max(0, Number(e.target.value || 0)))} />
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              เวลาที่ระบุจะบันทึกในประวัติการเบิกเพื่อใช้วิเคราะห์เวลางาน/ติดตามทรัพยากร
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenWithdraw(false)}>ยกเลิก</Button>
+            <Button onClick={confirmWithdraw} disabled={withdrawQty <= 0}>ยืนยันเบิก</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

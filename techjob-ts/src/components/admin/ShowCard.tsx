@@ -1,6 +1,5 @@
 import {
     Card,
-    CardAction,
     CardContent,
     CardDescription,
     CardFooter,
@@ -19,7 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-const ShowCard = ({ jobs }) => {
+const ShowCard = ({ jobs }: { jobs: any[] }) => {
     return (
         <div >
             <div className="border border-border flex  mt-10">

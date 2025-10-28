@@ -18,7 +18,7 @@ import { Command as CommandPrimitive } from "cmdk"
 //    - onSelectionChange: ฟังก์ชันจากแม่ ที่จะถูกเรียกเมื่อมีการ เพิ่ม/ลบ ช่าง
 //    - selectedTechs: Array ของช่างที่ถูกเลือกอยู่
 //    - disabled: boolean
-export function MultiSelectTechnician({ technicians = [], onSelectionChange, selectedTechs = [], disabled }) {
+export function MultiSelectTechnician({ technicians = [], onSelectionChange, selectedTechs = [], disabled }: { technicians?: any[]; onSelectionChange?: React.Dispatch<React.SetStateAction<any[]>> | ((s: any[]) => void); selectedTechs?: any[]; disabled?: boolean }) {
     const inputRef = React.useRef<HTMLInputElement>(null)
     const [inputValue, setInputValue] = React.useState("")
     const [open, setOpen] = React.useState(false);
@@ -26,29 +26,29 @@ export function MultiSelectTechnician({ technicians = [], onSelectionChange, sel
     // 2. ไม่ใช้ State ภายในสำหรับเก็บค่าที่เลือกแล้ว แต่จะใช้ prop 'selectedTechs' แทน
 
     // 3. ฟังก์ชันสำหรับ "ลบ" ช่าง (เรียก onSelectionChange)
-    const handleUnselect = React.useCallback((technician) => {
+    const handleUnselect = React.useCallback((technician: any) => {
         // สร้าง array ใหม่โดยกรองเอาคนที่ต้องการลบออก
         const newSelection = selectedTechs.filter(s => s.id !== technician.id);
         // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
-        onSelectionChange(newSelection);
+        onSelectionChange && onSelectionChange(newSelection);
     }, [selectedTechs, onSelectionChange]) // Dependency array
 
     // 4. ฟังก์ชันสำหรับ "เพิ่ม" ช่าง (เรียก onSelectionChange)
-    const handleSelect = (technician) => {
+    const handleSelect = (technician: any) => {
         setInputValue("") // เคลียร์ช่องค้นหา
         // สร้าง array ใหม่โดยเพิ่มคนใหม่เข้าไป
         const newSelection = [...selectedTechs, technician];
         // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
-        onSelectionChange(newSelection);
+        onSelectionChange && onSelectionChange(newSelection);
     }
 
     // 5. จัดการการกด Backspace (เรียก onSelectionChange)
-    const handleKeyDown = React.useCallback((e) => {
-        if (e.key === "Backspace" && inputValue === "") {
+    const handleKeyDown = React.useCallback((e: any) => {
+            if (e.key === "Backspace" && inputValue === "") {
             // สร้าง array ใหม่โดยลบตัวสุดท้ายออก
             const newSelection = selectedTechs.slice(0, -1);
             // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
-            onSelectionChange(newSelection);
+            onSelectionChange && onSelectionChange(newSelection);
         }
     }, [inputValue, selectedTechs, onSelectionChange]); // Dependency array
 

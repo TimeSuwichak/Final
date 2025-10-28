@@ -1,7 +1,7 @@
 // components/admin/CreateJobForm.tsx
 "use client"
 
-import React, { useState, useMemo } from 'react'; // <-- 1. เพิ่ม useMemo เข้ามา
+import { useState, useMemo } from 'react'; // <-- 1. เพิ่ม useMemo เข้ามา
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,23 +35,23 @@ import {user} from '@/Data/user'; // (ปรับ path ให้ตรงกั
 const allDepartments = [...new Set(leader.map(l => l.department))];
 
 
-export function CreateJobForm({ onSubmit }) {
+export function CreateJobForm({ onSubmit }: { onSubmit: (data: any) => void }) {
     // ==========================================================
     // 4. เพิ่ม State สำหรับเก็บข้อมูลการเลือกแผนกและทีม
     // ==========================================================
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     // State สำหรับเก็บ "แผนก" ที่ถูกเลือก
     const [selectedDepartment, setSelectedDepartment] = useState('');
     
     // State สำหรับเก็บ "หัวหน้างาน" ที่ถูกเลือก (เป็น object)
-    const [selectedLead, setSelectedLead] = useState(null);
+    const [selectedLead, setSelectedLead] = useState<any | null>(null);
     
     // State สำหรับเก็บ "ทีมช่าง" ที่ถูกเลือก (เป็น array)
-    const [selectedTechs, setSelectedTechs] = useState([]);
+    const [selectedTechs, setSelectedTechs] = useState<any[]>([]);
 
 
     // ==========================================================
@@ -73,12 +73,12 @@ export function CreateJobForm({ onSubmit }) {
 
 
     // ฟังก์ชัน handleImageChange (เหมือนเดิม)
-    const handleImageChange = (event) => { /* ...โค้ดเดิม... */ };
+    const handleImageChange = (event: any) => { /* ...โค้ดเดิม... */ };
 
     // ==========================================================
     // 6. อัปเดตฟังก์ชัน handleSubmit ให้สมบูรณ์
     // ==========================================================
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: any) => {
         event.preventDefault();
 
         // เพิ่มการตรวจสอบข้อมูลใหม่
