@@ -63,13 +63,22 @@ export default function AdminNavbar() {
             </NavLink>
 
             <NavLink
+<<<<<<< HEAD
+              to="#"
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+=======
               to="/admin/datauser"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+>>>>>>> 7066c3dd38635232f2a0663bcecd6cf0b853230e
             >
               <MdEngineering className=" inline mr-2" /> การเข้างานช่าง
             </NavLink>
 
             <NavLink
+<<<<<<< HEAD
+              to="#"
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
+=======
               to="/user/report-problem"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
@@ -79,6 +88,7 @@ export default function AdminNavbar() {
             <NavLink
               to="/admin/setting"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+>>>>>>> 7066c3dd38635232f2a0663bcecd6cf0b853230e
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
             </NavLink>
