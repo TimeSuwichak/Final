@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 // ไอคอนลูกศรจาก lucide-react
 import { ChevronDown, ChevronUp } from "lucide-react"
 // ข้อมูลผู้ใช้
-import { user } from "@/Data/user"
+import { user } from "@/data/user"
 
 // หมวดหมู่ของการแจ้งปัญหา (mock data)
 const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เนานะนำฟีเจอร์ใหม่", "อื่นๆ"]

@@ -41,7 +41,7 @@ import {
 } from "react-icons/fa";
 import { CreateJobForm } from "@/components/admin/CreateJobForm";
 import ShowCard from "@/components/admin/ShowCard";
-import { user } from "@/Data/user";
+import { user } from "@/data/user";
 import InteractiveMap from "@/components/common/InteractiveMap";
 
 // ======================= DATA จำลอง =======================
