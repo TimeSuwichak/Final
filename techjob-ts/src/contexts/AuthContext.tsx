@@ -1,26 +1,33 @@
 // src/contexts/AuthContext.tsx
 "use client"
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 
 // --- 1. IMPORT ข้อมูลผู้ใช้ทั้งหมดเข้ามา ---
-import { user } from '@/data/user';
-import { leader } from '@/data/leader';
-import { admin } from '@/data/admin';
-import { executive } from '@/data/executive';
+import { user } from '@/Data/user';
+import { leader } from '@/Data/leader';
+import { admin } from '@/Data/admin';
+import { executive } from '@/Data/executive';
 
 // --- 2. รวมข้อมูลทุก Role ไว้ในถังเดียว เพื่อง่ายต่อการค้นหา ---
 const allUsers = [...user, ...leader, ...admin, ...executive]; 
 
 // --- 3. สร้าง "กล่อง" สำหรับเก็บข้อมูล Login ---
-const AuthContext = createContext(null);
+type AuthContextType = {
+    user: any | null;
+    loading: boolean;
+    login: (email: string, password: string) => boolean;
+    logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // --- 4. สร้าง "ตัวจัดการ" ที่จะควบคุมข้อมูลในกล่อง (นี่คือสมองหลัก) ---
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // State สำหรับเก็บข้อมูล user ที่ login อยู่
-    const [currentUser, setCurrentUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState<any | null>(null);
     // State สำหรับบอกว่า "กำลังตรวจสอบข้อมูล Login อยู่หรือเปล่า?" (แก้จอกระพริบ)
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
 
     // --- Logic: ตรวจสอบการ Login ค้างไว้ ตอนเปิดเว็บครั้งแรก ---
     useEffect(() => {
@@ -62,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     // --- 5. ข้อมูลทั้งหมดที่จะส่งให้ Component อื่นๆ ใช้งาน ---
-    const value = { 
+    const value: AuthContextType = {
         user: currentUser, // ข้อมูล user ที่ login อยู่
         loading,           // สถานะ "กำลังตรวจสอบ"
         login,             // ฟังก์ชัน login
@@ -83,5 +90,7 @@ export const AuthProvider = ({ children }) => {
 
 // --- 6. สร้าง "ทางลัด" สำหรับเรียกใช้ข้อมูล ---
 export const useAuth = () => {
-    return useContext(AuthContext);
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+    return ctx;
 };

@@ -1,26 +1,21 @@
 import { useState } from "react";
 // ✅ 1. แก้ไข: นำเข้า NavLink แทน Link
 // NavLink เป็น Component พิเศษจาก react-router-dom ที่รู้ว่า "ตอนนี้ฉันถูกเลือกอยู่หรือเปล่า"
-import { NavLink, useNavigate, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
 import { MdEngineering } from "react-icons/md";
 import { VscGraph } from "react-icons/vsc";
-import { CgFileDocument } from "react-icons/cg";
-import { BsBoxes } from "react-icons/bs";
+// removed unused imports
 import { TbAlertHexagon } from "react-icons/tb";
 import { HiMenu, HiX } from "react-icons/hi";
 import { ModeToggle } from "../common/mode-toggle";
 import LogoutButton from "../auth/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext"; // สำหรับดึงข้อมูล user ที่ login อยู่
 
-export default function AdminNavbar() {
-  const navigate = useNavigate();
+export default function UserSidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { user } = useAuth();
-  const handleSignOut = () => {
-    navigate("/login", { replace: true });
-  };
 
   // ✅ 2. สร้างตัวแปรเก็บ class พื้นฐานของปุ่ม เพื่อให้โค้ดสะอาดขึ้น
   // เราจะใช้ class เหล่านี้กับทุกปุ่มเหมือนกัน
@@ -71,7 +66,7 @@ export default function AdminNavbar() {
 
             <NavLink
               to="/user/report-problem"
-              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}` }
             >
               <TbAlertHexagon className="inline mr-2" /> แจ้งปัญหา
             </NavLink>

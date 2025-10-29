@@ -1,7 +1,7 @@
 // components/admin/TeamLeadSelector.tsx
 "use client"
 
-import React from 'react'; // <-- เพิ่ม import React
+// 'React' default import not needed with the current JSX transform
 import {
     Select,
     SelectContent,
@@ -15,14 +15,14 @@ import {
 //    - onSelectLead: ฟังก์ชันจากแม่ (CreateJobForm) ที่จะถูกเรียกเมื่อมีการเลือก
 //    - selectedLead: object ของหัวหน้างานที่ถูกเลือกอยู่ (ถ้ามี)
 //    - disabled: boolean บอกว่าให้ปิดการใช้งานหรือไม่
-const TeamLeadSelector = ({ leaders = [], onSelectLead, selectedLead, disabled }) => {
+const TeamLeadSelector = ({ leaders = [], onSelectLead, selectedLead, disabled }: { leaders?: any[]; onSelectLead?: (lead: any | null) => void; selectedLead?: any | null; disabled?: boolean }) => {
     
     // 2. ฟังก์ชันเมื่อมีการเปลี่ยนแปลงค่าใน Select
-    const handleValueChange = (leaderId) => {
+    const handleValueChange = (leaderId: string) => {
         // หา object ของ leader ทั้งหมดจาก id ที่ได้รับมา
         const leadObject = leaders.find(l => l.id.toString() === leaderId);
         // เรียกใช้ฟังก์ชัน onSelectLead ที่ส่งมาจากแม่ พร้อมส่ง object กลับไป
-        onSelectLead(leadObject);
+        onSelectLead && onSelectLead(leadObject || null);
     };
 
     return (
