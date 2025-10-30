@@ -61,13 +61,14 @@ const allPersonnel = [...user, ...leader];
 const initialFormattedPersonnel = allPersonnel.map((person, index) => {
   const fullName = `${person.fname} ${person.lname}`;
   const email = `${person.email}`;
+  const iconProflie = `${person.avatarUrl}`
   return {
     id: `${person.department.slice(0, 4)}-${person.id}-${index}`,
     name: fullName,
     email: email,
     position: person.position,
     department: person.department,
-    urlImage: `https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`,
+    urlImage: iconProflie,
   }
 });
 
@@ -127,7 +128,7 @@ function UserForm({ initialData, onSubmit, onClose }) {
             name: `${fname} ${lname}`,
             email: `${fname.toLowerCase()}.${lname.toLowerCase()}${(initialData?.id || '').toString().split('-')[1] || Date.now()}@techjob.com`,
             department, position,
-            urlImage: imagePreview || `https://api.dicebear.com/7.x/initials/svg?seed=${fname} ${lname}`,
+            // urlImage: imagePreview || `https://api.dicebear.com/7.x/initials/svg?seed=${fname} ${lname}`,
         };
         onSubmit(finalUserData);
     };
@@ -270,6 +271,7 @@ export default function Datauser() {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="p-1 flex-shrink-0"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    
                                     <DropdownMenuItem onClick={() => { setEditingUser(item); setIsDialogOpen(true); }}>แก้ไข</DropdownMenuItem>
                                     <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(item.id)}>ลบ</DropdownMenuItem>
                                 </DropdownMenuContent>
