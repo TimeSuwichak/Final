@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 const ShowCard = ({ jobs }: { jobs: any[] }) => {
     return (
         <div >
-            <div className="border border-border flex  mt-10">
+            <div className=" flex  mt-10">
                 <Tabs>
                     <TabsList>
                         <TabsTrigger value="newjob">ใบงานใหม่</TabsTrigger>
