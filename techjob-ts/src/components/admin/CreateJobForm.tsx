@@ -49,13 +49,8 @@ export function CreateJobForm({ onSubmit }: { onSubmit: (data: any) => void }) {
     const [selectedDepartment, setSelectedDepartment] = useState('');
 
     // State สำหรับเก็บ "หัวหน้างาน" ที่ถูกเลือก (เป็น object)
-<<<<<<< HEAD
-    const [selectedLead, setSelectedLead] = useState(null);
-
-=======
     const [selectedLead, setSelectedLead] = useState<any | null>(null);
     
->>>>>>> 5d823f68454818c091c8f55ac867ab0a6d97d46a
     // State สำหรับเก็บ "ทีมช่าง" ที่ถูกเลือก (เป็น array)
     const [selectedTechs, setSelectedTechs] = useState<any[]>([]);
 
