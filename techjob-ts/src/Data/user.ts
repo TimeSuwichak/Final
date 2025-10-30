@@ -8,7 +8,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "mudang@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "089-412-3075",
+    address: "123/45 หมู่ 7 ต.บ้านใหม่ อ.เมือง จ.นนทบุรี 11000",
+    status: "available"
   },
   {
     id: 2,
@@ -18,7 +21,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "thanapat@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "081-255-9901",
+    address: "56/2 ซ.สุขใจ ต.ท้ายบ้าน อ.บางบัวทอง จ.นนทบุรี 11110",
+    status: "available"
   },
   {
     id: 3,
@@ -28,7 +34,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "kiattikun@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "086-701-3342",
+    address: "87/6 ถ.พระราม 2 ต.บางมด อ.จอมทอง จ.กรุงเทพฯ 10150",
+    status: "available"
   },
   {
     id: 4,
@@ -38,7 +47,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "nattawut.p@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "095-332-1188",
+    address: "12/9 หมู่บ้านสุขสันต์ ถ.สุขุมวิท ต.ปากน้ำ อ.เมือง จ.สมุทรปราการ 10270",
+    status: "available"
   },
   {
     id: 10,
@@ -48,7 +60,9 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "prasit@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "082-918-4407",
+    status: "available"
   },
   {
     id: 11,
@@ -58,7 +72,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "jiraporn@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "090-667-2244",
+    address: "9/33 หมู่ 4 ต.บางน้ำผึ้ง อ.พระประแดง จ.สมุทรปราการ 10130",
+    status: "available"
   },
   {
     id: 12,
@@ -68,7 +85,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "surachai@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "083-504-9912",
+    address: "77/8 ถ.วิภาวดีรังสิต แขวงจอมพล เขตจตุจักร จ.กรุงเทพฯ 10900",
+    status: "available"
   },
   {
     id: 13,
@@ -78,7 +98,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "porntip@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "088-213-5577",
+    address: "201/5 ถ.ลาดพร้าว ซ.101 ต.คลองจั่น อ.บางกะปิ จ.กรุงเทพฯ 10240",
+    status: "available"
   },
   {
     id: 14,
@@ -88,7 +111,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "somkiat@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "086-990-3310",
+    address: "3/21 หมู่ 2 ต.บ้านโพธิ์ อ.บ้านโพธิ์ จ.ฉะเชิงเทรา 24140",
+    status: "available"
   },
   {
     id: 15,
@@ -98,7 +124,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "areeya@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "091-445-2209",
+    address: "68/2 หมู่ 10 ต.สวนหลวง อ.เมือง จ.สงขลา 90000",
+    status: "available"
   },
   {
     id: 16,
@@ -108,7 +137,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "weerasak@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "092-378-1145",
+    address: "150/7 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง จ.กรุงเทพฯ 10400",
+    status: "available"
   },
   {
     id: 17,
@@ -118,7 +150,10 @@ export const user = [
     department: "แผนกระบบเครือข่ายและความปลอดภัย",
     email: "kitti@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "084-221-7766",
+    address: "22/10 หมู่บ้านธารทอง ต.บางพลีใหญ่ อ.บางพลี จ.สมุทรปราการ 10540",
+    status: "available"
   },
   // แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย
   {
@@ -129,7 +164,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "nattawut.k@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "089-700-1122",
+    address: "5/6 หมู่ 3 ต.ในเมือง อ.เมือง จ.นครราชสีมา 30000",
+    status: "available"
   },
   {
     id: 6,
@@ -139,7 +177,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "rachen@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "090-118-3340",
+    address: "44/1 ถ.ราชดำเนิน ต.ในเมือง อ.เมือง จ.ลพบุรี 15000",
+    status: "available"
   },
   {
     id: 7,
@@ -149,7 +190,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "worawit@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "085-667-0099",
+    address: "11/2 หมู่ 5 ต.หนองไม้แดง อ.เมือง จ.ชลบุรี 20000",
+    status: "available"
   },
   {
     id: 18,
@@ -159,7 +203,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "kanokwan@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "086-312-7788",
+    address: "30/4 หมู่ 8 ต.สวนหลวง อ.เมือง จ.นครศรีธรรมราช 80000",
+    status: "available"
   },
   {
     id: 19,
@@ -169,7 +216,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "thanakorn@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "081-901-4433",
+    address: "2/18 ถ.เลียบคลอง ต.บางปู อ.เมือง จ.สมุทรสาคร 74000",
+    status: "available"
   },
   {
     id: 20,
@@ -179,7 +229,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "preecha@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "087-554-2200",
+    address: "88/3 หมู่ 6 ต.บ้านป่า อ.แม่ริม จ.เชียงใหม่ 50180",
+    status: "available"
   },
   {
     id: 21,
@@ -189,7 +242,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "sudarat@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "093-220-9988",
+    address: "60/7 ถ.ปากน้ำ ต.ท้ายบ้าน อ.เมือง จ.ระยอง 21000",
+    status: "available"
   },
   {
     id: 22,
@@ -199,7 +255,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "jakrapong@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "084-330-1144",
+    address: "14/50 หมู่ 1 ต.บางขุนเทียน อ.บางขุนเทียน จ.กรุงเทพฯ 10150",
+    status: "available"
   },
   {
     id: 23,
@@ -209,7 +268,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "nantida@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "082-776-0011",
+    address: "5/2 ถ.นวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม จ.กรุงเทพฯ 10240",
+    status: "available" 
   },
   {
     id: 24,
@@ -219,7 +281,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "panupong@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "091-998-2233",
+    address: "19/11 หมู่ 9 ต.เชียงดาว อ.เชียงดาว จ.เชียงใหม่ 50170",
+    status: "available"
   },
   {
     id: 25,
@@ -229,7 +294,10 @@ export const user = [
     department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
     email: "theeradet@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "089-443-7700",
+    address: "210/3 ถ.สุขุมวิท ต.บางพระ อ.เมือง จ.ชลบุรี 20130",
+    status: "available"
   },
   // แผนกโครงสร้างพื้นฐานและไฟฟ้า
   {
@@ -240,7 +308,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "mawin@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "090-223-5566",
+    address: "37/4 หมู่ 12 ต.กระทุ่มล้ม อ.สามพราน จ.นครปฐม 73210",
+    status: "available"
   },
   {
     id: 9,
@@ -250,7 +321,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "wachirawit@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "088-101-3322",
+    address: "120/5 ถ.เพชรเกษม ต.บางแค อ.บางแค จ.กรุงเทพฯ 10160",
+    status: "available"
   },
   {
     id: 26,
@@ -260,7 +334,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "montri@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "086-555-8899",
+    address: "8/77 หมู่ 5 ต.บ้านหว้า อ.บ้านค่าย จ.ระยอง 21120",
+    status: "available"
   },
   {
     id: 27,
@@ -270,7 +347,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "pichai@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "081-774-3300",
+    address: "66/9 ถ.นางลิ้นจี่ แขวงทุ่งมหาเมฆ เขตสาทร จ.กรุงเทพฯ 10120",
+    status: "available"
   },
   {
     id: 28,
@@ -280,7 +360,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "supattra@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "097-221-4401",
+    address: "3/14 หมู่ 2 ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120",
+    status: "available"
   },
   {
     id: 29,
@@ -290,7 +373,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "adisak@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "082-119-5560",
+    address: "17/2 ถ.ศรีนครินทร์ ต.สำโรงเหนือ อ.เมือง จ.สมุทรปราการ 10270",
+    status: "available"
   },
   {
     id: 30,
@@ -300,7 +386,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "wanchai@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "089-667-9902",
+    address: "55/6 หมู่ 11 ต.หนองบัว อ.เมือง จ.ขอนแก่น 40000",
+    status: "available"
   },
   {
     id: 31,
@@ -310,7 +399,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "kallayanee@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "086-998-3344",
+    address: "24/3 ถ.จันทน์ แขวงทุ่งวัดดอน เขตสาทร จ.กรุงเทพฯ 10120",
+    status: "available"
   },
   {
     id: 32,
@@ -320,7 +412,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "thawesak@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "091-330-6611",
+    address: "90/1 หมู่ 4 ต.ตะเคียนทอง อ.เมือง จ.กำแพงเพชร 62000",
+    status: "available"
   },
   {
     id: 33,
@@ -330,7 +425,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "supachai@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "094-221-7788",
+    address: "11/90 ถ.มหิดล ต.บ้านดู่ อ.เมือง จ.เชียงราย 57100",
+    status: "available"
   },
   {
     id: 34,
@@ -340,7 +438,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "noppadol@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "085-449-0022",
+    address: "7/8 หมู่ 6 ต.ปากแพรก อ.เมือง จ.กาญจนบุรี 71000",
+    status: "available"
   },
   {
     id: 35,
@@ -350,7 +451,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "amornrat@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "090-880-3341",
+    address: "32/5 ถ.บายพาส ต.บ้านเกาะ อ.เมือง จ.นครปฐม 73000",
+    status: "available"
   },
   {
     id: 36,
@@ -360,7 +464,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "pairoj@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "082-334-4409",
+    address: "140/2 หมู่ 7 ต.บ้านตาล อ.เมือง จ.สุโขทัย 64000",
+    status: "available"
   },
   {
     id: 37,
@@ -370,7 +477,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "anurak@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "091-554-7766",
+    address: "18/22 หมู่ 3 ต.บางเสาธง อ.บางเสาธง จ.สมุทรปราการ 10540",
+    status: "available"
   },
   {
     id: 38,
@@ -380,7 +490,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "chookiat@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "087-112-0099",
+    address: "2/6 หมู่ 1 ต.สวนหลวง อ.เมือง จ.สุราษฎร์ธานี 84000",
+    status: "available"
   },
   {
     id: 39,
@@ -390,7 +503,10 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "jaturong@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "083-224-5511",
+    address: "99/10 ถ.นที ต.ในเมือง อ.เมือง จ.พระนครศรีอยุธยา 13000",
+    status: "available"
   },
   {
     id: 40,
@@ -400,6 +516,9 @@ export const user = [
     department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
     email: "pongsakorn@techjob.com",
     password: "user1234",
-    role: "user"
+    role: "user",
+    phone: "092-880-1199",
+    address: "51/7 หมู่ 4 ต.แม่เมาะ อ.แม่เมาะ จ.ลำปาง 52140",
+    status: "available"
   },
 ];
