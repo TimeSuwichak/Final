@@ -1,5 +1,6 @@
 // components/admin/TeamLeadSelector.tsx
 "use client"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // 'React' default import not needed with the current JSX transform
 import {
@@ -16,7 +17,7 @@ import {
 //    - selectedLead: object ของหัวหน้างานที่ถูกเลือกอยู่ (ถ้ามี)
 //    - disabled: boolean บอกว่าให้ปิดการใช้งานหรือไม่
 const TeamLeadSelector = ({ leaders = [], onSelectLead, selectedLead, disabled }: { leaders?: any[]; onSelectLead?: (lead: any | null) => void; selectedLead?: any | null; disabled?: boolean }) => {
-    
+
     // 2. ฟังก์ชันเมื่อมีการเปลี่ยนแปลงค่าใน Select
     const handleValueChange = (leaderId: string) => {
         // หา object ของ leader ทั้งหมดจาก id ที่ได้รับมา
@@ -41,21 +42,27 @@ const TeamLeadSelector = ({ leaders = [], onSelectLead, selectedLead, disabled }
                     {/* 6. วนลูปสร้าง SelectItem จาก array 'leaders' ที่รับมา */}
                     {leaders.map((lead) => (
                         // ใช้ id เป็น value และแสดง ชื่อ-นามสกุล
-                        <SelectItem key={lead.id} value={lead.id.toString()}>
-                            {lead.fname} {lead.lname}
+                        <SelectItem key={lead.id} value={String(lead.id)}>
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={lead.avatarUrl} alt={lead.fname} />
+                                    <AvatarFallback>{lead.fname.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{lead.fname} {lead.lname}</span>
+                            </div>
                         </SelectItem>
                     ))}
                     {/* แสดงข้อความเมื่อไม่มีข้อมูล */}
                     {leaders.length === 0 && !disabled && (
-                         <SelectItem value="no-options" disabled>
-                           ไม่มีหัวหน้างานในแผนกนี้
-                         </SelectItem>
+                        <SelectItem value="no-options" disabled>
+                            ไม่มีหัวหน้างานในแผนกนี้
+                        </SelectItem>
                     )}
-                     {disabled && (
-                         <SelectItem value="select-dept" disabled>
-                           กรุณาเลือกแผนกก่อน
-                         </SelectItem>
-                     )}
+                    {disabled && (
+                        <SelectItem value="select-dept" disabled>
+                            กรุณาเลือกแผนกก่อน
+                        </SelectItem>
+                    )}
                 </SelectContent>
             </Select>
         </div>

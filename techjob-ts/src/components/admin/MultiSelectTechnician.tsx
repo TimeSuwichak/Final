@@ -12,7 +12,7 @@ import {
     CommandList,
 } from "@/components/ui/command"
 import { Command as CommandPrimitive } from "cmdk"
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // 1. รับ props เข้ามา:
 //    - technicians: Array ของ object ช่างที่กรองแล้ว
 //    - onSelectionChange: ฟังก์ชันจากแม่ ที่จะถูกเรียกเมื่อมีการ เพิ่ม/ลบ ช่าง
@@ -44,7 +44,7 @@ export function MultiSelectTechnician({ technicians = [], onSelectionChange, sel
 
     // 5. จัดการการกด Backspace (เรียก onSelectionChange)
     const handleKeyDown = React.useCallback((e: any) => {
-            if (e.key === "Backspace" && inputValue === "") {
+        if (e.key === "Backspace" && inputValue === "") {
             // สร้าง array ใหม่โดยลบตัวสุดท้ายออก
             const newSelection = selectedTechs.slice(0, -1);
             // เรียกฟังก์ชันจากแม่เพื่ออัปเดต State หลัก
@@ -103,18 +103,27 @@ export function MultiSelectTechnician({ technicians = [], onSelectionChange, sel
                                         onSelect={() => handleSelect(technician)}
                                         className={"cursor-pointer"}
                                     >
-                                        {technician.fname} {technician.lname} {/* แสดงชื่อเต็ม */}
+                                        <div className="flex items-center gap-3 w-full">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={technician.avatarUrl} alt={technician.fname} />
+                                                <AvatarFallback>{technician.fname.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{technician.fname} {technician.lname}</span>
+                                                <span className="text-xs text-muted-foreground">{technician.position}</span>
+                                            </div>
+                                        </div>
                                     </CommandItem>
                                 ))}
                             </CommandGroup>
                         </CommandList>
                     </div>
                 ) : null}
-                 {open && !disabled && availableOptions.length === 0 && selectedTechs.length < technicians.length && (
+                {open && !disabled && availableOptions.length === 0 && selectedTechs.length < technicians.length && (
                     <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in p-2 text-sm text-muted-foreground">
                         ไม่พบช่างที่ตรงกับคำค้นหา หรือ เลือกครบแล้ว
                     </div>
-                 )}
+                )}
             </div>
         </Command>
     )

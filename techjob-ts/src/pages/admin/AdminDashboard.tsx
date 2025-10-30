@@ -54,11 +54,17 @@ const initialJobs = [
   },
 ];
 
+import { user as initialUsers } from "@/Data/user";
+import { leader as initialLeaders } from "@/Data/leader";
+
 // ==========================================================
 
 export default function AdminDashboard() {
   const [position, setPosition] = React.useState("bottom");
   // ▼▼▼ ส่วนที่เพิ่มเข้ามา ▼▼▼
+  const [allUsers, setAllUsers] = useState(initialUsers);
+  const [allLeaders, setAllLeaders] = useState(initialLeaders);
+
 
   // 1. State สำหรับเก็บ "รายการงานทั้งหมด"
   // เราใส่ initialJobs เข้าไปเพื่อให้มีข้อมูลเริ่มต้น 1 งาน
@@ -114,6 +120,20 @@ export default function AdminDashboard() {
     // อัปเดต State รายการงานทั้งหมด
     // โดยเอางานใหม่มาใส่ไว้บนสุดของ list
     setJobs((prevJobs) => [newJob, ...prevJobs]);
+    const { leadId, techIds } = newJobData.assignment;
+
+    // อัปเดตสถานะหัวหน้าที่ถูกเลือกให้เป็น 'busy'
+    setAllLeaders(currentLeaders =>
+      currentLeaders.map(lead =>
+        lead.id === leadId ? { ...lead, status: 'busy' } : lead
+      )
+    );
+    // อัปเดตสถานะช่างที่ถูกเลือกให้เป็น 'busy'
+    setAllUsers(currentUsers =>
+      currentUsers.map(user =>
+        techIds.includes(user.id) ? { ...user, status: 'busy' } : user
+      )
+    );
 
     // อัปเดต State ตัวเลขบนแดชบอร์ด
     setStats((prevStats) => ({
@@ -147,7 +167,10 @@ export default function AdminDashboard() {
             <DialogHeader>
               <DialogTitle>สร้างใบงานใหม่</DialogTitle>
             </DialogHeader>
-            <CreateJobForm onSubmit={handleCreateJob} />
+            <CreateJobForm 
+            users={allUsers}
+            leaders={allLeaders}
+            onSubmit={handleCreateJob} />
           </DialogContent>
         </Dialog>
       </div>
