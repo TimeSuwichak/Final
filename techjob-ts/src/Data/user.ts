@@ -11,7 +11,8 @@ export const user = [
     role: "user",
     phone: "089-412-3075",
     address: "123/45 หมู่ 7 ต.บ้านใหม่ อ.เมือง จ.นนทบุรี 11000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=redtech"
   },
   {
     id: 2,
@@ -24,7 +25,8 @@ export const user = [
     role: "user",
     phone: "081-255-9901",
     address: "56/2 ซ.สุขใจ ต.ท้ายบ้าน อ.บางบัวทอง จ.นนทบุรี 11110",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=securethanapat"
   },
   {
     id: 3,
@@ -37,7 +39,8 @@ export const user = [
     role: "user",
     phone: "086-701-3342",
     address: "87/6 ถ.พระราม 2 ต.บางมด อ.จอมทอง จ.กรุงเทพฯ 10150",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kiattikunbot"
   },
   {
     id: 4,
@@ -50,7 +53,8 @@ export const user = [
     role: "user",
     phone: "095-332-1188",
     address: "12/9 หมู่บ้านสุขสันต์ ถ.สุขุมวิท ต.ปากน้ำ อ.เมือง จ.สมุทรปราการ 10270",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutp"
   },
   {
     id: 10,
@@ -62,7 +66,8 @@ export const user = [
     password: "user1234",
     role: "user",
     phone: "082-918-4407",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasitsun"
   },
   {
     id: 11,
@@ -75,7 +80,8 @@ export const user = [
     role: "user",
     phone: "090-667-2244",
     address: "9/33 หมู่ 4 ต.บางน้ำผึ้ง อ.พระประแดง จ.สมุทรปราการ 10130",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jirapornss"
   },
   {
     id: 12,
@@ -88,7 +94,8 @@ export const user = [
     role: "user",
     phone: "083-504-9912",
     address: "77/8 ถ.วิภาวดีรังสิต แขวงจอมพล เขตจตุจักร จ.กรุงเทพฯ 10900",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surachaiinfra"
   },
   {
     id: 13,
@@ -101,7 +108,8 @@ export const user = [
     role: "user",
     phone: "088-213-5577",
     address: "201/5 ถ.ลาดพร้าว ซ.101 ต.คลองจั่น อ.บางกะปิ จ.กรุงเทพฯ 10240",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=porntipbright"
   },
   {
     id: 14,
@@ -114,7 +122,8 @@ export const user = [
     role: "user",
     phone: "086-990-3310",
     address: "3/21 หมู่ 2 ต.บ้านโพธิ์ อ.บ้านโพธิ์ จ.ฉะเชิงเทรา 24140",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiatnet"
   },
   {
     id: 15,
@@ -127,7 +136,8 @@ export const user = [
     role: "user",
     phone: "091-445-2209",
     address: "68/2 หมู่ 10 ต.สวนหลวง อ.เมือง จ.สงขลา 90000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=areeyasmile"
   },
   {
     id: 16,
@@ -140,7 +150,8 @@ export const user = [
     role: "user",
     phone: "092-378-1145",
     address: "150/7 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง จ.กรุงเทพฯ 10400",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=weerasakbot"
   },
   {
     id: 17,
@@ -153,7 +164,8 @@ export const user = [
     role: "user",
     phone: "084-221-7766",
     address: "22/10 หมู่บ้านธารทอง ต.บางพลีใหญ่ อ.บางพลี จ.สมุทรปราการ 10540",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittinet"
   },
   // แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย
   {
@@ -167,7 +179,8 @@ export const user = [
     role: "user",
     phone: "089-700-1122",
     address: "5/6 หมู่ 3 ต.ในเมือง อ.เมือง จ.นครราชสีมา 30000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutik"
   },
   {
     id: 6,
@@ -180,7 +193,8 @@ export const user = [
     role: "user",
     phone: "090-118-3340",
     address: "44/1 ถ.ราชดำเนิน ต.ในเมือง อ.เมือง จ.ลพบุรี 15000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rachenav"
   },
   {
     id: 7,
@@ -193,7 +207,8 @@ export const user = [
     role: "user",
     phone: "085-667-0099",
     address: "11/2 หมู่ 5 ต.หนองไม้แดง อ.เมือง จ.ชลบุรี 20000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=worawitmedia"
   },
   {
     id: 18,
@@ -206,7 +221,8 @@ export const user = [
     role: "user",
     phone: "086-312-7788",
     address: "30/4 หมู่ 8 ต.สวนหลวง อ.เมือง จ.นครศรีธรรมราช 80000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanokwanbot"
   },
   {
     id: 19,
@@ -219,7 +235,8 @@ export const user = [
     role: "user",
     phone: "081-901-4433",
     address: "2/18 ถ.เลียบคลอง ต.บางปู อ.เมือง จ.สมุทรสาคร 74000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=thanakorniot"
   },
   {
     id: 20,
@@ -232,7 +249,8 @@ export const user = [
     role: "user",
     phone: "087-554-2200",
     address: "88/3 หมู่ 6 ต.บ้านป่า อ.แม่ริม จ.เชียงใหม่ 50180",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=preechacomm"
   },
   {
     id: 21,
@@ -245,7 +263,8 @@ export const user = [
     role: "user",
     phone: "093-220-9988",
     address: "60/7 ถ.ปากน้ำ ต.ท้ายบ้าน อ.เมือง จ.ระยอง 21000",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sudaratmedia"
   },
   {
     id: 22,
@@ -258,7 +277,8 @@ export const user = [
     role: "user",
     phone: "084-330-1144",
     address: "14/50 หมู่ 1 ต.บางขุนเทียน อ.บางขุนเทียน จ.กรุงเทพฯ 10150",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jakrapongiot"
   },
   {
     id: 23,
@@ -271,7 +291,8 @@ export const user = [
     role: "user",
     phone: "082-776-0011",
     address: "5/2 ถ.นวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม จ.กรุงเทพฯ 10240",
-    status: "available" 
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nantidacomm"
   },
   {
     id: 24,
@@ -284,7 +305,8 @@ export const user = [
     role: "user",
     phone: "091-998-2233",
     address: "19/11 หมู่ 9 ต.เชียงดาว อ.เชียงดาว จ.เชียงใหม่ 50170",
-    status: "available"
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panupongmedia"
   },
   {
     id: 25,
@@ -296,229 +318,218 @@ export const user = [
     password: "user1234",
     role: "user",
     phone: "089-443-7700",
-    address: "210/3 ถ.สุขุมวิท ต.บางพระ อ.เมือง จ.ชลบุรี 20130",
-    status: "available"
-  },
-  // แผนกโครงสร้างพื้นฐานและไฟฟ้า
-  {
-    id: 8,
-    fname: "มาวิน",
-    lname: "บุญมี",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "mawin@techjob.com",
-    password: "user1234",
-    role: "user",
-    phone: "090-223-5566",
-    address: "37/4 หมู่ 12 ต.กระทุ่มล้ม อ.สามพราน จ.นครปฐม 73210",
-    status: "available"
-  },
-  {
-    id: 9,
-    fname: "วชิรวิทย์",
-    lname: "บุญผลา",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "wachirawit@techjob.com",
-    password: "user1234",
-    role: "user",
-    phone: "088-101-3322",
-    address: "120/5 ถ.เพชรเกษม ต.บางแค อ.บางแค จ.กรุงเทพฯ 10160",
-    status: "available"
+    address: "7/4 หมู่ 5 ต.วัดใหญ่ อ.เมือง จ.สุพรรณบุรี 72000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=theeradetiot"
   },
   {
     id: 26,
-    fname: "มนตรี",
-    lname: "คงมั่น",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "montri@techjob.com",
+    fname: "ปวีณา",
+    lname: "ศรีทับ",
+    position: "ผู้เชี่ยวชาญระบบสื่อสาร",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "paveena@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "086-555-8899",
-    address: "8/77 หมู่ 5 ต.บ้านหว้า อ.บ้านค่าย จ.ระยอง 21120",
-    status: "available"
+    phone: "090-556-9988",
+    address: "18/5 หมู่ 3 ต.บ้านใหม่ อ.เมือง จ.สมุทรสงคราม 75000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paveenacomm"
   },
   {
     id: 27,
-    fname: "พิชัย",
-    lname: "ศรีเมือง",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "pichai@techjob.com",
+    fname: "อภิชาติ",
+    lname: "ทองอินทร์",
+    position: "ช่างเทคนิคระบบภาพและเสียง",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "apichat@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "081-774-3300",
-    address: "66/9 ถ.นางลิ้นจี่ แขวงทุ่งมหาเมฆ เขตสาทร จ.กรุงเทพฯ 10120",
-    status: "available"
+    phone: "088-221-3344",
+    address: "33/11 ถ.ประชาอุทิศ แขวงบางมด เขตทุ่งครุ จ.กรุงเทพฯ 10140",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=apichatmedia"
   },
   {
     id: 28,
-    fname: "สุพัตรา",
-    lname: "เจริญสุข",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "supattra@techjob.com",
+    fname: "รัตนาวดี",
+    lname: "ทองสวัสดิ์",
+    position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "rattanawadee@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "097-221-4401",
-    address: "3/14 หมู่ 2 ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120",
-    status: "available"
+    phone: "085-330-2244",
+    address: "40/7 หมู่ 6 ต.ป่าตัน อ.เมือง จ.เชียงใหม่ 50300",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rattanawadeeiot"
   },
   {
     id: 29,
-    fname: "อดิศักดิ์",
-    lname: "ทองคำ",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "adisak@techjob.com",
+    fname: "สมชาย",
+    lname: "สุขสมบูรณ์",
+    position: "ผู้เชี่ยวชาญระบบสื่อสาร",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "somchai@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "082-119-5560",
-    address: "17/2 ถ.ศรีนครินทร์ ต.สำโรงเหนือ อ.เมือง จ.สมุทรปราการ 10270",
-    status: "available"
+    phone: "086-998-1122",
+    address: "25/8 หมู่ 3 ต.ท่ามะพร้าว อ.เมือง จ.ราชบุรี 70000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somchaicomm"
   },
   {
     id: 30,
-    fname: "วันชัย",
-    lname: "รักไทย",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "wanchai@techjob.com",
+    fname: "วิษณุ",
+    lname: "ศรีเจริญ",
+    position: "ช่างเทคนิคระบบภาพและเสียง",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "wisanu@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "089-667-9902",
-    address: "55/6 หมู่ 11 ต.หนองบัว อ.เมือง จ.ขอนแก่น 40000",
-    status: "available"
+    phone: "091-223-4455",
+    address: "12/3 หมู่ 4 ต.เมืองเก่า อ.เมือง จ.อ่างทอง 14000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wisanubot"
   },
   {
     id: 31,
-    fname: "กัลยาณี",
-    lname: "งามวงศ์",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "kallayanee@techjob.com",
+    fname: "พรชัย",
+    lname: "จันทร์ทิม",
+    position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "pornchai@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "086-998-3344",
-    address: "24/3 ถ.จันทน์ แขวงทุ่งวัดดอน เขตสาทร จ.กรุงเทพฯ 10120",
-    status: "available"
+    phone: "083-221-5566",
+    address: "50/2 ถ.ชลประทาน ต.ในเมือง อ.เมือง จ.นครสวรรค์ 60000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchaiiot"
   },
   {
     id: 32,
-    fname: "ทวีศักดิ์",
-    lname: "จินดา",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "thawesak@techjob.com",
+    fname: "กาญจนา",
+    lname: "ศรีนวล",
+    position: "ผู้เชี่ยวชาญระบบสื่อสาร",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "kanjana@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "091-330-6611",
-    address: "90/1 หมู่ 4 ต.ตะเคียนทอง อ.เมือง จ.กำแพงเพชร 62000",
-    status: "available"
+    phone: "090-998-4433",
+    address: "15/1 หมู่ 5 ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี 11110",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanjanacomm"
   },
   {
     id: 33,
-    fname: "ศุภชัย",
-    lname: "สุวรรณศรี",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "supachai@techjob.com",
+    fname: "สมปอง",
+    lname: "ทองแท้",
+    position: "ช่างเทคนิคระบบภาพและเสียง",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "sompong@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "094-221-7788",
-    address: "11/90 ถ.มหิดล ต.บ้านดู่ อ.เมือง จ.เชียงราย 57100",
-    status: "available"
+    phone: "084-667-2233",
+    address: "20/7 หมู่ 6 ต.ท่าม่วง อ.เมือง จ.กาญจนบุรี 71000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sompongmedia"
   },
   {
     id: 34,
-    fname: "นพดล",
-    lname: "รุ่งเรือง",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "noppadol@techjob.com",
+    fname: "จุฑามาศ",
+    lname: "แก้วมณี",
+    position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "juthamas@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "085-449-0022",
-    address: "7/8 หมู่ 6 ต.ปากแพรก อ.เมือง จ.กาญจนบุรี 71000",
-    status: "available"
+    phone: "087-221-0099",
+    address: "9/10 หมู่ 3 ต.ท่าศาลา อ.เมือง จ.นครศรีธรรมราช 80000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=juthamasiot"
   },
   {
     id: 35,
-    fname: "อมรรัตน์",
-    lname: "ดีเสมอ",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "amornrat@techjob.com",
+    fname: "วิชัย",
+    lname: "ทับทิม",
+    position: "ผู้เชี่ยวชาญระบบสื่อสาร",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "wichai@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "090-880-3341",
-    address: "32/5 ถ.บายพาส ต.บ้านเกาะ อ.เมือง จ.นครปฐม 73000",
-    status: "available"
+    phone: "088-332-1100",
+    address: "55/7 หมู่ 4 ต.หนองสาหร่าย อ.ปากช่อง จ.นครราชสีมา 30130",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wichaicomm"
   },
   {
     id: 36,
-    fname: "ไพโรจน์",
-    lname: "จิตต์มั่น",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "pairoj@techjob.com",
+    fname: "ณัฐวรรณ",
+    lname: "จันทร์ศรี",
+    position: "ช่างเทคนิคระบบภาพและเสียง",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "nattawan@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "082-334-4409",
-    address: "140/2 หมู่ 7 ต.บ้านตาล อ.เมือง จ.สุโขทัย 64000",
-    status: "available"
+    phone: "092-331-2200",
+    address: "18/2 หมู่ 1 ต.บางปะกง อ.บางปะกง จ.ฉะเชิงเทรา 24130",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawanmedia"
   },
   {
     id: 37,
-    fname: "อนุรักษ์",
-    lname: "ปรีดา",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "anurak@techjob.com",
+    fname: "อดิศักดิ์",
+    lname: "ทองนิล",
+    position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "adisak@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "091-554-7766",
-    address: "18/22 หมู่ 3 ต.บางเสาธง อ.บางเสาธง จ.สมุทรปราการ 10540",
-    status: "available"
+    phone: "089-774-1122",
+    address: "77/5 หมู่ 6 ต.ท่าช้าง อ.เมือง จ.ชัยนาท 17000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=adisakiot"
   },
   {
     id: 38,
-    fname: "ชูเกียรติ",
-    lname: "ประเสริฐยิ่ง",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "chookiat@techjob.com",
+    fname: "สุนิสา",
+    lname: "อินทร์ทอง",
+    position: "ผู้เชี่ยวชาญระบบสื่อสาร",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "sunisa@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "087-112-0099",
-    address: "2/6 หมู่ 1 ต.สวนหลวง อ.เมือง จ.สุราษฎร์ธานี 84000",
-    status: "available"
+    phone: "090-221-4433",
+    address: "12/8 หมู่ 7 ต.บางรัก อ.เมือง จ.สมุทรปราการ 10270",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sunisacomm"
   },
   {
     id: 39,
-    fname: "จตุรงค์",
-    lname: "ใจแสน",
-    position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "jaturong@techjob.com",
+    fname: "นพดล",
+    lname: "ทองคำ",
+    position: "ช่างเทคนิคระบบภาพและเสียง",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "nopadol@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "083-224-5511",
-    address: "99/10 ถ.นที ต.ในเมือง อ.เมือง จ.พระนครศรีอยุธยา 13000",
-    status: "available"
+    phone: "085-667-0099",
+    address: "5/3 หมู่ 4 ต.ในเมือง อ.เมือง จ.นครสวรรค์ 60000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopadolmedia"
   },
   {
     id: 40,
-    fname: "พงศกร",
-    lname: "ศรีวิไล",
-    position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
-    email: "pongsakorn@techjob.com",
+    fname: "ภัทรพล",
+    lname: "ชูศรี",
+    position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
+    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    email: "phatrapol@techjob.com",
     password: "user1234",
     role: "user",
-    phone: "092-880-1199",
-    address: "51/7 หมู่ 4 ต.แม่เมาะ อ.แม่เมาะ จ.ลำปาง 52140",
-    status: "available"
-  },
+    phone: "092-998-2244",
+    address: "22/5 หมู่ 3 ต.วัดไทร อ.เมือง จ.นนทบุรี 11000",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=phatrapoliot"
+  }
 ];

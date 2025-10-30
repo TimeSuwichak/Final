@@ -7,7 +7,11 @@ export const executive = [
     department: "ฝ่ายบริหาร",
     email: "md@techjob.com",
     password: "exec1234",
-    role: "executive"
+    role: "executive",
+    phone: "090-112-3344",
+    address: "101/5 ถ.สุขุมวิท ต.บางนา อ.เมือง จ.กรุงเทพฯ 10260",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=visai"
   },
   {
     id: 202,
@@ -17,7 +21,11 @@ export const executive = [
     department: "ฝ่ายบริหาร",
     email: "ceo@techjob.com",
     password: "exec1234",
-    role: "executive"
+    role: "executive",
+    phone: "091-223-4455",
+    address: "55/12 หมู่บ้านสวนหลวง ถ.ราชพฤกษ์ ต.บางกรวย อ.บางกรวย จ.นนทบุรี 11130",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kalayut"
   },
   {
     id: 203,
@@ -27,7 +35,11 @@ export const executive = [
     department: "ฝ่ายบริหาร",
     email: "coo@techjob.com",
     password: "exec1234",
-    role: "executive"
+    role: "executive",
+    phone: "092-334-5566",
+    address: "88/7 ซ.รามอินทรา 14 ถ.รามอินทรา ต.คลองกุ่ม อ.บึงกุ่ม จ.กรุงเทพฯ 10240",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=patibat"
   },
   {
     id: 204,
@@ -37,7 +49,11 @@ export const executive = [
     department: "ฝ่ายบริหาร",
     email: "cto@techjob.com",
     password: "exec1234",
-    role: "executive"
+    role: "executive",
+    phone: "093-445-6677",
+    address: "22/18 ถ.แจ้งวัฒนะ ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nawattakam"
   },
   {
     id: 205,
@@ -47,6 +63,10 @@ export const executive = [
     department: "ฝ่ายบริหาร",
     email: "cfo@techjob.com",
     password: "exec1234",
-    role: "executive"
+    role: "executive",
+    phone: "094-556-7788",
+    address: "30/5 หมู่บ้านเมืองทอง ถ.วิภาวดีรังสิต ต.หลักสี่ อ.หลักสี่ จ.กรุงเทพฯ 10210",
+    status: "available",
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanngern"
   }
 ];
