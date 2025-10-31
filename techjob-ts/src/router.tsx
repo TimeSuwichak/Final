@@ -25,6 +25,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import UserSidebar from "./components/user/UserSidebar";
 import LeaderSidebar from "./components/leader/LeaderSidebar";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
+import LeaderReport from "./pages/leader/LeaderReport";
 import ReportProblem from "./pages/user/ReportProblem"
 import UserCalendar from "./pages/user/UserCalendar";
 
@@ -114,6 +115,10 @@ const router = createBrowserRouter([
       {
         path: "LeaderDashboard",
         element: <LeaderDashboard />,
+      },
+      {
+        path: "LeaderReport",
+        element: <LeaderReport />,
       },
     ],
   },
