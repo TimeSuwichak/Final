@@ -12,7 +12,8 @@ export const user = [
     phone: "089-412-3075",
     address: "123/45 หมู่ 7 ต.บ้านใหม่ อ.เมือง จ.นนทบุรี 11000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=redtech"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=redtech",
+    jobsThisMonth: 5,
   },
   {
     id: 2,
@@ -26,7 +27,8 @@ export const user = [
     phone: "081-255-9901",
     address: "56/2 ซ.สุขใจ ต.ท้ายบ้าน อ.บางบัวทอง จ.นนทบุรี 11110",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=securethanapat"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=securethanapat",
+    jobsThisMonth: 12,
   },
   {
     id: 3,
@@ -40,7 +42,8 @@ export const user = [
     phone: "086-701-3342",
     address: "87/6 ถ.พระราม 2 ต.บางมด อ.จอมทอง จ.กรุงเทพฯ 10150",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kiattikunbot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kiattikunbot",
+    jobsThisMonth: 8,
   },
   {
     id: 4,
@@ -54,7 +57,8 @@ export const user = [
     phone: "095-332-1188",
     address: "12/9 หมู่บ้านสุขสันต์ ถ.สุขุมวิท ต.ปากน้ำ อ.เมือง จ.สมุทรปราการ 10270",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutp"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutp",
+    jobsThisMonth: 3,
   },
   {
     id: 10,
@@ -67,7 +71,8 @@ export const user = [
     role: "user",
     phone: "082-918-4407",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasitsun"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasitsun",
+    jobsThisMonth: 14,
   },
   {
     id: 11,
@@ -81,7 +86,8 @@ export const user = [
     phone: "090-667-2244",
     address: "9/33 หมู่ 4 ต.บางน้ำผึ้ง อ.พระประแดง จ.สมุทรปราการ 10130",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jirapornss"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jirapornss",
+    jobsThisMonth: 1,
   },
   {
     id: 12,
@@ -95,7 +101,8 @@ export const user = [
     phone: "083-504-9912",
     address: "77/8 ถ.วิภาวดีรังสิต แขวงจอมพล เขตจตุจักร จ.กรุงเทพฯ 10900",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surachaiinfra"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surachaiinfra",
+    jobsThisMonth: 9,
   },
   {
     id: 13,
@@ -109,7 +116,8 @@ export const user = [
     phone: "088-213-5577",
     address: "201/5 ถ.ลาดพร้าว ซ.101 ต.คลองจั่น อ.บางกะปิ จ.กรุงเทพฯ 10240",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=porntipbright"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=porntipbright",
+    jobsThisMonth: 6,
   },
   {
     id: 14,
@@ -123,7 +131,8 @@ export const user = [
     phone: "086-990-3310",
     address: "3/21 หมู่ 2 ต.บ้านโพธิ์ อ.บ้านโพธิ์ จ.ฉะเชิงเทรา 24140",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiatnet"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiatnet",
+    jobsThisMonth: 11,
   },
   {
     id: 15,
@@ -137,7 +146,8 @@ export const user = [
     phone: "091-445-2209",
     address: "68/2 หมู่ 10 ต.สวนหลวง อ.เมือง จ.สงขลา 90000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=areeyasmile"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=areeyasmile",
+    jobsThisMonth: 4,
   },
   {
     id: 16,
@@ -151,7 +161,8 @@ export const user = [
     phone: "092-378-1145",
     address: "150/7 ถ.รัชดาภิเษก แขวงดินแดง เขตดินแดง จ.กรุงเทพฯ 10400",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=weerasakbot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=weerasakbot",
+    jobsThisMonth: 10,
   },
   {
     id: 17,
@@ -165,7 +176,8 @@ export const user = [
     phone: "084-221-7766",
     address: "22/10 หมู่บ้านธารทอง ต.บางพลีใหญ่ อ.บางพลี จ.สมุทรปราการ 10540",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittinet"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittinet",
+    jobsThisMonth: 2,
   },
   // แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย
   {
@@ -180,7 +192,8 @@ export const user = [
     phone: "089-700-1122",
     address: "5/6 หมู่ 3 ต.ในเมือง อ.เมือง จ.นครราชสีมา 30000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutik"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawutik",
+    jobsThisMonth: 7,
   },
   {
     id: 6,
@@ -194,7 +207,8 @@ export const user = [
     phone: "090-118-3340",
     address: "44/1 ถ.ราชดำเนิน ต.ในเมือง อ.เมือง จ.ลพบุรี 15000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rachenav"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rachenav",
+    jobsThisMonth: 13,
   },
   {
     id: 7,
@@ -208,7 +222,8 @@ export const user = [
     phone: "085-667-0099",
     address: "11/2 หมู่ 5 ต.หนองไม้แดง อ.เมือง จ.ชลบุรี 20000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=worawitmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=worawitmedia",
+    jobsThisMonth: 0,
   },
   {
     id: 18,
@@ -222,7 +237,8 @@ export const user = [
     phone: "086-312-7788",
     address: "30/4 หมู่ 8 ต.สวนหลวง อ.เมือง จ.นครศรีธรรมราช 80000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanokwanbot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanokwanbot",
+    jobsThisMonth: 5,
   },
   {
     id: 19,
@@ -236,7 +252,8 @@ export const user = [
     phone: "081-901-4433",
     address: "2/18 ถ.เลียบคลอง ต.บางปู อ.เมือง จ.สมุทรสาคร 74000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=thanakorniot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=thanakorniot",
+    jobsThisMonth: 15,
   },
   {
     id: 20,
@@ -250,7 +267,8 @@ export const user = [
     phone: "087-554-2200",
     address: "88/3 หมู่ 6 ต.บ้านป่า อ.แม่ริม จ.เชียงใหม่ 50180",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=preechacomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=preechacomm",
+    jobsThisMonth: 8,
   },
   {
     id: 21,
@@ -264,7 +282,8 @@ export const user = [
     phone: "093-220-9988",
     address: "60/7 ถ.ปากน้ำ ต.ท้ายบ้าน อ.เมือง จ.ระยอง 21000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sudaratmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sudaratmedia",
+    jobsThisMonth: 3,
   },
   {
     id: 22,
@@ -278,7 +297,8 @@ export const user = [
     phone: "084-330-1144",
     address: "14/50 หมู่ 1 ต.บางขุนเทียน อ.บางขุนเทียน จ.กรุงเทพฯ 10150",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jakrapongiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=jakrapongiot",
+    jobsThisMonth: 11,
   },
   {
     id: 23,
@@ -292,7 +312,8 @@ export const user = [
     phone: "082-776-0011",
     address: "5/2 ถ.นวมินทร์ แขวงคลองกุ่ม เขตบึงกุ่ม จ.กรุงเทพฯ 10240",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nantidacomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nantidacomm",
+    jobsThisMonth: 6,
   },
   {
     id: 24,
@@ -306,7 +327,8 @@ export const user = [
     phone: "091-998-2233",
     address: "19/11 หมู่ 9 ต.เชียงดาว อ.เชียงดาว จ.เชียงใหม่ 50170",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panupongmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panupongmedia",
+    jobsThisMonth: 1,
   },
   {
     id: 25,
@@ -320,7 +342,8 @@ export const user = [
     phone: "089-443-7700",
     address: "7/4 หมู่ 5 ต.วัดใหญ่ อ.เมือง จ.สุพรรณบุรี 72000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=theeradetiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=theeradetiot",
+    jobsThisMonth: 9,
   },
   {
     id: 26,
@@ -334,7 +357,8 @@ export const user = [
     phone: "090-556-9988",
     address: "18/5 หมู่ 3 ต.บ้านใหม่ อ.เมือง จ.สมุทรสงคราม 75000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paveenacomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paveenacomm",
+    jobsThisMonth: 4,
   },
   {
     id: 27,
@@ -348,7 +372,8 @@ export const user = [
     phone: "088-221-3344",
     address: "33/11 ถ.ประชาอุทิศ แขวงบางมด เขตทุ่งครุ จ.กรุงเทพฯ 10140",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=apichatmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=apichatmedia",
+    jobsThisMonth: 12,
   },
   {
     id: 28,
@@ -362,7 +387,8 @@ export const user = [
     phone: "085-330-2244",
     address: "40/7 หมู่ 6 ต.ป่าตัน อ.เมือง จ.เชียงใหม่ 50300",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rattanawadeeiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=rattanawadeeiot",
+    jobsThisMonth: 7,
   },
   {
     id: 29,
@@ -376,7 +402,8 @@ export const user = [
     phone: "086-998-1122",
     address: "25/8 หมู่ 3 ต.ท่ามะพร้าว อ.เมือง จ.ราชบุรี 70000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somchaicomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somchaicomm",
+    jobsThisMonth: 2,
   },
   {
     id: 30,
@@ -390,7 +417,8 @@ export const user = [
     phone: "091-223-4455",
     address: "12/3 หมู่ 4 ต.เมืองเก่า อ.เมือง จ.อ่างทอง 14000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wisanubot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wisanubot",
+    jobsThisMonth: 10,
   },
   {
     id: 31,
@@ -404,7 +432,8 @@ export const user = [
     phone: "083-221-5566",
     address: "50/2 ถ.ชลประทาน ต.ในเมือง อ.เมือง จ.นครสวรรค์ 60000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchaiiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchaiiot",
+    jobsThisMonth: 5,
   },
   {
     id: 32,
@@ -418,7 +447,8 @@ export const user = [
     phone: "090-998-4433",
     address: "15/1 หมู่ 5 ต.บางบัวทอง อ.บางบัวทอง จ.นนทบุรี 11110",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanjanacomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanjanacomm",
+    jobsThisMonth: 13,
   },
   {
     id: 33,
@@ -432,7 +462,8 @@ export const user = [
     phone: "084-667-2233",
     address: "20/7 หมู่ 6 ต.ท่าม่วง อ.เมือง จ.กาญจนบุรี 71000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sompongmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sompongmedia",
+    jobsThisMonth: 8,
   },
   {
     id: 34,
@@ -446,7 +477,8 @@ export const user = [
     phone: "087-221-0099",
     address: "9/10 หมู่ 3 ต.ท่าศาลา อ.เมือง จ.นครศรีธรรมราช 80000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=juthamasiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=juthamasiot",
+    jobsThisMonth: 0,
   },
   {
     id: 35,
@@ -460,7 +492,8 @@ export const user = [
     phone: "088-332-1100",
     address: "55/7 หมู่ 4 ต.หนองสาหร่าย อ.ปากช่อง จ.นครราชสีมา 30130",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wichaicomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wichaicomm",
+    jobsThisMonth: 14,
   },
   {
     id: 36,
@@ -474,7 +507,8 @@ export const user = [
     phone: "092-331-2200",
     address: "18/2 หมู่ 1 ต.บางปะกง อ.บางปะกง จ.ฉะเชิงเทรา 24130",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawanmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nattawanmedia",
+    jobsThisMonth: 3,
   },
   {
     id: 37,
@@ -488,7 +522,8 @@ export const user = [
     phone: "089-774-1122",
     address: "77/5 หมู่ 6 ต.ท่าช้าง อ.เมือง จ.ชัยนาท 17000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=adisakiot"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=adisakiot",
+    jobsThisMonth: 11,
   },
   {
     id: 38,
@@ -502,7 +537,8 @@ export const user = [
     phone: "090-221-4433",
     address: "12/8 หมู่ 7 ต.บางรัก อ.เมือง จ.สมุทรปราการ 10270",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sunisacomm"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=sunisacomm",
+    jobsThisMonth: 6,
   },
   {
     id: 39,
@@ -516,7 +552,8 @@ export const user = [
     phone: "085-667-0099",
     address: "5/3 หมู่ 4 ต.ในเมือง อ.เมือง จ.นครสวรรค์ 60000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopadolmedia"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopadolmedia",
+    jobsThisMonth: 9,
   },
   {
     id: 40,
@@ -530,6 +567,7 @@ export const user = [
     phone: "092-998-2244",
     address: "22/5 หมู่ 3 ต.วัดไทร อ.เมือง จ.นนทบุรี 11000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=phatrapoliot"
-  }
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=phatrapoliot",
+    jobsThisMonth: 4,
+  },
 ];

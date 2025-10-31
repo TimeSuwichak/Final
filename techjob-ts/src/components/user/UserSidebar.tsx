@@ -58,10 +58,10 @@ export default function UserSidebar() {
             </NavLink>
 
             <NavLink
-              to="/admin/datauser"
+              to="/user/usercalender"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
-              <MdEngineering className=" inline mr-2" /> การเข้างานช่าง
+              <MdEngineering className=" inline mr-2" /> ปฏิทินงาน(ชั่วคราว)
             </NavLink>
 
             <NavLink

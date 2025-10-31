@@ -12,7 +12,8 @@ export const leader = [
     phone: "081-223-5647",
     address: "99/12 ถ.ติวานนท์ ต.บางกระสอ อ.เมือง จ.นนทบุรี 11000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=boonmee"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=boonmee",
+    jobsThisMonth: 8,
   },
   {
     id: 4,
@@ -26,7 +27,8 @@ export const leader = [
     phone: "089-334-2105",
     address: "45/6 หมู่บ้านรุ่งเรือง ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasert"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasert",
+    jobsThisMonth: 11,
   },
   {
     id: 5,
@@ -40,7 +42,8 @@ export const leader = [
     phone: "086-719-8850",
     address: "78/14 ถ.สุขุมวิท ต.สำโรงเหนือ อ.เมือง จ.สมุทรปราการ 10270",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittisak"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittisak",
+    jobsThisMonth: 5,
   },
   {
     id: 6,
@@ -54,7 +57,8 @@ export const leader = [
     phone: "095-660-3421",
     address: "12/5 ซ.เจริญสุข ถ.ลาดพร้าว ต.จรเข้บัว อ.ลาดพร้าว จ.กรุงเทพฯ 10230",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiat"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiat",
+    jobsThisMonth: 14,
   },
   {
     id: 7,
@@ -68,7 +72,8 @@ export const leader = [
     phone: "082-431-9923",
     address: "100/2 หมู่ 3 ถ.ราชพฤกษ์ ต.บางกร่าง อ.เมือง จ.นนทบุรี 11000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wirat"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wirat",
+    jobsThisMonth: 7,
   },
 
   // แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย
@@ -84,7 +89,8 @@ export const leader = [
     phone: "091-504-6632",
     address: "55/7 หมู่บ้านสวนทอง ถ.เพชรเกษม ต.หนองค้างพลู อ.หนองแขม จ.กรุงเทพฯ 10160",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chokchai"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chokchai",
+    jobsThisMonth: 9,
   },
   {
     id: 8,
@@ -98,7 +104,8 @@ export const leader = [
     phone: "083-229-8765",
     address: "24/18 ถ.นวมินทร์ ต.คลองกุ่ม อ.บึงกุ่ม จ.กรุงเทพฯ 10240",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=anan"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=anan",
+    jobsThisMonth: 12,
   },
   {
     id: 9,
@@ -112,7 +119,8 @@ export const leader = [
     phone: "085-112-9988",
     address: "88/9 หมู่บ้านรุ่งทรัพย์ ถ.ประชาอุทิศ ต.ทุ่งครุ อ.ทุ่งครุ จ.กรุงเทพฯ 10140",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chanchai"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chanchai",
+    jobsThisMonth: 6,
   },
   {
     id: 10,
@@ -126,7 +134,8 @@ export const leader = [
     phone: "081-900-6574",
     address: "199/45 หมู่ 5 ถ.พหลโยธิน ต.คูคต อ.ลำลูกกา จ.ปทุมธานี 12130",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchai"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchai",
+    jobsThisMonth: 15,
   },
   {
     id: 11,
@@ -140,7 +149,8 @@ export const leader = [
     phone: "087-345-9900",
     address: "60/4 ถ.สุขาภิบาล 3 ต.หัวหมาก อ.บางกะปิ จ.กรุงเทพฯ 10240",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surasak"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surasak",
+    jobsThisMonth: 3,
   },
 
   // แผนกโครงสร้างพื้นฐานและไฟฟ้า
@@ -156,7 +166,8 @@ export const leader = [
     phone: "098-766-4321",
     address: "111/7 หมู่บ้านศิริสุข ถ.แจ้งวัฒนะ ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wattana"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wattana",
+    jobsThisMonth: 10,
   },
   {
     id: 12,
@@ -170,7 +181,8 @@ export const leader = [
     phone: "085-422-3145",
     address: "42/6 ถ.เอกชัย ต.บางบอน อ.บางขุนเทียน จ.กรุงเทพฯ 10150",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopporn"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopporn",
+    jobsThisMonth: 4,
   },
   {
     id: 13,
@@ -184,7 +196,8 @@ export const leader = [
     phone: "084-933-2456",
     address: "22/18 ซ.สุขสวัสดิ์ 50 ถ.สุขสวัสดิ์ ต.บางประกอก อ.ราษฎร์บูรณะ จ.กรุงเทพฯ 10140",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panya"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panya",
+    jobsThisMonth: 13,
   },
   {
     id: 14,
@@ -198,7 +211,8 @@ export const leader = [
     phone: "089-700-1239",
     address: "9/2 ถ.รามคำแหง ต.สะพานสูง อ.สะพานสูง จ.กรุงเทพฯ 10240",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=amorn"
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=amorn",
+    jobsThisMonth: 7,
   },
   {
     id: 15,
@@ -212,6 +226,7 @@ export const leader = [
     phone: "082-992-4433",
     address: "18/1 ถ.รัตนาธิเบศร์ ต.บางรักน้อย อ.เมือง จ.นนทบุรี 11000",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paisan"
-  }
+    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paisan",
+    jobsThisMonth: 9,
+  },
 ];

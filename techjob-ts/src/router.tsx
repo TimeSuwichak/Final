@@ -26,6 +26,7 @@ import UserSidebar from "./components/user/UserSidebar";
 import LeaderSidebar from "./components/leader/LeaderSidebar";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import ReportProblem from "./pages/user/ReportProblem"
+import UserCalendar from "./pages/user/UserCalendar";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -98,6 +99,10 @@ const router = createBrowserRouter([
       {
         path: "report-problem",
         element: <ReportProblem />,
+      },
+      {
+        path: "UserCalender",
+        element: <UserCalendar />,
       },
     ],
   },
