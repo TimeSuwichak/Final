@@ -1,26 +1,20 @@
-// src/pages/leader/LeaderCalendar.jsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent
-} from "@/components/ui/card";
-import { isWithinInterval, format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { isWithinInterval, format } from "date-fns";
+import { th } from "date-fns/locale"; // [ใหม่] Import locale ภาษาไทย
 
-
-// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage
-const loadJobsFromStorage = () => {
+// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage (ฉบับอัปเดต)
+const loadDataFromStorage = () => {
   try {
     const data = localStorage.getItem("techJobData");
     if (data) {
       const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job) => ({
+      // [สำคัญ] แปลงวันที่กลับเป็น Date object
+      parsed.jobs = parsed.jobs.map((job: any) => ({
         ...job,
         dates: {
           start: new Date(job.dates.start),
@@ -33,38 +27,39 @@ const loadJobsFromStorage = () => {
   return [];
 };
 
-export default function LeaderCalendar() {
+export default function LeaderCalendarPage() {
   const { user: loggedInLeader } = useAuth();
-  const [managedJobs, setManagedJobs] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [managedJobs, setManagedJobs] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     if (loggedInLeader) {
-      const allJobs = loadJobsFromStorage();
+      const allJobs = loadDataFromStorage();
       const leaderJobs = allJobs.filter(
-        (job) => job.assignment.leadId === loggedInLeader.id
+        (job: any) => job.assignment.leadId === loggedInLeader.id
       );
       setManagedJobs(leaderJobs);
     }
   }, [loggedInLeader]);
 
   // หาว่าวันที่เลือกมีงานอะไรบ้าง
-  const jobsOnSelectedDate = managedJobs.filter(job => 
+  const jobsOnSelectedDate = selectedDate ? managedJobs.filter(job => 
     isWithinInterval(selectedDate, { start: job.dates.start, end: job.dates.end })
-  );
+  ) : [];
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <h2 className="text-3xl font-bold tracking-tight">ปฏิทินงานที่ดูแล</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
           <Card>
-            <CardContent className="p-2">
+            <CardContent className="p-2 flex justify-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md"
+                locale={th} // [ใหม่] แสดงผลปฏิทินเป็นภาษาไทย
                 modifiers={{
                   hasJob: (date) => {
                     return managedJobs.some(job =>
@@ -82,7 +77,10 @@ export default function LeaderCalendar() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>งานในวันที่: {format(selectedDate, "PPP")}</CardTitle>
+              <CardTitle>
+                {/* [แก้ไข] เพิ่มการตรวจสอบ `selectedDate` ก่อน format */}
+                งานในวันที่: {selectedDate ? format(selectedDate, "PPP", { locale: th }) : "กรุณาเลือกวัน"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {jobsOnSelectedDate.length > 0 ? (

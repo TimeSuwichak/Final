@@ -1,24 +1,20 @@
-// src/pages/user/UserCalendar.jsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { isWithinInterval, format } from "date-fns";
+import { th } from "date-fns/locale"; // [ใหม่] Import locale ภาษาไทย
 
-// ฟังก์ชันสำหรับอ่านข้อมูลทั้งหมดจาก LocalStorage (เหมือนกับหน้า MyTasks)
-const loadJobsFromStorage = () => {
+// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage (ฉบับอัปเดต)
+const loadDataFromStorage = () => {
   try {
     const data = localStorage.getItem("techJobData");
     if (data) {
       const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job) => ({
+      // [สำคัญ] แปลงวันที่กลับเป็น Date object
+      parsed.jobs = parsed.jobs.map((job: any) => ({
         ...job,
         dates: {
           start: new Date(job.dates.start),
@@ -27,21 +23,19 @@ const loadJobsFromStorage = () => {
       }));
       return parsed.jobs;
     }
-  } catch (e) {
-    console.error("Failed to load jobs", e);
-  }
+  } catch (e) { console.error("Failed to load jobs", e); }
   return [];
 };
 
-export default function UserCalendar() {
+export default function UserCalendarPage() {
   const { user } = useAuth();
-  const [myJobs, setMyJobs] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [myJobs, setMyJobs] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
     if (user) {
-      const allJobs = loadJobsFromStorage();
-      const userJobs = allJobs.filter((job) =>
+      const allJobs = loadDataFromStorage();
+      const userJobs = allJobs.filter((job: any) =>
         job.assignment.techIds.includes(user.id)
       );
       setMyJobs(userJobs);
@@ -49,23 +43,23 @@ export default function UserCalendar() {
   }, [user]);
 
   // หาว่าวันที่เลือกมีงานอะไรบ้าง
-  const jobsOnSelectedDate = myJobs.filter(job => 
+  const jobsOnSelectedDate = selectedDate ? myJobs.filter(job => 
     isWithinInterval(selectedDate, { start: job.dates.start, end: job.dates.end })
-  );
+  ) : [];
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <h2 className="text-3xl font-bold tracking-tight">ปฏิทินงาน</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
           <Card>
-            <CardContent className="p-2">
+            <CardContent className="p-2 flex justify-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md"
-                // ส่วนสำคัญ: กำหนด class ให้กับวันที่มีงาน
+                locale={th} // [ใหม่] แสดงผลปฏิทินเป็นภาษาไทย
                 modifiers={{
                   hasJob: (date) => {
                     return myJobs.some(job =>
@@ -83,7 +77,10 @@ export default function UserCalendar() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>งานในวันที่: {format(selectedDate, "PPP")}</CardTitle>
+              <CardTitle>
+                {/* [แก้ไข] เพิ่มการตรวจสอบ `selectedDate` ก่อน format */}
+                งานในวันที่: {selectedDate ? format(selectedDate, "PPP", { locale: th }) : "กรุณาเลือกวัน"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {jobsOnSelectedDate.length > 0 ? (
