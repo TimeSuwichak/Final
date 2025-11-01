@@ -1,70 +1,66 @@
-// src/pages/leader/MyManagedTasks.jsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+// [สำคัญ] Import Button และ CardFooter เข้ามา
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { th } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { JobDetailsDialog } from "@/components/common/JobDetailsDialog";
 
-// ฟังก์ชันสำหรับอ่านข้อมูลทั้งหมดจาก LocalStorage
+// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage
 const loadDataFromStorage = () => {
   try {
     const data = localStorage.getItem("techJobData");
     if (data) {
       const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job) => ({
+      parsed.jobs = parsed.jobs.map((job: any) => ({
         ...job,
         dates: {
           start: new Date(job.dates.start),
           end: new Date(job.dates.end),
         },
       }));
-      return parsed; // คืนค่า object ทั้งหมดที่มี jobs, users, leaders
+      return parsed;
     }
-  } catch (e) {
-    console.error("Failed to load data", e);
-  }
+  } catch (e) { console.error("Failed to load data", e); }
   return { jobs: [], users: [], leaders: [] };
 };
 
-export default function MyManagedTasksPage() {
-  const { user: loggedInLeader } = useAuth(); // ดึงข้อมูลหัวหน้าที่ Login อยู่
-  const [managedJobs, setManagedJobs] = useState([]);
-  const [allUsers, setAllUsers] = useState([]); // State สำหรับเก็บข้อมูลช่างทั้งหมด
+export default function MyManagedTasks() {
+  const { user: loggedInLeader } = useAuth();
+  const [managedJobs, setManagedJobs] = useState<any[]>([]);
+  const [viewingJob, setViewingJob] = useState<any | null>(null);
+  const [allData, setAllData] = useState<{ users: any[], leaders: any[] }>({ users: [], leaders: [] });
 
   useEffect(() => {
     if (loggedInLeader) {
-      const { jobs, users } = loadDataFromStorage();
-
-      // กรองงานทั้งหมด ให้เหลือเฉพาะงานที่มี leadId ของเรา
-      const leaderJobs = jobs.filter(
-        (job) => job.assignment.leadId === loggedInLeader.id
-      );
-
+      const { jobs, users, leaders } = loadDataFromStorage();
+      const leaderJobs = jobs.filter((job: any) => job.assignment.leadId === loggedInLeader.id);
       setManagedJobs(leaderJobs);
-      setAllUsers(users); // เก็บข้อมูลช่างไว้เพื่อใช้แสดงผล
+      setAllData({ users, leaders });
     }
   }, [loggedInLeader]);
+  
+  const findLeaderById = (id: number) => allData.leaders.find(l => l.id === id);
+  const findUserById = (id: number) => allData.users.find(u => u.id === id);
 
-  const getStatusBadge = (status) => {
-    // ... (โค้ด getStatusBadge เหมือนเดิม) ...
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+        case "new": return <Badge variant="default">งานใหม่</Badge>;
+        case "in-progress": return <Badge variant="secondary">กำลังดำเนินการ</Badge>;
+        case "completed": return <Badge className="bg-green-600 text-white">เสร็จสิ้น</Badge>;
+        default: return <Badge variant="outline">{status}</Badge>;
+    }
   };
-
-  // ฟังก์ชันสำหรับหาข้อมูลช่างจาก ID
-  const findUserById = (id) => allUsers.find((u) => u.id === id);
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <h2 className="text-3xl font-bold tracking-tight">ใบงานที่ฉันดูแล</h2>
-
+      
       {managedJobs.length > 0 ? (
         <div className="space-y-4">
           {managedJobs.map((job) => (
@@ -74,61 +70,33 @@ export default function MyManagedTasksPage() {
                   <span>{job.title}</span>
                   {getStatusBadge(job.status)}
                 </CardTitle>
-                <CardDescription>{job.description}</CardDescription>
+                <CardDescription>{job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div className="text-sm text-muted-foreground">
-                  <p>
-                    <strong>แผนกที่เกี่ยวข้อง:</strong>{" "}
-                    {(
-                      job.assignment.departments || [
-                        job.assignment.department,
-                      ] ||
-                      []
-                    ).join(", ")}
-                  </p>
-                  <p>
-                    <strong>ระยะเวลา:</strong> {format(job.dates.start, "PPP")}{" "}
-                    - {format(job.dates.end, "PPP")}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">ทีมช่างในงานนี้:</h4>
-                  <div className="flex flex-wrap gap-4">
-                    {job.assignment.techIds.map((techId) => {
-                      const tech = findUserById(techId);
-                      if (!tech) return null;
-                      return (
-                        <div
-                          key={tech.id}
-                          className="flex items-center gap-2 p-2 bg-secondary rounded-md"
-                        >
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={tech.avatarUrl} />
-                            <AvatarFallback>{tech.fname[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {tech.fname} {tech.lname}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {tech.position}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <p><strong>ลูกค้า:</strong> {job.client?.name || 'N/A'}</p>
+                  <p><strong>ระยะเวลา:</strong> {format(job.dates.start, "PPP", { locale: th })} - {format(job.dates.end, "PPP", { locale: th })}</p>
                 </div>
               </CardContent>
+              {/* เพิ่ม CardFooter และ Button กลับมา */}
+              <CardFooter className="flex justify-end">
+                <Button onClick={() => setViewingJob(job)}>ดูรายละเอียด</Button>
+              </CardFooter>
             </Card>
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground">
-          คุณยังไม่ได้รับมอบหมายให้ดูแลงานใดๆ
-        </p>
+        <p className="text-muted-foreground">คุณยังไม่ได้รับมอบหมายให้ดูแลงานใดๆ</p>
       )}
+
+      {/* ส่วน Dialog แสดงรายละเอียด */}
+      <JobDetailsDialog
+          job={viewingJob}
+          lead={viewingJob ? findLeaderById(viewingJob.assignment.leadId) : null}
+          techs={viewingJob ? viewingJob.assignment.techIds.map(findUserById) : []}
+          isOpen={!!viewingJob}
+          onClose={() => setViewingJob(null)}
+      />
     </div>
   );
 }
