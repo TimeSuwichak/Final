@@ -68,6 +68,7 @@ import { cn, isDateRangeOverlapping } from "@/lib/utils";
 import { user as initialUsers } from "@/data/user";
 import { leader as initialLeaders } from "@/data/leader";
 import InteractiveMap from "@/components/common/InteractiveMap";
+import { JobDetailsDialog } from "@/components/common/JobDetailsDialog";
 
 // --- DATA ตั้งต้น และการโหลดข้อมูลจาก LocalStorage ---
 const initialJobs = [
@@ -193,38 +194,49 @@ const LeaderSelect = ({ leaders, selectedLead, onSelect, disabled }) => {
 };
 
 // --- COMPONENT: ตัวเลือกแผนก (Checkbox) ---
-const DeptCheckboxGroup = ({ allDepartments, selectedDepts, onSelectionChange, disabled }) => {
+const DeptCheckboxGroup = ({
+  allDepartments,
+  selectedDepts,
+  onSelectionChange,
+  disabled,
+}) => {
+  const handleCheckedChange = (checked, dept) => {
+    if (checked) {
+      // เพิ่มแผนกถ้ายังไม่มี
+      onSelectionChange([...selectedDepts, dept]);
+    } else {
+      // ลบแผนกออก
+      onSelectionChange(selectedDepts.filter((d) => d !== dept));
+    }
+  };
 
-    const handleCheckedChange = (checked, dept) => {
-      if (checked) {
-        // เพิ่มแผนกถ้ายังไม่มี
-        onSelectionChange([...selectedDepts, dept]);
-      } else {
-        // ลบแผนกออก
-        onSelectionChange(selectedDepts.filter(d => d !== dept));
-      }
-    };
-  
-    return (
-      <div className={`space-y-3 rounded-md border p-4 ${disabled ? "bg-muted opacity-50 cursor-not-allowed" : ""}`}>
-        <Label>แผนกที่เกี่ยวข้อง*</Label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {allDepartments.map((dept) => (
-            <div key={dept} className="flex items-center space-x-2">
-              <Checkbox
-                id={dept}
-                checked={selectedDepts.includes(dept)}
-                onCheckedChange={(checked) => handleCheckedChange(checked, dept)}
-                disabled={disabled}
-              />
-              <Label htmlFor={dept} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {dept}
-              </Label>
-            </div>
-          ))}
-        </div>
+  return (
+    <div
+      className={`space-y-3 rounded-md border p-4 ${
+        disabled ? "bg-muted opacity-50 cursor-not-allowed" : ""
+      }`}
+    >
+      <Label>แผนกที่เกี่ยวข้อง*</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {allDepartments.map((dept) => (
+          <div key={dept} className="flex items-center space-x-2">
+            <Checkbox
+              id={dept}
+              checked={selectedDepts.includes(dept)}
+              onCheckedChange={(checked) => handleCheckedChange(checked, dept)}
+              disabled={disabled}
+            />
+            <Label
+              htmlFor={dept}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              {dept}
+            </Label>
+          </div>
+        ))}
       </div>
-    );
+    </div>
+  );
 };
 
 const TechSelect = ({
@@ -494,7 +506,7 @@ const CreateJobForm = ({ formState, formSetters, data, handlers }) => {
                   {/* [ใหม่] เรียกใช้ Component แผนที่ */}
                   {/* <InteractiveMap center={[13.7563, 100.5018]} onMarkerSet={(pos) => formSetters.setMapPosition(pos)} /> */}
                   <div className="h-full w-full bg-secondary flex items-center justify-center text-muted-foreground">
-                    <InteractiveMap/>
+                    <InteractiveMap />
                   </div>
                 </div>
               </div>
@@ -592,6 +604,7 @@ export default function AdminDashboardPage() {
   const [clientContact, setClientContact] = useState(""); // [ใหม่]
   const [mapPosition, setMapPosition] = useState(null); // [ใหม่]
   const [address, setAddress] = useState(""); // [ใหม่]
+  const [viewingJob, setViewingJob] = useState(null);
 
   const allDepartments = useMemo(
     () => [...new Set(appData.users.map((u) => u.department))],
@@ -751,7 +764,7 @@ export default function AdminDashboardPage() {
                 setMapPosition, // [ใหม่]
                 setStartDate,
                 setEndDate,
-                setSelectedDepts
+                setSelectedDepts,
               }}
               data={{ allDepartments, availableLeads, availableTechsByDept }}
               handlers={{
@@ -798,14 +811,21 @@ export default function AdminDashboardPage() {
                 .filter(Boolean); // .filter(Boolean) เพื่อกรองค่า undefined ออก
 
               return (
-                <Card key={job.id} className="dark:bg-slate-900">
+                <Card
+                  key={job.id}
+                  className="dark:bg-slate-900 transition-colors cursor-pointer"
+                  onClick={() => setViewingJob(job)}
+                >
                   <CardHeader>
                     <CardTitle className="flex justify-between items-start">
                       <span className="text-xl">{job.title}</span>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteJob(job.id)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // หยุดไม่ให้ event คลิกนี้ไปเปิด Dialog
+                          handleDeleteJob(job.id);
+                        }}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -868,12 +888,31 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     )}
+                    <Separator className="mb-4" />
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {/* ตรวจสอบให้แน่ใจว่า job.client มีอยู่จริงก่อนแสดงผล */}
+                      <p>
+                        <strong>ลูกค้า:</strong> {job.client?.name || "N/A"}
+                      </p>
+                      <p>
+                        <strong>เบอร์โทร:</strong> {job.client?.phone || "N/A"}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               );
             })}
         </TabsContent>
       </Tabs>
+      <JobDetailsDialog
+        job={viewingJob}
+        lead={viewingJob ? findLeaderById(viewingJob.assignment.leadId) : null}
+        techs={
+          viewingJob ? viewingJob.assignment.techIds.map(findUserById) : []
+        }
+        isOpen={!!viewingJob}
+        onClose={() => setViewingJob(null)}
+      />
     </div>
   );
 }
