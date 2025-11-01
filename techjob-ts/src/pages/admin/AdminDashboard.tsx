@@ -89,7 +89,7 @@ const initialJobs = [
   },
 ];
 
-const loadDataFromStorage = () => {
+const loadDataFromStorage = () => { // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
   try {
     const data = localStorage.getItem("techJobData");
     if (data) {
@@ -112,7 +112,7 @@ const loadDataFromStorage = () => {
 // SECTION 2: REUSABLE SUB-COMPONENTS
 // ====================================================================
 
-const DatePicker = ({
+const DatePicker = ({ //thomas - ตัวเลือกวัน
   date,
   setDate,
 }: {
@@ -194,7 +194,7 @@ const LeaderSelect = ({ leaders, selectedLead, onSelect, disabled }) => {
 };
 
 // --- COMPONENT: ตัวเลือกแผนก (Checkbox) ---
-const DeptCheckboxGroup = ({
+const DeptCheckboxGroup = ({ //thomas - ตัวเลือกแผนก
   allDepartments,
   selectedDepts,
   onSelectionChange,
@@ -239,7 +239,7 @@ const DeptCheckboxGroup = ({
   );
 };
 
-const TechSelect = ({
+const TechSelect = ({ //thomas - ตัวเลือกช่าง
   technicians,
   selectedTechs,
   onSelectionChange,
@@ -269,7 +269,7 @@ const TechSelect = ({
     }
   };
 
-  const availableOptions = useMemo(() => {
+  const availableOptions = useMemo(() => { // thomas - กรองช่างที่ยังไม่ถูกเลือกและตามตำแหน่ง
     return technicians.filter(
       (tech) =>
         !selectedTechs.some((s) => s.id === tech.id) &&
@@ -744,7 +744,7 @@ export default function AdminDashboardPage() {
               <DialogTitle>สร้างใบงานใหม่</DialogTitle>
               <DialogDescription>กรอกรายละเอียดและมอบหมายงาน</DialogDescription>
             </DialogHeader>
-            <CreateJobForm
+            <CreateJobForm //thomas - pop up ใบงาน
               formState={{
                 title,
                 description,
