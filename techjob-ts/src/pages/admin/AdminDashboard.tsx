@@ -751,6 +751,7 @@ export default function AdminDashboardPage() {
                 setMapPosition, // [ใหม่]
                 setStartDate,
                 setEndDate,
+                setSelectedDepts
               }}
               data={{ allDepartments, availableLeads, availableTechsByDept }}
               handlers={{
