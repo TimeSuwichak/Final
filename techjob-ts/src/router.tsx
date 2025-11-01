@@ -1,12 +1,10 @@
+// src/router.tsx
 import React from "react";
-import ReactDOM from "react-dom/client";
-import { RouterProvider, Navigate } from "react-router-dom";
-import "./App.css";
-
+import { Navigate } from "react-router-dom";
 import { createBrowserRouter } from "react-router-dom";
+import Sidebar from "./components/sidebar/sidebar";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminNavbar from "./components/admin/AdminNavbar";
 import Datauser from "./pages/admin/Datauser";
 import Report from "./pages/admin/Report";
 import WorkOders from "./pages/admin/WorkOders";
@@ -19,109 +17,43 @@ import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
 import Settings from "./pages/admin/Settings";
 import UserDashboard from "./pages/user/UserDashboard";
-import UserSidebar from "./components/user/UserSidebar";
-import LeaderSidebar from "./components/leader/LeaderSidebar";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
-import LeaderReport from "./pages/leader/LeaderReport";
 import ReportProblem from "./pages/user/ReportProblem";
-import UserCalendar from "./pages/user/UserCalendar";
-import LeaderCalendar from "./pages/leader/LeaderCalendar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
   { path: "/login", element: <LoginPage /> },
 
-  // Layout ของ admin
   {
-    path: "/admin",
-    element: <AdminNavbar />, // ✅ ใช้ AdminNavbar เป็น Layout หลักของ ADMIN
+    path: "/",
+    element: <Sidebar />,
     children: [
+      // ──────── ADMIN ────────
       {
-        path: "AdminDashboard",
-        element: <AdminDashboard />,
+        path: "admin/admindashboard",
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
       },
-      {
-        path: "Datauser",
-        element: <Datauser />,
-      },
-      {
-        path: "Report",
-        element: <Report />,
-      },
-      {
-        path: "WorkOders",
-        element: <WorkOders />,
-      },
-      {
-        path: "Material",
-        element: <MaterialPage />,
-      },
-      {
-        path: "setting",
-        element: <Settings />,
-      },
-      {
-        path: "Account",
-        element: <Account />,
-      },
-      {
-        path: "Profile",
-        element: <Profile />,
-      },
-      {
-        path: "Notification",
-        element: <Notification />,
-      },
-      {
-        path: "Security",
-        element: <Security />,
-      },
-      {
-        path: "Theme",
-        element: <Theme />,
-      },
-      {
-        path: "System",
-        element: <System />,
-      },
-    ],
-  },
+      { path: "admin/datauser", element: <ProtectedRoute allowedRoles={["admin"]} element={<Datauser />} /> },
+      { path: "admin/workoders", element: <ProtectedRoute allowedRoles={["admin"]} element={<WorkOders />} /> },
+      { path: "admin/material", element: <ProtectedRoute allowedRoles={["admin"]} element={<MaterialPage />} /> },
+      { path: "admin/report", element: <ProtectedRoute allowedRoles={["admin"]} element={<Report />} /> },
+      { path: "admin/setting", element: <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} /> },
 
-  {
-    path: "/user",
-    element: <UserSidebar />, // ✅ ใช้ UserNavbar เป็น Layout หลักของ USER
-    children: [
-      {
-        path: "UserDashboard",
-        element: <UserDashboard />,
-      },
-      {
-        path: "report-problem",
-        element: <ReportProblem />,
-      },
-      {
-        path: "UserCalender",
-        element: <UserCalendar />,
-      },
-    ],
-  },
+      // ──────── USER ────────
+      { path: "user/userdashboard", element: <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} /> },
+      { path: "user/report-problem", element: <ProtectedRoute allowedRoles={["user"]} element={<ReportProblem />} /> },
 
-  {
-    path: "/leader",
-    element: <LeaderSidebar />, // ✅ ใช้ UserNavbar เป็น Layout หลักของ USER
-    children: [
-      {
-        path: "LeaderDashboard",
-        element: <LeaderDashboard />,
-      },
-      {
-        path: "LeaderReport",
-        element: <LeaderReport />,
-      },
-      {
-        path: "LeaderCalendar",
-        element: <LeaderCalendar />,
-      },
+      // ──────── LEADER ────────
+      { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
+
+      // ──────── COMMON SETTINGS ────────
+      { path: "account", element: <ProtectedRoute element={<Account />} /> },
+      { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
+      { path: "notification", element: <ProtectedRoute element={<Notification />} /> },
+      { path: "security", element: <ProtectedRoute element={<Security />} /> },
+      { path: "theme", element: <ProtectedRoute element={<Theme />} /> },
+      { path: "system", element: <ProtectedRoute element={<System />} /> },
     ],
   },
 
