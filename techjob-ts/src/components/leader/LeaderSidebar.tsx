@@ -56,6 +56,13 @@ export default function LeaderSidebar() {
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
             </NavLink>
+
+            <NavLink
+              to="/leader/LeaderCalendar"
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+            >
+              <FaCog className="inline mr-2" /> ปฏิทินงาน
+            </NavLink>
           </nav>
         </div>
 

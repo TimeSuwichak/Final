@@ -1,9 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import {
-  RouterProvider,
-  Navigate,
-} from "react-router-dom";
+import { RouterProvider, Navigate } from "react-router-dom";
 import "./App.css";
 
 import { createBrowserRouter } from "react-router-dom";
@@ -26,8 +23,9 @@ import UserSidebar from "./components/user/UserSidebar";
 import LeaderSidebar from "./components/leader/LeaderSidebar";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import LeaderReport from "./pages/leader/LeaderReport";
-import ReportProblem from "./pages/user/ReportProblem"
+import ReportProblem from "./pages/user/ReportProblem";
 import UserCalendar from "./pages/user/UserCalendar";
+import LeaderCalendar from "./pages/leader/LeaderCalendar";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -60,32 +58,32 @@ const router = createBrowserRouter([
       },
       {
         path: "setting",
-        element: <Settings />
+        element: <Settings />,
       },
       {
         path: "Account",
-        element: <Account />
+        element: <Account />,
       },
       {
         path: "Profile",
-        element: <Profile />
+        element: <Profile />,
       },
       {
         path: "Notification",
-        element: <Notification />
+        element: <Notification />,
       },
       {
         path: "Security",
-        element: <Security />
+        element: <Security />,
       },
       {
         path: "Theme",
-        element: <Theme />
+        element: <Theme />,
       },
       {
         path: "System",
-        element: <System />
-      }
+        element: <System />,
+      },
     ],
   },
 
@@ -119,6 +117,10 @@ const router = createBrowserRouter([
       {
         path: "LeaderReport",
         element: <LeaderReport />,
+      },
+      {
+        path: "LeaderCalendar",
+        element: <LeaderCalendar />,
       },
     ],
   },
