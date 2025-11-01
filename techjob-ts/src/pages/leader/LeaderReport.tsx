@@ -1,6 +1,5 @@
 import type React from "react"
 import { useState } from "react"
-import { NavLink, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -21,6 +20,27 @@ interface ReportData {
   userEmail: string
   userDepartment: string
   submittedAt: string
+}
+
+const saveReportToStorage = (report: ReportData) => {
+  try {
+    const existingReports = localStorage.getItem("problemReports")
+    const reports = existingReports ? JSON.parse(existingReports) : []
+
+    // Add new report with unique ID
+    const newReport = {
+      ...report,
+      id: Date.now(),
+      reportDate: new Date().toLocaleString("th-TH"),
+    }
+
+    reports.push(newReport)
+    localStorage.setItem("problemReports", JSON.stringify(reports))
+    return true
+  } catch (error) {
+    console.error("[v0] Failed to save report:", error)
+    return false
+  }
 }
 
 // Component หลักสำหรับหน้าแจ้งปัญหาของ Leader
@@ -47,7 +67,6 @@ const LeaderReport: React.FC = () => {
     }
   }
 
-  // Handler สำหรับการส่งฟอร์ม
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -72,11 +91,19 @@ const LeaderReport: React.FC = () => {
 
     console.log("[v0] Submitting report:", reportData)
 
-    // จำลองการส่งข้อมูลไปยัง Server
+    const success = saveReportToStorage(reportData)
+
     setTimeout(() => {
       setIsSubmitting(false)
-      alert("ส่งรายงานปัญหาเรียบร้อยแล้ว")
-      navigate("/leader/LeaderDashboard")
+      if (success) {
+        alert("ส่งรายงานปัญหาเรียบร้อยแล้ว")
+        setProblemType("")
+        setDescription("")
+        setAttachmentUrl("")
+        navigate("/leader/LeaderDashboard")
+      } else {
+        alert("เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง")
+      }
     }, 1000)
   }
 

@@ -1,25 +1,25 @@
-// React Hooks ที่ใช้จัดการสถานะ (state) และประสิทธิภาพของ component
-import { useState, useMemo } from "react"
-
-// Components UI จาก shadcn/ui สำหรับสร้างตาราง
+import { useState, useMemo, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-// ช่องค้นหา
 import { Input } from "@/components/ui/input"
-// ปุ่มกด
 import { Button } from "@/components/ui/button"
-// Dropdown (Select)
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// กล่องข้อความหลายบรรทัด
 import { Textarea } from "@/components/ui/textarea"
-// ไอคอนลูกศรจาก lucide-react
-import { ChevronDown, ChevronUp } from "lucide-react"
-// ข้อมูลผู้ใช้
+import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 import { user } from "@/data/user"
 
-// หมวดหมู่ของการแจ้งปัญหา (mock data)
-const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เนานะนำฟีเจอร์ใหม่", "อื่นๆ"]
+const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่", "อื่นๆ"]
 
-// กำหนดรูปแบบของข้อมูลแต่ละรายการ (TypeScript interface)
+const mapProblemTypeToCategory = (problemType: string): string => {
+  const mapping: Record<string, string> = {
+    "system-error": "ระบบล้ม/Error",
+    "login-issue": "ฟังก์ชั่นที่ใช้งานไม่ได้",
+    "data-error": "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่",
+    performance: "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่",
+    other: "อื่นๆ",
+  }
+  return mapping[problemType] || problemType
+}
+
 interface ReportEntry {
   id: number
   name: string
@@ -28,20 +28,45 @@ interface ReportEntry {
   department: string
   description: string
   reportDate: string
+  attachmentUrl?: string
 }
 
-// Component หลัก
 const Report = () => {
-  // 📦 ส่วนของ State (สถานะที่ใช้ภายใน component)
-  const [searchQuery, setSearchQuery] = useState("") // คำค้นหา
-  const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด") // หมวดหมู่ที่เลือก
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set()) // เก็บ id ของแถวที่ขยาย
-  const [selectedUserId, setSelectedUserId] = useState<string>("") // ผู้แจ้งปัญหา
-  const [selectedReportCategory, setSelectedReportCategory] = useState<string>("") // หมวดหมู่ที่เลือกในแบบฟอร์ม
-  const [reportDescription, setReportDescription] = useState<string>("") // รายละเอียดปัญหา
-  const [reports, setReports] = useState<ReportEntry[]>([]) // เก็บรายการการแจ้งทั้งหมด
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด")
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
+  const [selectedUserId, setSelectedUserId] = useState<string>("")
+  const [selectedReportCategory, setSelectedReportCategory] = useState<string>("")
+  const [reportDescription, setReportDescription] = useState<string>("")
+  const [reports, setReports] = useState<ReportEntry[]>([])
 
-  // ฟังก์ชันเพิ่มการแจ้งปัญหาใหม่
+  useEffect(() => {
+    loadReportsFromStorage()
+  }, [])
+
+  const loadReportsFromStorage = () => {
+    try {
+      const storedReports = localStorage.getItem("problemReports")
+      if (storedReports) {
+        const parsedReports = JSON.parse(storedReports)
+        // Transform the data to match ReportEntry interface
+        const transformedReports = parsedReports.map((report: any) => ({
+          id: report.id,
+          name: report.userName,
+          category: mapProblemTypeToCategory(report.problemType),
+          position: report.userType,
+          department: report.userDepartment,
+          description: report.description,
+          reportDate: report.reportDate,
+          attachmentUrl: report.attachmentUrl,
+        }))
+        setReports(transformedReports)
+      }
+    } catch (error) {
+      console.error("[v0] Failed to load reports:", error)
+    }
+  }
+
   const handleAddReport = () => {
     if (!selectedUserId || !selectedReportCategory || !reportDescription.trim()) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน")
@@ -51,27 +76,74 @@ const Report = () => {
     const selectedUser = user.find((u) => u.id.toString() === selectedUserId)
     if (!selectedUser) return
 
-    // สร้าง object การแจ้งปัญหาใหม่
     const newReport: ReportEntry = {
-      id: Date.now(), // ใช้ timestamp เป็น id
+      id: Date.now(),
       name: `${selectedUser.fname} ${selectedUser.lname}`,
       category: selectedReportCategory,
       position: selectedUser.position,
       department: selectedUser.department,
       description: reportDescription,
-      reportDate: new Date().toLocaleString("th-TH"), // วันที่และเวลาที่บันทึก
+      reportDate: new Date().toLocaleString("th-TH"),
     }
 
-    // เพิ่มข้อมูลใหม่เข้า state
-    setReports([...reports, newReport])
+    const updatedReports = [...reports, newReport]
+    setReports(updatedReports)
 
-    // เคลียร์ฟอร์ม
+    // Also save to localStorage in the same format as user/leader submissions
+    try {
+      const storedReports = localStorage.getItem("problemReports")
+      const allReports = storedReports ? JSON.parse(storedReports) : []
+      allReports.push({
+        id: newReport.id,
+        userName: newReport.name,
+        problemType: selectedReportCategory,
+        userType: newReport.position,
+        userDepartment: newReport.department,
+        description: newReport.description,
+        reportDate: newReport.reportDate,
+        attachmentUrl: "",
+        submittedAt: new Date().toISOString(),
+      })
+      localStorage.setItem("problemReports", JSON.stringify(allReports))
+    } catch (error) {
+      console.error("[v0] Failed to save to localStorage:", error)
+    }
+
     setSelectedUserId("")
     setSelectedReportCategory("")
     setReportDescription("")
   }
 
-  // กรองข้อมูลตามการค้นหาและหมวดหมู่
+  const handleDeleteReport = (reportId: number) => {
+    if (!confirm("คุณต้องการลบรายงานนี้หรือไม่?")) {
+      return
+    }
+
+    try {
+      // Remove from state
+      const updatedReports = reports.filter((report) => report.id !== reportId)
+      setReports(updatedReports)
+
+      // Remove from localStorage
+      const storedReports = localStorage.getItem("problemReports")
+      if (storedReports) {
+        const allReports = JSON.parse(storedReports)
+        const filteredReports = allReports.filter((report: any) => report.id !== reportId)
+        localStorage.setItem("problemReports", JSON.stringify(filteredReports))
+      }
+
+      // Close expanded row if it was open
+      if (expandedRows.has(reportId)) {
+        const newExpanded = new Set(expandedRows)
+        newExpanded.delete(reportId)
+        setExpandedRows(newExpanded)
+      }
+    } catch (error) {
+      console.error("[v0] Failed to delete report:", error)
+      alert("เกิดข้อผิดพลาดในการลบรายงาน")
+    }
+  }
+
   const filteredReports = useMemo(() => {
     return reports.filter((report) => {
       const matchesSearch =
@@ -84,7 +156,6 @@ const Report = () => {
     })
   }, [searchQuery, selectedCategory, reports])
 
-  // ฟังก์ชันสำหรับเปิด/ปิดรายละเอียดแต่ละแถว
   const toggleRow = (id: number) => {
     const newExpanded = new Set(expandedRows)
     if (newExpanded.has(id)) newExpanded.delete(id)
@@ -92,19 +163,15 @@ const Report = () => {
     setExpandedRows(newExpanded)
   }
 
-  // ส่วนแสดงผล (JSX)
   return (
     <div className="w-full space-y-6 p-6">
-      {/* หัวข้อหน้า */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">การแจ้งปัญหา</h1>
       </div>
 
-      {/* ส่วนแบบฟอร์มเพิ่มการแจ้ง. */}
       <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
         <h2 className="text-lg font-semibold">การจำลอง</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* เลือกชื่อผู้แจ้ง */}
           <div className="space-y-2">
             <label className="text-sm font-medium">ชื่อ</label>
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
@@ -121,7 +188,6 @@ const Report = () => {
             </Select>
           </div>
 
-          {/* เลือกหมวดหมู่ */}
           <div className="space-y-2">
             <label className="text-sm font-medium">หมวดหมู่</label>
             <Select value={selectedReportCategory} onValueChange={setSelectedReportCategory}>
@@ -139,7 +205,6 @@ const Report = () => {
           </div>
         </div>
 
-        {/* รายละเอียดเพิ่มเติม */}
         <div className="space-y-2">
           <label className="text-sm font-medium">การอ้างอง</label>
           <Textarea
@@ -150,15 +215,12 @@ const Report = () => {
           />
         </div>
 
-        {/* ปุ่มเพิ่มข้อมูล */}
         <div className="flex justify-end">
           <Button onClick={handleAddReport}>เพิ่ม</Button>
         </div>
       </div>
 
-      {/* ส่วนตารางแสดงข้อมูล */}
       <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
-        {/* ฟิลเตอร์ค้นหา + หมวดหมู่ */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 flex gap-2">
             <Input
@@ -173,7 +235,6 @@ const Report = () => {
           </div>
         </div>
 
-        {/* Dropdown เลือกหมวดหมู่ */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium whitespace-nowrap">เลือกหมวดหมู่</span>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -191,7 +252,6 @@ const Report = () => {
           </Select>
         </div>
 
-        {/* ตารางข้อมูล */}
         <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
@@ -207,26 +267,28 @@ const Report = () => {
             <TableBody>
               {filteredReports.map((report) => (
                 <>
-                  {/* แถวหลัก */}
                   <TableRow key={report.id} className="hover:bg-muted/30 transition-colors">
                     <TableCell className="font-medium">{report.name}</TableCell>
                     <TableCell>{report.category}</TableCell>
                     <TableCell>{report.position}</TableCell>
                     <TableCell>{report.department}</TableCell>
                     <TableCell className="text-center">
-                      {/* ปุ่มดูรายละเอียด */}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleRow(report.id)}
                         className="flex-right gap-1 justify-end"
                       >
-                        ดู {expandedRows.has(report.id) ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        ดู{" "}
+                        {expandedRows.has(report.id) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </Button>
                     </TableCell>
                   </TableRow>
 
-                  {/* แถวรายละเอียด */}
                   {expandedRows.has(report.id) && (
                     <TableRow key={`${report.id}-details`}>
                       <TableCell colSpan={5} className="bg-muted/20 p-6">
@@ -246,13 +308,34 @@ const Report = () => {
                               <p className="text-base">{report.position}</p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">4. แผนก.:</p>
+                              <p className="text-sm font-medium text-muted-foreground">4. แผนก:</p>
                               <p className="text-base">{report.department}</p>
                             </div>
                             <div className="space-y-1 md:col-span-2">
                               <p className="text-sm font-medium text-muted-foreground">5. รายละเอียดปัญหา:</p>
                               <p className="text-base">{report.description}</p>
                             </div>
+                            {report.attachmentUrl && (
+                              <div className="space-y-1 md:col-span-2">
+                                <p className="text-sm font-medium text-muted-foreground">6. รูปภาพแนบ:</p>
+                                <img
+                                  src={report.attachmentUrl || "/placeholder.svg"}
+                                  alt="Attachment"
+                                  className="max-h-60 rounded border border-border"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex justify-end mt-4">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteReport(report.id)}
+                              className="gap-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              ลบรายงาน
+                            </Button>
                           </div>
                         </div>
                       </TableCell>
@@ -261,7 +344,6 @@ const Report = () => {
                 </>
               ))}
 
-              {/* แสดงเมื่อไม่พบข้อมูล */}
               {filteredReports.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
@@ -277,5 +359,4 @@ const Report = () => {
   )
 }
 
-// ✅ ส่งออก component
 export default Report
