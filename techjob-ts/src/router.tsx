@@ -20,6 +20,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import ReportProblem from "./pages/user/ReportProblem";
 import ProtectedRoute from "./components/ProtectedRoute";
+import UserDetail from "./pages/admin/UserDetail";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
       },
       { path: "admin/datauser", element: <ProtectedRoute allowedRoles={["admin"]} element={<Datauser />} /> },
+      { path: "admin/user-detail", element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetail />} /> },
       { path: "admin/workoders", element: <ProtectedRoute allowedRoles={["admin"]} element={<WorkOders />} /> },
       { path: "admin/material", element: <ProtectedRoute allowedRoles={["admin"]} element={<MaterialPage />} /> },
       { path: "admin/report", element: <ProtectedRoute allowedRoles={["admin"]} element={<Report />} /> },

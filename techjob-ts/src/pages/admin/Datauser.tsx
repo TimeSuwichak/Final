@@ -51,13 +51,16 @@ import { FaImage } from "react-icons/fa"
 // ==========================================================
 // ข้อมูล Mock Data (สมมติว่า import มาจากไฟล์อื่น)
 // ==========================================================
-import { user } from "@/data/user"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
-import { leader } from "@/data/leader"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import { user } from "@/Data/user"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import { leader } from "@/Data/leader"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
+import { executive } from "@/Data/executive"
+import { admin } from "@/Data/admin"
+import { redirect } from "react-router"
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
 // ==========================================================
-const allPersonnel = [...user, ...leader];
+const allPersonnel = [...user, ...leader, ...executive, ...admin];
 const initialFormattedPersonnel = allPersonnel.map((person, index) => {
   const fullName = `${person.fname} ${person.lname}`;
   const email = `${person.email}`;
@@ -113,7 +116,7 @@ function UserForm({ initialData, onSubmit, onClose }) {
         if (file) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onloadend = () => { setImagePreview(reader.result as string); };
+            reader.onloadend = () => { setImagePreview(reader.result as null)};
         }
     };
 
@@ -238,14 +241,14 @@ export default function Datauser() {
 
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
                     <Select value={filterDepartment} onValueChange={(v) => { setFilterDepartment(v); setFilterPosition("ทั้งหมด"); setPage(1); }}>
-                        <SelectTrigger className="w-full sm:w-[240px]"><SelectValue placeholder="เลือกแผนก" /></SelectTrigger>
+                        <SelectTrigger className="w-full `sm:w-[240px]`"><SelectValue placeholder="เลือกแผนก" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ทั้งหมด">แผนก (ทั้งหมด)</SelectItem>
                             {allDepartments.map(dep => <SelectItem key={dep} value={dep}>{dep}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <Select value={filterPosition} onValueChange={(v) => { setFilterPosition(v); setPage(1); }}>
-                        <SelectTrigger className="w-full sm:w-[240px]"><SelectValue placeholder="เลือกตำแหน่ง" /></SelectTrigger>
+                        <SelectTrigger className="w-full `sm:w-[240px]`"><SelectValue placeholder="เลือกตำแหน่ง" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ทั้งหมด">ตำแหน่ง (ทั้งหมด)</SelectItem>
                             {availablePositionsForFilter.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
@@ -261,7 +264,7 @@ export default function Datauser() {
                     {pagedData.length > 0 ? pagedData.map((item) => (
                         <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg p-3 shadow-sm border">
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <img src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" className="w-12 h-12 rounded-full object-cover bg-muted flex-shrink-0"/>
+                                <img src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" className="w-12 h-12 rounded-full object-cover bg-muted `flex-shrink-0`"/>
                                 <div className="overflow-hidden">
                                     <div className="font-medium truncate">{item.name}</div>
                                     <div className="text-sm text-muted-foreground truncate">{item.email}</div>
@@ -269,7 +272,7 @@ export default function Datauser() {
                                 </div>
                             </div>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="p-1 flex-shrink-0"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="p-1 `flex-shrink-0`"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     
                                     <DropdownMenuItem onClick={() => { setEditingUser(item); setIsDialogOpen(true); }}>แก้ไข</DropdownMenuItem>
@@ -289,7 +292,7 @@ export default function Datauser() {
                                 <TableHead>อีเมล</TableHead>
                                 <TableHead className="w-[280px]">ตำแหน่ง</TableHead>
                                 <TableHead className="w-[280px]">แผนก</TableHead>
-                                <TableHead className="text-right w-[80px]">จัดการ</TableHead>
+                                <TableHead className="text-right `w-[80px]`">จัดการ</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -297,7 +300,7 @@ export default function Datauser() {
                                 <TableRow key={item.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <img src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" className="w-8 h-8 rounded-full object-cover bg-muted" alt={item.name} />
+                                            <img src={item.urlImage} className="w-8 h-8 rounded-full object-cover bg-muted" alt={item.name} />
                                             <span className="font-medium">{item.name}</span>
                                         </div>
                                     </TableCell>
@@ -308,10 +311,12 @@ export default function Datauser() {
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                {/* แก้ม้ายอ้าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา */}
+                                                <DropdownMenuItem onClick={() => window.location.href = `/admin/user-detail`}>ดูรายละเอียด</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => { setEditingUser(item); setIsDialogOpen(true); }}>แก้ไข</DropdownMenuItem>
                                                 <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(item.id)}>ลบ</DropdownMenuItem>
                                             </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        </DropdownMenu> 
                                     </TableCell>
                                 </TableRow>
                             )) : (
@@ -337,8 +342,9 @@ export default function Datauser() {
 }
 
 function PaginationDemo({ page, setPage, totalPages }: { page: number, setPage: (page: number) => void, totalPages: number }) {
-    // Logic to create pagination items can be complex, this is a simplified version
-    const pageNumbers = [];
+    // Logic to create pagination items can be complex, this is a simplified version\
+
+    const pageNumbers: number[] = [];
     // This logic can be improved to show ellipsis `...` for many pages
     for(let i = 1; i <= totalPages; i++){
         pageNumbers.push(i);
