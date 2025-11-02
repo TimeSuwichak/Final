@@ -15,8 +15,18 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { Button } from "@/components/ui/button"; // เพิ่ม Button
+import { DialogFooter } from "@/components/ui/dialog"; // เพิ่ม DialogFooter
 
-export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose }) => {
+export const JobDetailsDialog = ({
+  job,
+  lead,
+  techs,
+  isOpen,
+  onClose,
+  onEdit,
+  currentUser,
+}) => {
   if (!job) return null;
 
   return (
@@ -36,14 +46,14 @@ export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose }) => {
               <Separator />
               <div className="text-sm text-muted-foreground pt-2">
                 <p>
-                  <strong>ชื่อ:</strong> {job.client?.name || "N/A"}
+                  <strong>ชื่อ:</strong> {job.client?.name || "ไม่มีข้อมูล"}
                 </p>
                 <p>
-                  <strong>เบอร์โทร:</strong> {job.client?.phone || "N/A"}
+                  <strong>เบอร์โทร:</strong> {job.client?.phone || "ไม่มีข้อมูล"}
                 </p>
                 {job.client?.contact && (
                   <p>
-                    <strong>ติดต่ออื่น:</strong> {job.client.contact}
+                    <strong>ติดต่ออื่น:</strong> {job.client.contact || "ไม่มีข้อมูล"}
                   </p>
                 )}
               </div>
@@ -55,7 +65,7 @@ export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose }) => {
               <Separator />
               <div className="text-sm text-muted-foreground pt-2">
                 <p>
-                  <strong>ที่อยู่:</strong> {job.location?.address || "N/A"}
+                  <strong>ที่อยู่:</strong> {job.location?.address || "ไม่มีข้อมูล"}
                 </p>
               </div>
             </div>
@@ -124,11 +134,41 @@ export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose }) => {
                   </div>
                 </div>
               )}
+              {job.editHistory && job.editHistory.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">
+                    ประวัติการแก้ไข ({job.editHistory.length} ครั้ง)
+                  </h3>
+                  <Separator />
+                  <div className="text-sm text-muted-foreground pt-2 space-y-3">
+                    {job.editHistory.map((entry, index) => (
+                      <div key={index} className="p-2 bg-secondary rounded-md">
+                        <p>
+                          <strong>ผู้แก้ไข:</strong> {entry.editorName}
+                        </p>
+                        <p>
+                          <strong>วันที่:</strong>{" "}
+                          {format(new Date(entry.editedAt), "PPP p", {
+                            locale: th,
+                          })}
+                        </p>
+                        <p>
+                          <strong>เหตุผล:</strong> {entry.reason}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* --- ประวัติการแก้ไข (ยังไม่ทำในขั้นตอนนี้) --- */}
           </div>
         </ScrollArea>
+        <DialogFooter className="pt-4 border-t">
+          {/* แสดงปุ่ม "แก้ไข" เฉพาะเมื่อผู้ใช้เป็น admin */}
+          {currentUser?.role === "admin" && (
+            <Button onClick={onEdit}>แก้ไขใบงาน</Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

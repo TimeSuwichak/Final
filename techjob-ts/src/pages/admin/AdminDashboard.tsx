@@ -50,6 +50,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -69,6 +70,7 @@ import { user as initialUsers } from "@/data/user";
 import { leader as initialLeaders } from "@/data/leader";
 import InteractiveMap from "@/components/common/InteractiveMap";
 import { JobDetailsDialog } from "@/components/common/JobDetailsDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 // --- DATA ตั้งต้น และการโหลดข้อมูลจาก LocalStorage ---
 const initialJobs = [
@@ -89,7 +91,8 @@ const initialJobs = [
   },
 ];
 
-const loadDataFromStorage = () => { // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
+const loadDataFromStorage = () => {
+  // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
   try {
     const data = localStorage.getItem("techJobData");
     if (data) {
@@ -112,7 +115,8 @@ const loadDataFromStorage = () => { // [สำคัญ] ฟังก์ชั�
 // SECTION 2: REUSABLE SUB-COMPONENTS
 // ====================================================================
 
-const DatePicker = ({ //thomas - ตัวเลือกวัน
+const DatePicker = ({
+  //thomas - ตัวเลือกวัน
   date,
   setDate,
 }: {
@@ -194,7 +198,8 @@ const LeaderSelect = ({ leaders, selectedLead, onSelect, disabled }) => {
 };
 
 // --- COMPONENT: ตัวเลือกแผนก (Checkbox) ---
-const DeptCheckboxGroup = ({ //thomas - ตัวเลือกแผนก
+const DeptCheckboxGroup = ({
+  //thomas - ตัวเลือกแผนก
   allDepartments,
   selectedDepts,
   onSelectionChange,
@@ -239,7 +244,8 @@ const DeptCheckboxGroup = ({ //thomas - ตัวเลือกแผนก
   );
 };
 
-const TechSelect = ({ //thomas - ตัวเลือกช่าง
+const TechSelect = ({
+  //thomas - ตัวเลือกช่าง
   technicians,
   selectedTechs,
   onSelectionChange,
@@ -269,7 +275,8 @@ const TechSelect = ({ //thomas - ตัวเลือกช่าง
     }
   };
 
-  const availableOptions = useMemo(() => { // thomas - กรองช่างที่ยังไม่ถูกเลือกและตามตำแหน่ง
+  const availableOptions = useMemo(() => {
+    // thomas - กรองช่างที่ยังไม่ถูกเลือกและตามตำแหน่ง
     return technicians.filter(
       (tech) =>
         !selectedTechs.some((s) => s.id === tech.id) &&
@@ -434,6 +441,36 @@ const CreateJobForm = ({ formState, formSetters, data, handlers }) => {
                   onChange={(e) => formSetters.setTitle(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-type">ประเภทงาน*</Label>
+                <Select
+                  value={formState.jobType}
+                  onValueChange={formSetters.setJobType}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="เลือกประเภทงาน..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.jobTypeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {formState.jobType === "อื่นๆ..." && (
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="custom-job-type">ระบุประเภทงานอื่นๆ*</Label>
+                  <Input
+                    id="custom-job-type"
+                    value={formState.customJobType}
+                    onChange={(e) =>
+                      formSetters.setCustomJobType(e.target.value)
+                    }
+                  />
+                </div>
+              )}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="job-description">รายละเอียด</Label>
                 <Textarea
@@ -580,9 +617,58 @@ const CreateJobForm = ({ formState, formSetters, data, handlers }) => {
         </div>
       </ScrollArea>
       <div className="flex justify-end pt-6 border-t mt-4">
-        <Button type="submit">สร้างใบงาน</Button>
+        <Button type="submit">
+          {formState.isEditing ? "บันทึกการแก้ไข" : "สร้างใบงาน"}
+        </Button>
       </div>
     </form>
+  );
+};
+
+// ====================================================================
+// SUB-COMPONENT: Dialog ยืนยันการแก้ไขใบงาน (ConfirmEditDialog)
+// ====================================================================
+
+const ConfirmEditDialog = ({ isOpen, onCancel, onConfirm }) => {
+  const [reason, setReason] = useState("");
+
+  if (!isOpen) return null;
+
+  const handleConfirm = () => {
+    if (!reason.trim()) {
+      alert("กรุณาระบุเหตุผลในการแก้ไข");
+      return;
+    }
+    onConfirm(reason);
+    setReason(""); // Reset reason
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>ยืนยันการแก้ไข</DialogTitle>
+          <DialogDescription>
+            กรุณาระบุเหตุผลสั้นๆ สำหรับการแก้ไขใบงานนี้
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 py-4">
+          <Label htmlFor="edit-reason">เหตุผลในการแก้ไข*</Label>
+          <Textarea
+            id="edit-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="เช่น: เปลี่ยนแปลงความต้องการของลูกค้า, เพิ่มทีมช่าง..."
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            ยกเลิก
+          </Button>
+          <Button onClick={handleConfirm}>บันทึกการแก้ไข</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -599,12 +685,19 @@ export default function AdminDashboardPage() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [selectedDepts, setSelectedDepts] = useState([]);
   const [selectedTechs, setSelectedTechs] = useState([]);
-  const [clientName, setClientName] = useState(""); // [ใหม่]
-  const [clientPhone, setClientPhone] = useState(""); // [ใหม่]
-  const [clientContact, setClientContact] = useState(""); // [ใหม่]
-  const [mapPosition, setMapPosition] = useState(null); // [ใหม่]
+  const [clientName, setClientName] = useState(""); //
+  const [clientPhone, setClientPhone] = useState(""); //
+  const [clientContact, setClientContact] = useState(""); //
+  const [mapPosition, setMapPosition] = useState(null); //
   const [address, setAddress] = useState(""); // [ใหม่]
   const [viewingJob, setViewingJob] = useState(null);
+  const [jobId, setJobId] = useState(""); // State สำหรับเก็บรหัสใบงาน
+  const [jobType, setJobType] = useState(""); //State สำหรับประเภทงาน
+  const [customJobType, setCustomJobType] = useState(""); //State สำหรับประเภทงานอื่นๆ
+  const [editingJob, setEditingJob] = useState(null); // เก็บข้อมูลงานที่กำลังจะแก้ไข
+  const [isConfirmingEdit, setIsConfirmingEdit] = useState(false); // ควบคุม Dialog ยืนยันการแก้ไข
+
+  const { user: currentUser } = useAuth();
 
   const allDepartments = useMemo(
     () => [...new Set(appData.users.map((u) => u.department))],
@@ -613,6 +706,29 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     localStorage.setItem("techJobData", JSON.stringify(appData));
   }, [appData]);
+
+  // [ใหม่] รายการประเภทงานเริ่มต้น
+  const jobTypeOptions = [
+    "ติดตั้งระบบ",
+    "ซ่อมบำรุง",
+    "ตรวจเช็คสภาพ",
+    "รื้อถอน",
+    "ให้คำปรึกษา",
+    "อื่นๆ...",
+  ];
+
+  // [ใหม่] ฟังก์ชันสำหรับสร้างรหัสใบงาน
+  const generateJobId = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const randomChars = Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase();
+    return `JOB-${year}${month}${day}-${randomChars}`;
+  };
 
   // ▼▼▼ เพิ่ม 2 ฟังก์ชันนี้เข้ามา ▼▼▼
   const findLeaderById = (id: number) => {
@@ -664,6 +780,15 @@ export default function AdminDashboardPage() {
     }
     return techsByDept;
   }, [startDate, endDate, appData.users, appData.jobs, allDepartments]);
+
+  //สร้างรหัสใบงานเมื่อเปิด Dialog
+  useEffect(() => {
+    if (isDialogOpen) {
+      setJobId(generateJobId());
+    }
+  }, [isDialogOpen]);
+
+  //ฟังก์ชันรีเซ็ตฟอร์ม
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -677,49 +802,148 @@ export default function AdminDashboardPage() {
     setClientContact(""); // [ใหม่]
     setAddress(""); // [ใหม่]
     setMapPosition(null); // [ใหม่]
+    setJobType(""); // [ใหม่]
+    setCustomJobType(""); // [ใหม่]
   };
+
+  // ==========================================================
+  // ✨ HANDLER FUNCTIONS (ฉบับแก้ไขสมบูรณ์) ✨
+  // ==========================================================
+
   const handleCreateJob = (event: React.FormEvent) => {
     event.preventDefault();
-    if (
-      !title ||
-      !startDate ||
-      !endDate ||
-      !selectedLead ||
-      selectedDepts.length === 0 ||
-      selectedTechs.length === 0
-    ) {
-      alert("กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน");
-      return;
-    }
+    const finalJobType = jobType === "อื่นๆ..." ? customJobType : jobType;
+
+    // --- ไม่มีการบังคับกรอกข้อมูลอีกต่อไป ---
+
     const newJob = {
-      id: `JOB-${Date.now()}`,
+      id: jobId,
+      jobType: finalJobType || "ไม่ได้ระบุ", // ถ้าไม่มี ให้ใส่ค่า default
       status: "new",
-      title,
+      title: title || `งาน-${jobId}`, // ถ้าไม่มี ให้ใส่ค่า default
       description,
+      client: { name: clientName, phone: clientPhone, contact: clientContact },
+      location: { address: address, mapPosition: mapPosition },
       dates: { start: startDate, end: endDate },
       assignment: {
         departments: selectedDepts,
-        leadId: selectedLead.id,
-        techIds: selectedTechs.map((t) => t.id),
+        leadId: selectedLead?.id, // ใช้ Optional Chaining
+        techIds: selectedTechs.map((t: any) => t.id),
       },
+      editHistory: [],
     };
+
     setAppData((d) => ({
       ...d,
       jobs: [newJob, ...d.jobs],
       leaders: d.leaders.map((l) =>
-        l.id === selectedLead.id
+        l.id === selectedLead?.id
           ? { ...l, jobsThisMonth: (l.jobsThisMonth || 0) + 1 }
           : l
       ),
       users: d.users.map((u) =>
-        selectedTechs.some((t) => t.id === u.id)
+        selectedTechs.some((t: any) => t.id === u.id)
           ? { ...u, jobsThisMonth: (u.jobsThisMonth || 0) + 1 }
           : u
       ),
     }));
+
     resetForm();
     setIsDialogOpen(false);
   };
+
+  const handleStartEdit = () => {
+    // ตรวจสอบก่อนว่ามี viewingJob (งานที่กำลังจะเปิดดูรายละเอียด) อยู่จริง
+    if (!viewingJob) return;
+
+    // --- 1. ตั้งค่า ID ของงาน ---
+    setJobId(viewingJob.id);
+
+    // --- 2. นำข้อมูลจาก `viewingJob` มาใส่ใน State ของฟอร์มทั้งหมด ---
+    setTitle(viewingJob.title || "");
+    setDescription(viewingJob.description || "");
+    setJobType(viewingJob.jobType || "");
+
+    // ใช้ Optional Chaining (`?.`) เพื่อป้องกัน Error หากข้อมูลเก่าไม่มี client หรือ location
+    setClientName(viewingJob.client?.name || "");
+    setClientPhone(viewingJob.client?.phone || "");
+    setClientContact(viewingJob.client?.contact || "");
+    setAddress(viewingJob.location?.address || "");
+    setMapPosition(viewingJob.location?.mapPosition || null);
+
+    // แปลงวันที่กลับเป็น Date object ก่อน set และป้องกันค่า invalid
+    setStartDate(
+      viewingJob.dates?.start ? new Date(viewingJob.dates.start) : undefined
+    );
+    setEndDate(
+      viewingJob.dates?.end ? new Date(viewingJob.dates.end) : undefined
+    );
+
+    // ค้นหา object เต็มของ leader และ techs จาก ID
+    setSelectedLead(findLeaderById(viewingJob.assignment.leadId));
+    setSelectedDepts(viewingJob.assignment.departments || []);
+    setSelectedTechs(
+      viewingJob.assignment.techIds.map(findUserById).filter(Boolean)
+    );
+
+    // --- 3. ตั้งค่าโหมดแก้ไข ---
+    setEditingJob(viewingJob);
+
+    // --- 4. ปิด Dialog รายละเอียด และ เปิด Dialog ฟอร์ม (ซึ่งตอนนี้จะอยู่ในโหมดแก้ไข) ---
+    setViewingJob(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleUpdateJob = (event: React.FormEvent) => {
+    event.preventDefault();
+    // ไม่มีการบังคับกรอกข้อมูล เปิด Dialog ยืนยันเลย
+    setIsConfirmingEdit(true);
+  };
+
+  const handleConfirmEdit = (reason: string) => {
+    const finalJobType = jobType === "อื่นๆ..." ? customJobType : jobType;
+    const updatedJobPayload = {
+      title: title || `งาน-${editingJob.id}`,
+      description,
+      jobType: finalJobType || "ไม่ได้ระบุ",
+      client: { name: clientName, phone: clientPhone, contact: clientContact },
+      location: { address: address, mapPosition: mapPosition },
+      dates: { start: startDate, end: endDate },
+      assignment: {
+        departments: selectedDepts,
+        leadId: selectedLead?.id,
+        techIds: selectedTechs.map((t: any) => t.id),
+      },
+    };
+
+    const editEntry = {
+      editorName: currentUser
+        ? `${currentUser.fname} ${currentUser.lname}`
+        : "Admin",
+      editedAt: new Date(),
+      reason: reason,
+    };
+
+    setAppData((prevData) => {
+      const updatedJobs = prevData.jobs.map((job) => {
+        if (job.id === editingJob.id) {
+          return {
+            ...job,
+            ...updatedJobPayload,
+            editHistory: [...(job.editHistory || []), editEntry],
+          };
+        }
+        return job;
+      });
+      return { ...prevData, jobs: updatedJobs };
+    });
+
+    setIsConfirmingEdit(false);
+    setIsDialogOpen(false);
+    setEditingJob(null);
+    resetForm();
+  };
+
   const handleDeleteJob = (jobId: string) => {
     if (window.confirm("คุณต้องการลบใบงานนี้ใช่หรือไม่?")) {
       setAppData((d) => ({ ...d, jobs: d.jobs.filter((j) => j.id !== jobId) }));
@@ -741,34 +965,51 @@ export default function AdminDashboardPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-4xl">
             <DialogHeader>
-              <DialogTitle>สร้างใบงานใหม่</DialogTitle>
+              <DialogTitle>
+                {editingJob ? `แก้ไขใบงาน: ${editingJob.id}` : "สร้างใบงานใหม่"}
+              </DialogTitle>
               <DialogDescription>กรอกรายละเอียดและมอบหมายงาน</DialogDescription>
             </DialogHeader>
             <CreateJobForm //thomas - pop up ใบงาน
               formState={{
+                isEditing: !!editingJob, // ตัวบอกโหมด
+                jobId, // ID งาน
                 title,
                 description,
+                jobType,
+                customJobType, // รายละเอียดงาน
+                clientName,
+                clientPhone,
+                clientContact, // ข้อมูลลูกค้า
+                address,
+                mapPosition, // สถานที่
                 startDate,
-                endDate,
+                endDate, // วันที่
                 selectedLead,
                 selectedDepts,
-                selectedTechs,
+                selectedTechs, // ทีม
               }}
               formSetters={{
                 setTitle,
                 setDescription,
+                setJobType,
+                setCustomJobType,
                 setClientName,
                 setClientPhone,
-                setClientContact, // [ใหม่]
+                setClientContact,
                 setAddress,
-                setMapPosition, // [ใหม่]
+                setMapPosition,
                 setStartDate,
                 setEndDate,
-                setSelectedDepts,
               }}
-              data={{ allDepartments, availableLeads, availableTechsByDept }}
+              data={{
+                allDepartments,
+                availableLeads,
+                availableTechsByDept,
+                jobTypeOptions,
+              }}
               handlers={{
-                onSubmit: handleCreateJob,
+                onSubmit: editingJob ? handleUpdateJob : handleCreateJob,
                 onLeadChange: (value) => {
                   setSelectedLead(value);
                   setSelectedDepts([]);
@@ -811,11 +1052,7 @@ export default function AdminDashboardPage() {
                 .filter(Boolean); // .filter(Boolean) เพื่อกรองค่า undefined ออก
 
               return (
-                <Card
-                  key={job.id}
-                  className="dark:bg-slate-900 transition-colors cursor-pointer"
-                  onClick={() => setViewingJob(job)}
-                >
+                <Card key={job.id} className="dark:bg-slate-900">
                   <CardHeader>
                     <CardTitle className="flex justify-between items-start">
                       <span className="text-xl">{job.title}</span>
@@ -899,6 +1136,11 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
                   </CardContent>
+                  <CardFooter className="flex justify-end">
+                    <Button onClick={() => setViewingJob(job)}>
+                      ดูรายละเอียด
+                    </Button>
+                  </CardFooter>
                 </Card>
               );
             })}
@@ -912,6 +1154,8 @@ export default function AdminDashboardPage() {
         }
         isOpen={!!viewingJob}
         onClose={() => setViewingJob(null)}
+        currentUser={currentUser} // <--- ✨ เพิ่มบรรทัดนี้ ✨
+        onEdit={handleStartEdit} // <--- ✨ เพิ่มบรรทัดนี้ ✨
       />
     </div>
   );
