@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock } from "lucide-react"
 import MyManagedTasksPage from "@/components/leader/MyManagedTasks"
+import LeaderCalendar from "@/components/leader/LeaderCalendar"
 
 interface Job {
   id: string
@@ -145,6 +146,7 @@ const LeaderDashboard: React.FC = () => {
             {finishedJobs.length > 0 ? finishedJobs.map((job) => <JobCard key={job.id} job={job} />) : <p className="text-muted-foreground text-center py-10">ไม่มีใบงานที่เสร็จสมบูรณ์</p>}
           </TabsContent>
         </Tabs>
+        <LeaderCalendar/>
         <MyManagedTasksPage/>
       </div>
       

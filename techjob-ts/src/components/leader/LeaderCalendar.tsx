@@ -27,7 +27,7 @@ const loadDataFromStorage = () => {
   return [];
 };
 
-export default function LeaderCalendarPage() {
+export default function LeaderCalendar() {
   const { user: loggedInLeader } = useAuth();
   const [managedJobs, setManagedJobs] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());

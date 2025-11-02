@@ -36,6 +36,10 @@ export default function Sidebar() {
       { path: "/admin/report", icon: <TbAlertHexagon />, label: "การแจ้งปัญหา" },
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
+
+        leader: [
+      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+    ],
   };
 
   // 🧩 ดึง role ปัจจุบันจาก user (default เป็น user)
