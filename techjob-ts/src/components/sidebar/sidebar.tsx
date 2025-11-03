@@ -37,9 +37,14 @@ export default function Sidebar() {
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
 
-        leader: [
+    leader: [
       { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
     ],
+
+    executive: [
+      { path: "/executive/exdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+    ],
+
   };
 
   // 🧩 ดึง role ปัจจุบันจาก user (default เป็น user)
@@ -74,8 +79,7 @@ export default function Sidebar() {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `${baseLinkClass} ${
-                    isActive ? activeLinkClass : inactiveLinkClass
+                  `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass
                   }`
                 }
               >
