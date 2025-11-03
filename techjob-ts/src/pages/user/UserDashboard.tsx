@@ -89,7 +89,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
     const robberImage = "https://i.ibb.co/L95B16F/thief-breaking-server-3d-illustration.png";
     return (
         <Card className="flex items-center p-4 bg-black border-neutral-700 text-white rounded-lg shadow-lg">
-            <div className="flex-grow space-y-1 text-sm">
+            <div className="`flex-grow` space-y-1 text-sm">
                 <p className="font-bold text-lg">ใบงานเลขที่: {job.id}</p>
                 <p>ประเภท: {job.type}</p>
                 <p>ลูกค้า: {job.customer}</p>
@@ -122,28 +122,28 @@ const PopularCountriesChart: React.FC = () => (
             {/* Country Bar: USA */}
             <div className="flex items-center">
                 <span className="w-12 text-neutral-400">USA</span>
-                <div className="flex-grow ml-4 relative h-3 bg-neutral-700 rounded-full">
+                <div className="`flex-grow` ml-4 relative h-3 bg-neutral-700 rounded-full">
                     <div className="absolute top-0 left-0 h-full bg-[#9B59B6] rounded-full" style={{ width: '80%' }}></div>
                 </div>
             </div>
             {/* Country Bar: Canada */}
             <div className="flex items-center">
                 <span className="w-12 text-neutral-400">Canada</span>
-                <div className="flex-grow ml-4 relative h-3 bg-neutral-700 rounded-full">
+                <div className="`flex-grow` ml-4 relative h-3 bg-neutral-700 rounded-full">
                     <div className="absolute top-0 left-0 h-full bg-[#3498DB] rounded-full" style={{ width: '60%' }}></div>
                 </div>
             </div>
             {/* Country Bar: UK */}
             <div className="flex items-center">
                 <span className="w-12 text-neutral-400">UK</span>
-                <div className="flex-grow ml-4 relative h-3 bg-neutral-700 rounded-full">
+                <div className="`flex-grow` ml-4 relative h-3 bg-neutral-700 rounded-full">
                     <div className="absolute top-0 left-0 h-full bg-[#5F5AFF] rounded-full" style={{ width: '50%' }}></div>
                 </div>
             </div>
             {/* Country Bar: Australia */}
             <div className="flex items-center">
                 <span className="w-12 text-neutral-400">Australia</span>
-                <div className="flex-grow ml-4 relative h-3 bg-neutral-700 rounded-full">
+                <div className="`flex-grow` ml-4 relative h-3 bg-neutral-700 rounded-full">
                     <div className="absolute top-0 left-0 h-full bg-[#2ECC71] rounded-full" style={{ width: '35%' }}></div>
                 </div>
             </div>
@@ -181,7 +181,7 @@ const AverageTimeChart: React.FC = () => (
             </div>
 
             {/* Bars (M T W T F S S) */}
-            <div className="flex-grow flex justify-around h-full items-end ml-10">
+            <div className="`flex-grow` flex justify-around h-full items-end ml-10">
                 {/* M */}
                 <div className="flex flex-col items-center h-full justify-end">
                     <div className="w-4 bg-neutral-700 rounded-t-sm" style={{ height: '30%' }}></div>

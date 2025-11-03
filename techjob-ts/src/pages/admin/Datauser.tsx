@@ -55,7 +55,6 @@ import { user } from "@/Data/user"; // (ปรับ path ให้ตรงก�
 import { leader } from "@/Data/leader"; // (ปรับ path ให้ตรงกับที่เก็บไฟล์)
 import { executive } from "@/Data/executive"
 import { admin } from "@/Data/admin"
-import { redirect } from "react-router"
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -230,6 +229,8 @@ export default function Datauser() {
     const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
     const startIndex = (page - 1) * pageSize;
     const pagedData = filteredData.slice(startIndex, startIndex + pageSize);
+    // Simple client-side navigate helper to avoid depending on react-router in this file
+    const navigate = (url: string) => { window.location.href = url; };
 
     return (
         <div className="w-full space-y-4 p-4 md:p-6">
@@ -312,7 +313,7 @@ export default function Datauser() {
                                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 {/* แก้ม้ายอ้าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา */}
-                                                <DropdownMenuItem onClick={() => window.location.href = `/admin/user-detail`}>ดูรายละเอียด</DropdownMenuItem>
+                                                <DropdownMenuItem key={item.id} onClick={() => navigate(`/admin/user-detail/:id${item.id}`)}>ดูรายละเอียด</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => { setEditingUser(item); setIsDialogOpen(true); }}>แก้ไข</DropdownMenuItem>
                                                 <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(item.id)}>ลบ</DropdownMenuItem>
                                             </DropdownMenuContent>
