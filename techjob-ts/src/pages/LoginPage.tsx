@@ -43,7 +43,7 @@ export default function LoginPage() {
                     navigate('/user/UserDashboard');
                     break;
                 case 'executive':
-                    navigate('/executive/dashboard'); // (สมมติ path นี้)
+                    navigate('/executive/ExDashboard'); // (สมมติ path นี้)
                     break;
                 default:
                     navigate('/'); 

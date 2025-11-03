@@ -7,9 +7,9 @@ import type React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { th } from "date-fns/locale" // [ใหม่] Import locale ภาษาไทย
 import { format } from "date-fns"
-import { 
-  X, 
-  CalendarIcon, 
+import {
+  X,
+  CalendarIcon,
   Trash2,
   Check,
   ChevronsUpDown,
@@ -30,39 +30,39 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { DialogFooter } from "@/components/ui/dialog"
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
 } from "@/components/ui/popover"
-import { 
-  Command, 
+import {
+  Command,
   CommandEmpty,
-  CommandGroup, 
+  CommandGroup,
   CommandInput,
-  CommandItem, 
-  CommandList 
+  CommandItem,
+  CommandList
 } from "@/components/ui/command"
 import { Command as CommandPrimitive } from "cmdk"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent, 
-  CardFooter 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
 
 // --- UTILS & DATA ---
@@ -152,7 +152,19 @@ const LeaderSelect = ({ leaders, selectedLead, onSelect, disabled }) => {
       disabled={disabled || leaders.length === 0}
     >
       <SelectTrigger>
-        <SelectValue placeholder={disabled ? "กรุณาเลือกวันก่อน" : "เลือกหัวหน้างาน..."} />
+        {selectedLead ? (
+          // 1. เมื่อมีหัวหน้างานถูกเลือกแล้ว: ให้แสดงข้อมูลนี้
+          <div className="flex items-center gap-2">
+            <Avatar className="h-5 w-5">
+              <AvatarImage src={selectedLead.avatarUrl ?? "/placeholder.svg"} />
+              <AvatarFallback>{selectedLead.fname?.[0]}</AvatarFallback>
+            </Avatar>
+            <span>{`${selectedLead.fname} ${selectedLead.lname}`}</span>
+          </div>
+        ) : (
+          // 2. เมื่อยังไม่มีใครถูกเลือก: ให้แสดงข้อความ Placeholder
+          <span>{disabled ? "กรุณาเลือกวันก่อน" : "เลือกหัวหน้างาน..."}</span>
+        )}
       </SelectTrigger>
       <SelectContent>
         {leaders.length > 0 ? (
@@ -201,9 +213,8 @@ const DeptCheckboxGroup = ({
 
   return (
     <div
-      className={`space-y-3 rounded-md border p-4 transition-all ${
-        disabled ? "bg-muted/50 opacity-50" : "bg-background cursor-pointer hover:border-primary/50"
-      }`}
+      className={`space-y-3 rounded-md border p-4 transition-all ${disabled ? "bg-muted/50 opacity-50" : "bg-background cursor-pointer hover:border-primary/50"
+        }`}
     >
       <Label className={disabled ? "cursor-not-allowed" : "cursor-pointer"}>
         แผนกที่เกี่ยวข้อง* {disabled && "(กรุณาเลือกหัวหน้างานก่อน)"}
@@ -220,9 +231,8 @@ const DeptCheckboxGroup = ({
             />
             <Label
               htmlFor={dept}
-              className={`text-sm font-medium leading-none ${
-                disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"
-              }`}
+              className={`text-sm font-medium leading-none ${disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+                }`}
             >
               {dept}
             </Label>
@@ -284,9 +294,8 @@ const TechSelect = ({
       </Select>
       <Command onKeyDown={handleKeyDown} className="overflow-visible bg-transparent">
         <div
-          className={`group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${
-            disabled ? "bg-muted opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${disabled ? "bg-muted opacity-50 cursor-not-allowed" : ""
+            }`}
         >
           <div className="flex flex-col gap-2">
             {selectedTechs.map((tech) => (
@@ -511,7 +520,7 @@ const CreateJobForm = ({ formState, formSetters, data, handlers }) => {
                     ตำแหน่ง: {formState.mapPosition[0].toFixed(6)}, {formState.mapPosition[1].toFixed(6)}
                   </p>
                 )}
-                
+
               </div>
 
               <div className="space-y-2">
@@ -1018,11 +1027,11 @@ export default function AdminDashboardPage() {
           {appData.jobs
             .filter((j) => j.status === "new")
             .map((job) => {
-               // ใช้ฟังก์ชันผู้ช่วยที่เราสร้างขึ้น
+              // ใช้ฟังก์ชันผู้ช่วยที่เราสร้างขึ้น
               const lead = findLeaderById(job.assignment.leadId);
               const techs = job.assignment.techIds
-              .map(findUserById)
-              .filter(Boolean) // .filter(Boolean) เพื่อกรองค่า undefined ออก
+                .map(findUserById)
+                .filter(Boolean) // .filter(Boolean) เพื่อกรองค่า undefined ออก
 
               return (
                 <Card key={job.id} className="dark:bg-slate-900">
@@ -1047,10 +1056,11 @@ export default function AdminDashboardPage() {
                   {/* ▼▼▼ เพิ่ม CardContent เข้ามาแสดงรายละเอียดทีม ▼▼▼ */}
                   <CardContent className="space-y-4 pt-0">
                     <Separator />
-                   {/* --- ส่วนหัวหน้างาน --- */}
+                    {/* --- ส่วนหัวหน้างาน --- */}
                     {lead && (
                       <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">หัวหน้างาน</h4>
+                        <h4 className="text-sm font-semibold">หัวหน้างาน
+                        </h4>
                         <div className="flex items-center gap-3 p-2 bg-secondary rounded-md">
                           <Avatar className="h-9 w-9">
                             <AvatarImage src={lead.avatarUrl || "/placeholder.svg"} />
@@ -1090,7 +1100,7 @@ export default function AdminDashboardPage() {
                     )}
                     <Separator className="mb-4" />
                     <div className="text-sm text-muted-foreground space-y-1">
-                       {/* ตรวจสอบให้แน่ใจว่า job.client มีอยู่จริงก่อนแสดงผล */}
+                      {/* ตรวจสอบให้แน่ใจว่า job.client มีอยู่จริงก่อนแสดงผล */}
                       <p>
                         <strong>ลูกค้า:</strong> {job.client?.name || "N/A"}
                       </p>

@@ -21,6 +21,7 @@ import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import ReportProblem from "./pages/user/ReportProblem";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserDetail from "./pages/admin/UserDetail";
+import ExDashboard from "./pages/executive/ExDashboard";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -48,6 +49,9 @@ const router = createBrowserRouter([
 
       // ──────── LEADER ────────
       { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
+
+      // ──────── Executive ────────
+      { path: "executive/exdashboard", element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} /> },
 
       // ──────── COMMON SETTINGS ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
