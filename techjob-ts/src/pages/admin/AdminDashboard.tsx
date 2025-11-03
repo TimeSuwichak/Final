@@ -153,6 +153,15 @@ const LeaderSelect = ({ leaders, selectedLead, onSelect, disabled }) => {
     >
       <SelectTrigger>
         <SelectValue placeholder={disabled ? "กรุณาเลือกวันก่อน" : "เลือกหัวหน้างาน..."} />
+       {selectedLead && (
+         <div className="flex items-center gap-2">
+             <Avatar className="h-5 w-5">
+            <AvatarImage src={selectedLead.avatarUrl ?? "/placeholder.svg"} />
+              <AvatarFallback>{selectedLead.fname?.[0]}</AvatarFallback>
+                </Avatar>
+                <span>{`${selectedLead.fname} ${selectedLead.lname}`}</span>
+        </div>
+        )}
       </SelectTrigger>
       <SelectContent>
         {leaders.length > 0 ? (
@@ -1050,7 +1059,8 @@ export default function AdminDashboardPage() {
                    {/* --- ส่วนหัวหน้างาน --- */}
                     {lead && (
                       <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">หัวหน้างาน</h4>
+                        <h4 className="text-sm font-semibold">หัวหน้างาน
+                        </h4>
                         <div className="flex items-center gap-3 p-2 bg-secondary rounded-md">
                           <Avatar className="h-9 w-9">
                             <AvatarImage src={lead.avatarUrl || "/placeholder.svg"} />
