@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-// [สำคัญ] เพิ่ม Button และ CardFooter เข้ามาใน import
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,32 +14,35 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { JobDetailsDialog } from "@/components/common/JobDetailsDialog";
+import { JobDetailsDialog } from "../common/JobDetailsDialog";
 
+
+// ฟังก์ชัน loadDataFromStorage ยังคงเหมือนเดิม
 const loadDataFromStorage = () => {
+  // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
   try {
-    const data = localStorage.getItem("techJobData");
+    const data = localStorage.getItem("techJobData")
     if (data) {
-      const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job: any) => ({
+      const parsed = JSON.parse(data)
+      parsed.jobs = parsed.jobs.map((job) => ({
         ...job,
-        dates: {
-          start: new Date(job.dates.start),
-          end: new Date(job.dates.end),
-        },
-      }));
-      return parsed;
+        dates: job.dates ? { start: new Date(job.dates.start), end: new Date(job.dates.end) } : null,
+      }))
+      return parsed
     }
   } catch (e) {
-    console.error("Failed to load data", e);
+    console.error("Failed to load data", e)
   }
-  return { jobs: [], users: [], leaders: [] };
-};
+  return { jobs: initialJobs, users: initialUsers, leaders: initialLeaders }
+}
 
-export default function MyManagedTasksPage() {
-  const { user: loggedInLeader } = useAuth();
-  const [managedJobs, setManagedJobs] = useState<any[]>([]);
+export default function MyAssignedTasksPage() {
+  // ✨ เปลี่ยนชื่อตัวแปรให้สื่อความหมายว่าเป็น user ทั่วไป
+  const { user: loggedInUser } = useAuth(); 
+  
+  // ✨ เปลี่ยนชื่อ state ให้สอดคล้องกัน
+  const [assignedJobs, setAssignedJobs] = useState<any[]>([]); 
+  
   const [viewingJob, setViewingJob] = useState<any | null>(null);
   const [allData, setAllData] = useState<{ users: any[]; leaders: any[] }>({
     users: [],
@@ -48,32 +50,39 @@ export default function MyManagedTasksPage() {
   });
 
   useEffect(() => {
-    if (loggedInLeader) {
+    // ✨ เช็ค user ที่ล็อกอินเข้ามา
+    if (loggedInUser) {
       const { jobs, users, leaders } = loadDataFromStorage();
-      const leaderJobs = jobs.filter(
-        (job: any) => job.assignment.leadId === loggedInLeader.id
+
+      // ==========================================================
+      // === ✨ จุดแก้ไขสำคัญ: เปลี่ยนเงื่อนไขการกรองข้อมูล ✨ ===
+      // ==========================================================
+      const userJobs = jobs.filter(
+        // เช็คว่า ID ของ user ที่ล็อกอินอยู่, อยู่ใน array 'techIds' ของใบงานหรือไม่
+        (job: any) => job.assignment.techIds.includes(loggedInUser.id)
       );
-      setManagedJobs(leaderJobs);
+
+      // ✨ อัปเดต state ด้วยงานที่ user ได้รับมอบหมาย
+      setAssignedJobs(userJobs); 
       setAllData({ users, leaders });
     }
-  }, [loggedInLeader]);
+  }, [loggedInUser]); // ✨ เปลี่ยน dependency เป็น loggedInUser
 
-  const findLeaderById = (id: number) =>
-    allData.leaders.find((l) => l.id === id);
+  // ฟังก์ชัน helpers ยังคงเหมือนเดิม
+  const findLeaderById = (id: number) => allData.leaders.find((l) => l.id === id);
   const findUserById = (id: number) => allData.users.find((u) => u.id === id);
-
-  const getStatusBadge = (status: string) => {
-    /* ... โค้ดเหมือนเดิม ... */
-  };
+  const getStatusBadge = (status: string) => { /* ... โค้ดเหมือนเดิม ... */ };
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
-      <h2 className="text-3xl font-bold tracking-tight">ใบงานที่ฉันดูแล</h2>
+      {/* ✨ เปลี่ยนหัวข้อเพจ */}
+      <h2 className="text-3xl font-bold tracking-tight">ใบงานของฉัน</h2>
 
-      {managedJobs.length > 0 ? (
+      {/* ✨ เปลี่ยนการเช็คความยาวของ array */}
+      {assignedJobs.length > 0 ? (
         <div className="space-y-4">
-          {managedJobs.map((job) => (
-            // เราจะไม่ทำให้ Card คลิกได้ แต่จะใช้ปุ่มแทน
+          {/* ✨ วนลูปจาก assignedJobs */}
+          {assignedJobs.map((job) => (
             <Card key={job.id}>
               <CardHeader>
                 <CardTitle className="flex justify-between items-start">
@@ -85,20 +94,8 @@ export default function MyManagedTasksPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-sm text-muted-foreground">
-                  <p>
-                    <strong>ลูกค้า:</strong> {job.client?.name || "N/A"}
-                  </p>
-                  <p>
-                    <strong>ระยะเวลา:</strong>{" "}
-                    {format(job.dates.start, "PPP", { locale: th })} -{" "}
-                    {format(job.dates.end, "PPP", { locale: th })}
-                  </p>
-                </div>
+                {/* ... เนื้อหา Card เหมือนเดิม ... */}
               </CardContent>
-              {/* ========================================================== */}
-              {/* === ✨ จุดที่แก้ไข: เพิ่ม CardFooter และ Button กลับมา ✨ === */}
-              {/* ========================================================== */}
               <CardFooter className="flex justify-end">
                 <Button onClick={() => setViewingJob(job)}>ดูรายละเอียด</Button>
               </CardFooter>
@@ -106,12 +103,13 @@ export default function MyManagedTasksPage() {
           ))}
         </div>
       ) : (
+        // ✨ เปลี่ยนข้อความเมื่อไม่พบงาน
         <p className="text-muted-foreground">
-          คุณยังไม่ได้รับมอบหมายให้ดูแลงานใดๆ
+          คุณยังไม่ได้รับมอบหมายงานใดๆ
         </p>
       )}
 
-      {/* ส่วน Dialog ไม่มีการเปลี่ยนแปลง */}
+      {/* Dialog เหมือนเดิม */}
       <JobDetailsDialog
         job={viewingJob}
         lead={viewingJob ? findLeaderById(viewingJob.assignment.leadId) : null}
