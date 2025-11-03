@@ -26,6 +26,7 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs"
 import MyTasksPage from '@/components/user/MyTasks';
+import UserCalendarPage from './UserCalendar';
 
 // ===============================================
 // ✅ 1. กำหนด TypeScript Interface สำหรับ Job
@@ -273,6 +274,7 @@ const UserDashboard: React.FC = () => {
                     </TabsContent>
                 </Tabs>
             </div>
+            <UserCalendarPage/>
             <MyTasksPage/>
           </div>
         </div>
