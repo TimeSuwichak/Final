@@ -53,6 +53,16 @@ export function DataTable<TData, TValue>({
     { value: 'in-progress', label: 'กำลังทำ' },
     { value: 'completed', label: 'เสร็จสิ้น' },
   ];
+  
+  const jobTypes = [
+    { value: "all", label: "ประเภทงานทั้งหมด" },
+    { value: "ติดตั้งระบบ", label: "ติดตั้งระบบ" },
+    { value: "ซ่อมบำรุง", label: "ซ่อมบำรุง" },
+    { value: "ตรวจเช็คสภาพ", label: "ตรวจเช็คสภาพ" },
+    { value: "รื้อถอน", label: "รื้อถอน" },
+    { value: "ให้คำปรึกษา", label: "ให้คำปรึกษา" },
+    { value: "อื่นๆ", label: "อื่นๆ" },
+  ]
 
   const table = useReactTable({
     data,
@@ -76,15 +86,38 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-        <div className="flex items-center py-4">
+        <div className="flex items-center py-4">  
             <Input
-                placeholder="ค้นหาด้วยชื่องาน..."
-                value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-                onChange={(event) => table.getColumn("title")?.setFilterValue(event.target.value)}
+                placeholder="ค้นหาด้วยเเละรหัสใบงานหรือชื่องาน..."
+                value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+                onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
                 className="max-w-sm"
             />
 
                         {/* ✨ [ใหม่] เพิ่ม Dropdown Filter สำหรับสถานะ ✨ */}
+        <Select
+          value={(table.getColumn("jobType")?.getFilterValue() as string) ?? "all"}
+          onValueChange={(value) => {
+            if (value === "all") {
+              table.getColumn("jobType")?.setFilterValue(undefined)
+            } else {
+              table.getColumn("jobType")?.setFilterValue(value)
+            }
+          }}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="กรองตามประเภทงาน..." />
+          </SelectTrigger>
+          <SelectContent>
+            {jobTypes.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Dropdown Filter สำหรับสถานะ */}
             <Select
               value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
               onValueChange={(value) => {
@@ -110,7 +143,7 @@ export function DataTable<TData, TValue>({
             
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="ml-auto">
+                    <Button variant="outline" className="ml-auto bg-transparent">
                     Columns
                     </Button>
                 </DropdownMenuTrigger>

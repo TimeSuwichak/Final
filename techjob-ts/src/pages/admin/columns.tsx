@@ -22,7 +22,15 @@ export type Job = {
   images: string[];
   jobType: string;
   status: string;
+  acknowledgedByLeader?: boolean
+  dates: {
+    start: string
+    end: string
+  }
+  description?: string
   // ... เพิ่ม properties อื่นๆ ตามโครงสร้างข้อมูล job ของคุณ
+  createdByAdminId?: number
+  createdByAdminName?: string
 };
 
 const getStatusBadge = (status: string, acknowledged: boolean) => {
@@ -58,6 +66,21 @@ export const columns: ColumnDef<Job>[] = [
     accessorKey: "id",
     header: "รหัสใบงาน",
     cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+      filterFn: (row, id, value) => {
+      if (!value) return true
+      const jobId = row.original.id.toLowerCase()
+      const jobTitle = row.original.title.toLowerCase()
+      const searchValue = value.toLowerCase()
+      return jobId.includes(searchValue) || jobTitle.includes(searchValue)
+    },
+  },
+    {
+    accessorKey: "createdByAdminName",
+    header: "ผู้สร้างงาน",
+    cell: ({ row }) => {
+      const adminName = row.getValue("createdByAdminName") as string
+      return <div className="text-sm">{adminName || "ไม่ระบุ"}</div>
+    },
   },
   {
     accessorKey: "title",
@@ -67,7 +90,7 @@ export const columns: ColumnDef<Job>[] = [
         return (
             <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 rounded-md">
-                    <AvatarImage src={job.images?.[0]} className="object-cover" />
+                    <AvatarImage src={job.images?.[0] || "/placeholder.svg"} className="object-cover" />
                     <AvatarFallback className="rounded-md bg-secondary">
                         {job.title[0]}
                     </AvatarFallback>
@@ -83,6 +106,15 @@ export const columns: ColumnDef<Job>[] = [
   {
     accessorKey: "jobType",
     header: "ประเภทงาน",
+     filterFn: (row, id, value) => {
+      if (!value) return true
+      const jobType = row.original.jobType
+      // ถ้าประเภทงานเป็น "อื่นๆ..." ให้ตรวจสอบว่าตรงกับ "อื่นๆ" หรือไม่
+      if (value === "อื่นๆ") {
+        return jobType && !["ติดตั้งระบบ", "ซ่อมบำรุง", "ตรวจเช็คสภาพ", "รื้อถอน", "ให้คำปรึกษา"].includes(jobType)
+      }
+      return jobType === value
+    },
   },
   {
     accessorKey: "status",
@@ -116,9 +148,26 @@ export const columns: ColumnDef<Job>[] = [
         </Button>
       );
     },
+    
     cell: ({ row }) =>
       new Date(row.original.dates.start).toLocaleDateString("th-TH"),
   },
+
+    {
+    accessorKey: "dates.end",
+    header: ({ column }) => {
+      return (
+        <Button 
+          variant="ghost" 
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          วันปิดงาน
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => new Date(row.original.dates.end).toLocaleDateString("th-TH"),
+  },
+
   {
     id: "actions",
     cell: ({ row, table }) => {

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import InteractiveMap from "@/components/common/InteractiveMap"
 
-export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose, onEdit, currentUser }) => {
+export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, onEdit, currentUser }) => {
   if (!job) return null
 
   return (
@@ -69,7 +69,7 @@ export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose, onEdit, cu
                       {job.images.map((imgSrc, index) => (
                         <a key={index} href={imgSrc} target="_blank" rel="noopener noreferrer">
                           <img
-                            src={imgSrc}
+                            src={imgSrc || "/placeholder.svg"}
                             alt={`รูปประกอบ ${index + 1}`}
                             className="w-full h-32 object-cover rounded-md border transition-transform hover:scale-105"
                           />
@@ -101,6 +101,26 @@ export const JobDetailsDialog = ({ job, lead, techs, isOpen, onClose, onEdit, cu
             <div className="space-y-4">
               <h3 className="font-semibold">ทีมผู้รับผิดชอบ</h3>
               <Separator />
+              {/* --- ผู้สร้างใบงาน --- */}
+             
+              {creator && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-sm font-medium">ผู้สร้างใบงาน</h4>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={creator.avatarUrl || "/placeholder.svg"} />
+                      <AvatarFallback>{creator.fname[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {creator.fname} {creator.lname}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{creator.position}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {lead && (
                 <div className="space-y-2 pt-2">
                   <h4 className="text-sm font-medium">หัวหน้างาน</h4>
