@@ -6,6 +6,7 @@ import React, { useMemo } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { eachDayOfInterval, isSameDay } from 'date-fns';
 import type { Job } from '@/types/index';
+import { th } from 'date-fns/locale';
 
 interface JobCalendarProps {
   jobs: Job[]; // รับงาน "ทั้งหมด" ของ Leader คนนี้
@@ -60,6 +61,7 @@ export function JobCalendar({ jobs, selectedDate, onDateSelect }: JobCalendarPro
         onSelect={onDateSelect}
         className="w-full"
         modifiers={modifiers}
+        locale={th}
         modifiersStyles={modifiersStyles}
       />
     </div>

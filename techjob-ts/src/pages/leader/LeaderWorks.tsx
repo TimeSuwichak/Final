@@ -1,24 +1,21 @@
-// src/pages/user/UserDashboard.tsx
+// src/pages/leader/LeaderDashboard.tsx
 "use client";
 
 import React, { useState, useMemo } from 'react';
 
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { isWithinInterval, startOfDay, endOfDay, isSameDay,format } from 'date-fns';
+import { JobCalendar } from '@/components/leader/JobCalendar';
+import { LeaderJobTable } from '@/components/leader/LeaderJobTable';
+// import { LeaderJobDetailDialog } from '@/components/leader/LeaderJobDetailDialog'; // (จะสร้างใน Step 5.4)
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { LeaderJobDetailDialog } from '@/components/leader/LeaderJobDetailDialog';
+import type { Job } from '@/types/index';
+import { format } from 'date-fns'; // (ต้อง import format)
 
-// --- 1. Import Component ที่เราสร้างไว้ ---
-import { JobCalendar } from '@/components/leader/JobCalendar'; // (ใช้ปฏิทินของ Leader)
-import { UserJobTable } from '@/components/user/UserJobTable';
-import { UserJobDetailDialog } from '@/components/user/UserJobDetailDialog';
-import type { Job } from '@/types/index ';
-import { th } from 'date-fns/locale';
-
-
-
-export default function UserDashboard() {
+export default function LeaderWorks() {
   const { jobs } = useJobs(); // 1. ดึง "งานทั้งหมด" จากสมอง
-  const { user } = useAuth(); // 2. ดึง "ข้อมูลช่าง" ที่ Login อยู่
+  const { user } = useAuth(); // 2. ดึง "ข้อมูล Leader" ที่ Login อยู่
 
   // --- State ---
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -27,21 +24,22 @@ export default function UserDashboard() {
 
   // --- "สมอง" กรองงาน ---
 
-  // 3. กรอง "งานของฉัน" (เฉพาะงานที่ฉันถูก Assign)
+  // 3. กรอง "งานของฉัน" (เฉพาะงานที่ Admin โยนมาให้)
   const myJobs = useMemo(() => {
     if (!user) return [];
     return jobs
-      .filter(job => job.assignedTechs.includes(user.id)) // <-- กรองจาก assignedTechs
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // เรียงจากล่าสุด
+      .filter(job => String(job.leadId) === String(user.id))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // เรียงจากล่าสุดไปเก่า
   }, [jobs, user]);
 
   // 4. กรอง "งานที่จะแสดง" (ตามวันที่ในปฏิทิน)
   const filteredJobs = useMemo(() => {
+    // "กฎข้อที่ 1: ถ้าไม่ได้เลือกวัน ให้โชว์ 'งานของฉัน' ทั้งหมด"
     if (!selectedDate) {
-      return myJobs; // ถ้าไม่เลือกวัน ให้โชว์ทั้งหมด
+      return myJobs;
     }
     
-    // ถ้าเลือกวัน ให้กรอง
+    // "กฎข้อที่ 2: ถ้าเลือกวัน ให้กรองเฉพาะงานที่อยู่ในวันนั้น"
     const start = startOfDay(selectedDate);
     const end = endOfDay(selectedDate);
 
@@ -60,6 +58,7 @@ export default function UserDashboard() {
   };
   
   const handleDateSelect = (date: Date | undefined) => {
+    // ถ้าคลิกวันที่เดิมซ้ำ ให้ "ยกเลิกการเลือก"
     if (selectedDate && date && isSameDay(selectedDate, date)) {
       setSelectedDate(undefined);
     } else {
@@ -67,18 +66,18 @@ export default function UserDashboard() {
     }
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!user) return <div>Loading...</div>; // (รอ AuthContext)
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
-      <h2 className="text-3xl font-bold tracking-tight">User Dashboard: {user.fname}</h2>
+      <h2 className="text-3xl font-bold tracking-tight">ยินดีต้อนรับคุณ {user.fname}</h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* --- คอลัมน์ซ้าย: ปฏิทิน --- */}
         <div className="lg:col-span-1">
           <JobCalendar 
-            jobs={myJobs} // ส่ง "งานของฉันทั้งหมด" ให้ปฏิทิน
+            jobs={myJobs} // ส่ง "งานของฉันทั้งหมด" ให้ปฏิทินเพื่อไฮไลท์
             selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
           />
@@ -89,28 +88,34 @@ export default function UserDashboard() {
           <div>
             <h3 className="text-xl font-semibold">
               {selectedDate 
-                ? `งานในวันที่ ${format(selectedDate, "dd MMM yyyy",{ locale: th })}`
-                : "งานทั้งหมดของคุณ"}
+                ? `ใบงานในวันที่ ${format(selectedDate, "dd MMM yyyy")}`
+                : "ใบงานทั้งหมดของคุณ"}
             </h3>
             <p className="text-sm text-muted-foreground">
               {selectedDate 
-                ? "คลิกวันที่เดิมอีกครั้งเพื่อดูทั้งหมด"
-                : "คลิกวันที่ในปฏิทินเพื่อกรอง"}
+                ? "คลิกวันที่เดิมอีกครั้งเพื่อดูใบงานทั้งหมด"
+                : "คลิกวันที่ในปฏิทินเพื่อกรองใบงาน"}
             </p>
           </div>
-          <UserJobTable 
+          <LeaderJobTable 
             jobs={filteredJobs} // ส่ง "งานที่กรองแล้ว" ให้ตาราง
             onViewJob={handleViewJob}
           />
         </div>
       </div>
 
-      {/* --- Pop-up รายละเอียด (จะ Render เมื่อถูกเรียก) --- */}
-      <UserJobDetailDialog
+      
+      <LeaderJobDetailDialog
         job={selectedJob}
         open={isDetailOpen}
         onOpenChange={setIsDetailOpen}
       />
+      
+      <div className="p-4 border-2 border-dashed border-gray-200 rounded-lg h-60">
+        <p className="text-center text-gray-400">
+          (พื้นที่สำหรับ LeaderJobDetailDialog จะมาใน Step 5.4)
+        </p>
+      </div>
     </div>
   );
 }

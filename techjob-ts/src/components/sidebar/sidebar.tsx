@@ -25,7 +25,7 @@ export default function Sidebar() {
   const menuConfig = {
     user: [
       { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/user/workorders", icon: <MdEngineering />, label: "การเข้างานช่าง" },
+      { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
@@ -39,7 +39,8 @@ export default function Sidebar() {
     ],
 
     leader: [
-      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
     ],
 
     executive: [
