@@ -1,159 +1,121 @@
-// Cleaned version of LeaderDashboard (removed unused code)
-"use client"
+// src/pages/leader/LeaderDashboard.tsx
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock } from "lucide-react"
-import MyManagedTasksPage from "@/components/leader/MyManagedTasks"
-import LeaderCalendar from "@/components/leader/LeaderCalendar"
+import React, { useState, useMemo } from 'react';
 
-interface Job {
-  id: string
-  type: string
-  customer: string
-  location: string
-  appointment: string
-  time: string
-  status: "in-progress" | "finished"
-}
+import { useJobs } from '@/contexts/JobContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { JobCalendar } from '@/components/leader/JobCalendar';
+import { LeaderJobTable } from '@/components/leader/LeaderJobTable';
+// import { LeaderJobDetailDialog } from '@/components/leader/LeaderJobDetailDialog'; // (จะสร้างใน Step 5.4)
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { LeaderJobDetailDialog } from '@/components/leader/LeaderJobDetailDialog';
+import type { Job } from '@/types/index';
+import { format } from 'date-fns'; // (ต้อง import format)
 
-interface JobCardProps {
-  job: Job
-}
+export default function LeaderDashboard() {
+  const { jobs } = useJobs(); // 1. ดึง "งานทั้งหมด" จากสมอง
+  const { user } = useAuth(); // 2. ดึง "ข้อมูล Leader" ที่ Login อยู่
 
-const mockJobs: Job[] = [
-  {
-    id: "J-2025-09-28-001",
-    type: "ช่างแอร์",
-    customer: "คุณสมหญิง",
-    location: "สุขุมวิท 101",
-    appointment: "29 ต.ค. 2568",
-    time: "14:00 น.",
-    status: "in-progress",
-  },
-  {
-    id: "J-2025-09-28-002",
-    type: "ช่างแอร์",
-    customer: "คุณสมหญิง",
-    location: "สุขุมวิท 101",
-    appointment: "29 ต.ค. 2568",
-    time: "14:00 น.",
-    status: "in-progress",
-  },
-  {
-    id: "J-2025-09-27-003",
-    type: "งานซ่อมท่อ",
-    customer: "คุณสมชาย",
-    location: "พญาไท",
-    appointment: "27 ต.ค. 2568",
-    time: "10:30 น.",
-    status: "finished",
-  },
-]
+  // --- State ---
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-const JobCard: React.FC<JobCardProps> = ({ job }) => (
-  <Card className="flex items-center p-6 bg-card border-border text-card-foreground rounded-lg shadow-sm">
-    <div className="flex-grow space-y-2 text-sm">
-      <p className="font-semibold text-base text-foreground">ใบงานเลขที่: {job.id}</p>
-      <p className="text-muted-foreground">ประเภท: {job.type}</p>
-      <p className="text-muted-foreground">ลูกค้า: {job.customer}</p>
-      <p className="text-muted-foreground">สถานที่: {job.location}</p>
-      <div className="flex items-center text-muted-foreground">
-        <Clock size={14} className="mr-1" />
-        <p>
-          กำหนดหมาย: {job.appointment} ⬤ {job.time}
+  // --- "สมอง" กรองงาน ---
+
+  // 3. กรอง "งานของฉัน" (เฉพาะงานที่ Admin โยนมาให้)
+  const myJobs = useMemo(() => {
+    if (!user) return [];
+    return jobs
+      .filter(job => String(job.leadId) === String(user.id))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // เรียงจากล่าสุดไปเก่า
+  }, [jobs, user]);
+
+  // 4. กรอง "งานที่จะแสดง" (ตามวันที่ในปฏิทิน)
+  const filteredJobs = useMemo(() => {
+    // "กฎข้อที่ 1: ถ้าไม่ได้เลือกวัน ให้โชว์ 'งานของฉัน' ทั้งหมด"
+    if (!selectedDate) {
+      return myJobs;
+    }
+    
+    // "กฎข้อที่ 2: ถ้าเลือกวัน ให้กรองเฉพาะงานที่อยู่ในวันนั้น"
+    const start = startOfDay(selectedDate);
+    const end = endOfDay(selectedDate);
+
+    return myJobs.filter(job => 
+      isWithinInterval(start, { start: job.startDate, end: job.endDate }) ||
+      isWithinInterval(end, { start: job.startDate, end: job.endDate }) ||
+      isWithinInterval(job.startDate, { start, end }) ||
+      isWithinInterval(job.endDate, { start, end })
+    );
+  }, [myJobs, selectedDate]);
+
+  // --- Handlers ---
+  const handleViewJob = (job: Job) => {
+    setSelectedJob(job);
+    setIsDetailOpen(true);
+  };
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    // ถ้าคลิกวันที่เดิมซ้ำ ให้ "ยกเลิกการเลือก"
+    if (selectedDate && date && isSameDay(selectedDate, date)) {
+      setSelectedDate(undefined);
+    } else {
+      setSelectedDate(date);
+    }
+  };
+
+  if (!user) return <div>Loading...</div>; // (รอ AuthContext)
+
+  return (
+    <div className="flex-1 space-y-6 p-4 md:p-8">
+      <h2 className="text-3xl font-bold tracking-tight">Leader Dashboard: {user.fname}</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* --- คอลัมน์ซ้าย: ปฏิทิน --- */}
+        <div className="lg:col-span-1">
+          <JobCalendar 
+            jobs={myJobs} // ส่ง "งานของฉันทั้งหมด" ให้ปฏิทินเพื่อไฮไลท์
+            selectedDate={selectedDate}
+            onDateSelect={handleDateSelect}
+          />
+        </div>
+
+        {/* --- คอลัมน์ขวา: ตารางงาน --- */}
+        <div className="lg:col-span-2 space-y-4">
+          <div>
+            <h3 className="text-xl font-semibold">
+              {selectedDate 
+                ? `ใบงานในวันที่ ${format(selectedDate, "dd MMM yyyy")}`
+                : "ใบงานทั้งหมดของคุณ"}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {selectedDate 
+                ? "คลิกวันที่เดิมอีกครั้งเพื่อดูใบงานทั้งหมด"
+                : "คลิกวันที่ในปฏิทินเพื่อกรองใบงาน"}
+            </p>
+          </div>
+          <LeaderJobTable 
+            jobs={filteredJobs} // ส่ง "งานที่กรองแล้ว" ให้ตาราง
+            onViewJob={handleViewJob}
+          />
+        </div>
+      </div>
+
+      
+      <LeaderJobDetailDialog
+        job={selectedJob}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
+      
+      <div className="p-4 border-2 border-dashed border-gray-200 rounded-lg h-60">
+        <p className="text-center text-gray-400">
+          (พื้นที่สำหรับ LeaderJobDetailDialog จะมาใน Step 5.4)
         </p>
       </div>
     </div>
-    <div className="flex flex-col items-center ml-6 gap-3">
-      <div className="w-40 h-28 bg-muted border border-border rounded flex items-center justify-center">
-        <div className="text-muted-foreground text-6xl">✕</div>
-      </div>
-      <div className="flex gap-2">
-        <Button variant="outline" className="text-xs px-4 py-1.5 h-auto bg-transparent">ดูรายละเอียด</Button>
-        <Button variant="outline" className="text-xs px-4 py-1.5 h-auto bg-transparent">แชท</Button>
-        <Button variant="outline" className="text-xs px-4 py-1.5 h-auto bg-transparent">ตีกลับงาน</Button>
-      </div>
-    </div>
-  </Card>
-)
-
-const LeaderDashboard: React.FC = () => {
-  const inProgressJobs = mockJobs.filter((job) => job.status === "in-progress")
-  const finishedJobs = mockJobs.filter((job) => job.status === "finished")
-
-  return (
-    <div className="flex h-screen w-full bg-background">
-      <div className="flex-1 p-6 md:p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
-          <Button variant="outline">การเเจ้งเตือน</Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card className="p-6 bg-muted border-border">
-            <h3 className="text-sm font-medium text-muted-foreground mb-6">ภาพรวมสถานการณ์ :</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-foreground mb-2">11</div>
-                <div className="text-xs text-muted-foreground">ทีมงาน<br />(ยังไม่ได้ทำงานวันนี้)</div>
-              </div>
-              <div className="text-center border-l border-r border-border px-2">
-                <div className="text-4xl font-bold text-foreground mb-2">112</div>
-                <div className="text-xs text-muted-foreground">ทั้งหมดในทีม<br />(ทีมงาน)</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-foreground mb-2">200</div>
-                <div className="text-xs text-muted-foreground">เครื่องมือ<br />(ยังไม่ได้ยืมคืน)</div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 bg-muted border-border">
-            <h3 className="text-sm font-medium text-muted-foreground mb-6">ภาพรวมสถานะ User :</h3>
-            <div className="grid grid-cols-2 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-foreground mb-2">100</div>
-                <div className="text-xs text-muted-foreground">จำนวนที่รับงานแล้ว</div>
-              </div>
-              <div className="text-center border-l border-border pl-8">
-                <div className="text-4xl font-bold text-foreground mb-2">98</div>
-                <div className="text-xs text-muted-foreground">กำลังดูผู้ใช้งาน</div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <Tabs defaultValue="in-progress" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border p-0 rounded-none h-auto mb-6">
-            <TabsTrigger value="new" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-foreground">ในงานใหม่</TabsTrigger>
-            <TabsTrigger value="in-progress" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-foreground">อยู่ระหว่างรอดำเนินการ</TabsTrigger>
-            <TabsTrigger value="finished" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-3 text-foreground">เสร็จแล้ว</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="new" className="space-y-4 mt-6">
-            <p className="text-muted-foreground text-center py-10">ไม่มีใบงานใหม่</p>
-          </TabsContent>
-
-          <TabsContent value="in-progress" className="space-y-4 mt-6">
-            {inProgressJobs.length > 0 ? inProgressJobs.map((job) => <JobCard key={job.id} job={job} />) : <p className="text-muted-foreground text-center py-10">ไม่มีใบงานที่อยู่ระหว่างดำเนินการ</p>}
-          </TabsContent>
-
-          <TabsContent value="finished" className="space-y-4 mt-6">
-            {finishedJobs.length > 0 ? finishedJobs.map((job) => <JobCard key={job.id} job={job} />) : <p className="text-muted-foreground text-center py-10">ไม่มีใบงานที่เสร็จสมบูรณ์</p>}
-          </TabsContent>
-        </Tabs>
-        <LeaderCalendar/>
-        <MyManagedTasksPage/>
-      </div>
-      
-    </div>
-  )
+  );
 }
-
-export default LeaderDashboard
-
-

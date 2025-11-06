@@ -28,7 +28,7 @@ export const user = [
     fname: "หมูแดง",
     lname: "เทคโน",
     position: "วิศวกรระบบโครงสร้างพื้นฐาน",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "mudang@techjob.com",
     password: "user1234",
     role: "user",
@@ -43,7 +43,7 @@ export const user = [
     fname: "ธนภัทร",
     lname: "บุญรอด",
     position: "วิศวกรระบบความปลอดภัย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "thanapat@techjob.com",
     password: "user1234",
     role: "user",
@@ -58,7 +58,7 @@ export const user = [
     fname: "เกียรติกุล",
     lname: "สีเสมอ",
     position: "ช่างเทคนิคระบบความปลอดภัย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "kiattikun@techjob.com",
     password: "user1234",
     role: "user",
@@ -73,7 +73,7 @@ export const user = [
     fname: "ณัฐวุฒิ",
     lname: "พินิจ",
     position: "ช่างเทคนิคเครือข่าย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "nattawut.p@techjob.com",
     password: "user1234",
     role: "user",
@@ -88,7 +88,7 @@ export const user = [
     fname: "ประสิทธิ์",
     lname: "แสงทอง",
     position: "ช่างเทคนิคเครือข่าย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "prasit@techjob.com",
     password: "user1234",
     role: "user",
@@ -103,7 +103,7 @@ export const user = [
     fname: "จิราพร",
     lname: "ศรีสุวรรณ",
     position: "ช่างเทคนิคระบบความปลอดภัย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "jiraporn@techjob.com",
     password: "user1234",
     role: "user",
@@ -118,7 +118,7 @@ export const user = [
     fname: "สุรชัย",
     lname: "ทองดี",
     position: "วิศวกรระบบโครงสร้างพื้นฐาน",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "surachai@techjob.com",
     password: "user1234",
     role: "user",
@@ -133,7 +133,7 @@ export const user = [
     fname: "พรทิพย์",
     lname: "แก้วใส",
     position: "วิศวกรระบบความปลอดภัย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "porntip@techjob.com",
     password: "user1234",
     role: "user",
@@ -148,7 +148,7 @@ export const user = [
     fname: "สมเกียรติ",
     lname: "จันทรวงศ์",
     position: "ช่างเทคนิคเครือข่าย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "somkiat@techjob.com",
     password: "user1234",
     role: "user",
@@ -163,7 +163,7 @@ export const user = [
     fname: "อารียา",
     lname: "สุขใจ",
     position: "ช่างเทคนิคระบบความปลอดภัย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "areeya@techjob.com",
     password: "user1234",
     role: "user",
@@ -178,7 +178,7 @@ export const user = [
     fname: "วีรศักดิ์",
     lname: "โพธิ์งาม",
     position: "วิศวกรระบบโครงสร้างพื้นฐาน",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "weerasak@techjob.com",
     password: "user1234",
     role: "user",
@@ -193,7 +193,7 @@ export const user = [
     fname: "กิตติ",
     lname: "มีชัย",
     position: "ช่างเทคนิคเครือข่าย",
-    department: "แผนกระบบเครือข่ายและความปลอดภัย",
+    department: "network_security", // <-- แก้ไขแล้ว
     email: "kitti@techjob.com",
     password: "user1234",
     role: "user",
@@ -210,7 +210,7 @@ export const user = [
     fname: "ณัฐวุฒิ",
     lname: "คงมาก",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "nattawut.k@techjob.com",
     password: "user1234",
     role: "user",
@@ -225,7 +225,7 @@ export const user = [
     fname: "ราเชน",
     lname: "จึงสงวนสิทธิ์",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "rachen@techjob.com",
     password: "user1234",
     role: "user",
@@ -240,7 +240,7 @@ export const user = [
     fname: "วรวิทย์",
     lname: "ผลาเลิศ",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "worawit@techjob.com",
     password: "user1234",
     role: "user",
@@ -255,7 +255,7 @@ export const user = [
     fname: "กนกวรรณ",
     lname: "สิงห์โต",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "kanokwan@techjob.com",
     password: "user1234",
     role: "user",
@@ -270,7 +270,7 @@ export const user = [
     fname: "ธนากร",
     lname: "อินทร์สมบัติ",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "thanakorn@techjob.com",
     password: "user1234",
     role: "user",
@@ -285,7 +285,7 @@ export const user = [
     fname: "ปรีชา",
     lname: "วงศ์สุวรรณ",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "preecha@techjob.com",
     password: "user1234",
     role: "user",
@@ -300,7 +300,7 @@ export const user = [
     fname: "สุดารัตน์",
     lname: "บุญมา",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "sudarat@techjob.com",
     password: "user1234",
     role: "user",
@@ -315,7 +315,7 @@ export const user = [
     fname: "จักรพงษ์",
     lname: "ทวีทรัพย์",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "jakrapong@techjob.com",
     password: "user1234",
     role: "user",
@@ -330,7 +330,7 @@ export const user = [
     fname: "นันทิดา",
     lname: "แก้วประเสริฐ",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "nantida@techjob.com",
     password: "user1234",
     role: "user",
@@ -345,7 +345,7 @@ export const user = [
     fname: "ภานุพงศ์",
     lname: "ไชยโย",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "panupong@techjob.com",
     password: "user1234",
     role: "user",
@@ -360,7 +360,7 @@ export const user = [
     fname: "ธีรเดช",
     lname: "มณีรัตน์",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "theeradet@techjob.com",
     password: "user1234",
     role: "user",
@@ -375,7 +375,7 @@ export const user = [
     fname: "ณัฐวรรณ",
     lname: "จันทร์ศรี",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "nattawan@techjob.com",
     password: "user1234",
     role: "user",
@@ -390,7 +390,7 @@ export const user = [
     fname: "อดิศักดิ์",
     lname: "ทองนิล",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "adisak@techjob.com",
     password: "user1234",
     role: "user",
@@ -405,7 +405,7 @@ export const user = [
     fname: "สุนิสา",
     lname: "อินทร์ทอง",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "sunisa@techjob.com",
     password: "user1234",
     role: "user",
@@ -420,7 +420,7 @@ export const user = [
     fname: "นพดล",
     lname: "ทองคำ",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "nopadol@techjob.com",
     password: "user1234",
     role: "user",
@@ -435,7 +435,7 @@ export const user = [
     fname: "ภัทรพล",
     lname: "ชูศรี",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "phatrapol@techjob.com",
     password: "user1234",
     role: "user",
@@ -450,7 +450,7 @@ export const user = [
     fname: "กาญจนา",
     lname: "ศรีนวล",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "kanjana@techjob.com",
     password: "user1234",
     role: "user",
@@ -465,7 +465,7 @@ export const user = [
     fname: "สมปอง",
     lname: "ทองแท้",
     position: "ช่างเทคนิคระบบภาพและเสียง",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "sompong@techjob.com",
     password: "user1234",
     role: "user",
@@ -480,7 +480,7 @@ export const user = [
     fname: "จุฑามาศ",
     lname: "แก้วมณี",
     position: "ช่างเทคนิคระบบอาคารอัตโนมัติ/IoT",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "juthamas@techjob.com",
     password: "user1234",
     role: "user",
@@ -495,7 +495,7 @@ export const user = [
     fname: "วิชัย",
     lname: "ทับทิม",
     position: "ผู้เชี่ยวชาญระบบสื่อสาร",
-    department: "แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย",
+    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
     email: "wichai@techjob.com",
     password: "user1234",
     role: "user",
@@ -512,7 +512,7 @@ export const user = [
     fname: "มาวิน",
     lname: "บุญมี",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "mawin@techjob.com",
     password: "user1234",
     role: "user",
@@ -527,13 +527,13 @@ export const user = [
     fname: "วชิรวิทย์",
     lname: "บุญผลา",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "wachirawit@techjob.com",
     password: "user1234",
     role: "user",
     phone: "088-101-3322",
     address: "120/5 ถ.เพชรเกษม ต.บางแค อ.บางแค จ.กรุงเทพฯ 10160",
-    status: "available",
+    _status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/9.jpg",
     jobsThisMonth: 7,
   },
@@ -542,7 +542,7 @@ export const user = [
     fname: "มนตรี",
     lname: "คงมั่น",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "montri@techjob.com",
     password: "user1234",
     role: "user",
@@ -557,7 +557,7 @@ export const user = [
     fname: "พิชัย",
     lname: "ศรีเมือง",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "pichai@techjob.com",
     password: "user1234",
     role: "user",
@@ -572,7 +572,7 @@ export const user = [
     fname: "สุพัตรา",
     lname: "เจริญสุข",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "supattra@techjob.com",
     password: "user1234",
     role: "user",
@@ -587,7 +587,7 @@ export const user = [
     fname: "อดิศักดิ์",
     lname: "ทองคำ",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "adisak@techjob.com",
     password: "user1234",
     role: "user",
@@ -602,7 +602,7 @@ export const user = [
     fname: "วันชัย",
     lname: "รักไทย",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "wanchai@techjob.com",
     password: "user1234",
     role: "user",
@@ -617,7 +617,7 @@ export const user = [
     fname: "กัลยาณี",
     lname: "งามวงศ์",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "kallayanee@techjob.com",
     password: "user1234",
     role: "user",
@@ -632,7 +632,7 @@ export const user = [
     fname: "ทวีศักดิ์",
     lname: "จินดา",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "thawesak@techjob.com",
     password: "user1234",
     role: "user",
@@ -647,7 +647,7 @@ export const user = [
     fname: "ศุภชัย",
     lname: "สุวรรณศรี",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "supachai@techjob.com",
     password: "user1234",
     role: "user",
@@ -662,7 +662,7 @@ export const user = [
     fname: "นพดล",
     lname: "รุ่งเรือง",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "noppadol@techjob.com",
     password: "user1234",
     role: "user",
@@ -677,7 +677,7 @@ export const user = [
     fname: "อมรรัตน์",
     lname: "ดีเสมอ",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "amornrat@techjob.com",
     password: "user1234",
     role: "user",
@@ -692,7 +692,7 @@ export const user = [
     fname: "ไพโรจน์",
     lname: "จิตต์มั่น",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "pairoj@techjob.com",
     password: "user1234",
     role: "user",
@@ -707,7 +707,7 @@ export const user = [
     fname: "อนุรักษ์",
     lname: "ปรีดา",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "anurak@techjob.com",
     password: "user1234",
     role: "user",
@@ -722,7 +722,7 @@ export const user = [
     fname: "ชูเกียรติ",
     lname: "ประเสริฐยิ่ง",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "chookiat@techjob.com",
     password: "user1234",
     role: "user",
@@ -737,7 +737,7 @@ export const user = [
     fname: "จตุรงค์",
     lname: "ใจแสน",
     position: "ช่างเทคนิคติดตั้งสายสัญญาณ",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "jaturong@techjob.com",
     password: "user1234",
     role: "user",
@@ -752,7 +752,7 @@ export const user = [
     fname: "พงศกร",
     lname: "ศรีวิไล",
     position: "ช่างไฟฟ้าสื่อสาร",
-    department: "แผนกโครงสร้างพื้นฐานและไฟฟ้า",
+    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
     email: "pongsakorn@techjob.com",
     password: "user1234",
     role: "user",

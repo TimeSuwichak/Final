@@ -201,9 +201,9 @@ export function DataTable<TData, TValue>({
                     </TableRow>
                     ))
                 ) : (
-                    <TableRow>
+                    <TableRow> {/*ถ้าไม่มีงานให้แสดงข้อความตรงนี้ */}
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
+                        ไม่พบงานของคุณ
                     </TableCell>
                     </TableRow>
                 )}

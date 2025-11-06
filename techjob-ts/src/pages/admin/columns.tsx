@@ -89,12 +89,6 @@ export const columns: ColumnDef<Job>[] = [
         const job = row.original;
         return (
             <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 rounded-md">
-                    <AvatarImage src={job.images?.[0] || "/placeholder.svg"} className="object-cover" />
-                    <AvatarFallback className="rounded-md bg-secondary">
-                        {job.title[0]}
-                    </AvatarFallback>
-                </Avatar>
                 <div>
                     <p className="font-semibold line-clamp-1">{job.title}</p>
                     <p className="text-xs text-muted-foreground line-clamp-1">{job.description || "ไม่มีรายละเอียด"}</p>
