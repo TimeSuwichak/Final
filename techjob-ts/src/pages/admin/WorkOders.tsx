@@ -110,6 +110,7 @@ export default function WorkOders() {
   job={selectedJob}
   open={dialogMode !== null}
   mode={dialogMode}
+  onModeChange={setDialogMode}
   onOpenChange={(open) => { // <--- ✨ แก้ไขเป็น onOpenChange ✨
     // ถ้า `open` เป็น `false` (หมายถึงมีการพยายามจะปิด Dialog)
     if (!open) {
