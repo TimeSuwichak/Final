@@ -1,114 +1,122 @@
+// src/pages/admin/WorkOrders.tsx
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { th } from "date-fns/locale";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-// ฟังก์ชันโหลดข้อมูล (เหมือนกับใน Dashboard)
-const loadDataFromStorage = () => {
-  // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
-  try {
-    const data = localStorage.getItem("techJobData");
-    if (data) {
-      const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job) => ({
-        ...job,
-        dates: job.dates
-          ? { start: new Date(job.dates.start), end: new Date(job.dates.end) }
-          : null,
-      }));
-      return parsed;
-    }
-  } catch (e) {
-    console.error("Failed to load data", e);
-  }
-  return { jobs: initialJobs, users: initialUsers, leaders: initialLeaders };
-};
+import { useJobs } from "@/contexts/JobContext";
+import { useAuth } from "@/contexts/AuthContext"; 
+import { CreateJobDialog } from "@/components/admin/CreateJobDialog";
+import { JobTable } from "@/components/admin/JobTable";
+import { EditJobDialog } from "@/components/admin/EditJobDialog";
+import type { Job } from "@/types/index";
 
-export default function WorkOrders() {
-  const [allJobs, setAllJobs] = useState(loadDataFromStorage().jobs || []);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+export default function WorkOders() { 
+  const { jobs } = useJobs();
+  const { user } = useAuth(); 
 
-  const jobTypes = useMemo(() => ["all", ...new Set(allJobs.map(job => job.jobType))], [allJobs]);
-  
-  const filteredJobs = useMemo(() => {
-    return allJobs.filter(job => {
-      const matchesSearch = job.id.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-      const matchesType = typeFilter === 'all' || job.jobType === typeFilter;
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [allJobs, searchTerm, statusFilter, typeFilter]);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [viewMode, setViewMode] = useState("all");
+  const [dialogMode, setDialogMode] = useState<"view" | "edit" | null>(null); 
 
-  return (
-    <div className="flex-1 space-y-8 p-4 md:p-8">
-      <h2 className="text-3xl font-bold tracking-tight">รายการใบงานทั้งหมด</h2>
-      
-      {/* --- ส่วน Filter และ Search --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  if (!user) {
+    return <div>Loading user data...</div>;
+  }
+  const adminName = user.fname;
+
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((job) => {
+      if (viewMode === "my-jobs" && job.adminCreator !== adminName) return false;
+      if (filterType !== "all" && job.jobType !== filterType) return false;
+      const term = searchTerm.toLowerCase();
+      if (term && !job.id.toLowerCase().includes(term) && !job.title.toLowerCase().includes(term)) return false;
+      return true;
+    });
+  }, [jobs, searchTerm, filterType, viewMode, adminName]); 
+
+  const handleViewDetails = (job: Job) => {
+    setSelectedJob(job);
+    setDialogMode("view"); 
+  };
+
+  const handleEditJob = (job: Job) => {
+    setSelectedJob(job);
+    setDialogMode("edit"); 
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedJob(null);
+    setDialogMode(null);
+  };
+
+  return (
+    <div className="flex-1 space-y-6 p-4 md:p-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">ระบบใบงาน</h2>
+        <CreateJobDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} /> 
+      </div>
+      
+      {/* (ส่วน Filter ... เหมือนเดิม) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Input 
-          placeholder="ค้นหาด้วยรหัสใบงาน (เช่น JOB-...)"
+          placeholder="ค้นหาชื่องาน, รหัสงาน..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger><SelectValue placeholder="กรองตามสถานะ..." /></SelectTrigger>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger>
+            <SelectValue placeholder="เลือกประเภทงาน" />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">สถานะทั้งหมด</SelectItem>
-            <SelectItem value="new">งานใหม่</SelectItem>
-            <SelectItem value="in-progress">กำลังทำ</SelectItem>
-            <SelectItem value="completed">เสร็จสิ้น</SelectItem>
+            <SelectItem value="all">ทุกประเภทงาน</SelectItem>
+            <SelectItem value="ซ่อมบำรุง">ซ่อมบำรุง</SelectItem>
+            <SelectItem value="รื้อถอน">รื้อถอน</SelectItem>
+            <SelectItem value="ติดตั้งระบบ">ติดตั้งระบบ</SelectItem>
+            <SelectItem value="ตรวจสอบประจำปี">ตรวจสอบประจำปี</SelectItem>
+            <SelectItem value="อื่นๆ">อื่นๆ</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger><SelectValue placeholder="กรองตามประเภท..." /></SelectTrigger>
-          <SelectContent>
-            {jobTypes.map(type => (
-              <SelectItem key={type} value={type}>{type === 'all' ? 'ประเภททั้งหมด' : type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(val) => val && setViewMode(val)}
+          className="justify-start"
+        >
+          <ToggleGroupItem value="all">งานทั้งหมด</ToggleGroupItem>
+          <ToggleGroupItem value="my-jobs">งานของฉัน</ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      {/* --- ตารางแสดงผล --- */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>รหัสใบงาน</TableHead>
-              <TableHead>ชื่องาน</TableHead>
-              <TableHead>ประเภท</TableHead>
-              <TableHead>วันที่เริ่ม</TableHead>
-              <TableHead>สถานะ</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredJobs.length > 0 ? (
-              filteredJobs.map(job => (
-                <TableRow key={job.id}>
-                  <TableCell className="font-medium">{job.id}</TableCell>
-                  <TableCell>{job.title}</TableCell>
-                  <TableCell>{job.jobType}</TableCell>
-                  <TableCell>{format(job.dates.start, "PPP", { locale: th })}</TableCell>
-                  <TableCell><Badge>{job.status}</Badge></TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  ไม่พบข้อมูลใบงาน
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+      {/* (ส่ง "ฟังก์ชันใหม่" (Props) ไปให้ "รีโมต") */}
+      <JobTable
+        jobs={filteredJobs}
+        onViewDetails={handleViewDetails}
+        onEditJob={handleEditJob}
+      />
+
+<EditJobDialog
+  job={selectedJob}
+  open={dialogMode !== null}
+  mode={dialogMode}
+  onOpenChange={(open) => { // <--- ✨ แก้ไขเป็น onOpenChange ✨
+    // ถ้า `open` เป็น `false` (หมายถึงมีการพยายามจะปิด Dialog)
+    if (!open) {
+      handleCloseDialog(); // ให้เรียกฟังก์ชันปิดของเรา
+    }
+  }}
+/>
+    </div>
+  );
 }

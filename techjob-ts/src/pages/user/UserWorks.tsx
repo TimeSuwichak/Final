@@ -1,64 +1,78 @@
-// src/pages/user/UserDashboard.tsx
+// src/pages/user/UserDashboard.tsx (หรือไฟล์หน้าหลักของช่าง)
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 
-import { useJobs } from '@/contexts/JobContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { isWithinInterval, startOfDay, endOfDay, isSameDay,format } from 'date-fns';
+import { useJobs } from "@/contexts/JobContext";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  isWithinInterval,
+  startOfDay,
+  endOfDay,
+  isSameDay,
+  format,
+} from "date-fns";
+import { th } from "date-fns/locale";
 
-// --- 1. Import Component ที่เราสร้างไว้ ---
-import { JobCalendar } from '@/components/leader/JobCalendar'; // (ใช้ปฏิทินของ Leader)
-import { UserJobTable } from '@/components/user/UserJobTable';
-import { UserJobDetailDialog } from '@/components/user/UserJobDetailDialog';
-import type { Job } from '@/types/index ';
-import { th } from 'date-fns/locale';
+// --- Import Component ที่เราสร้างไว้ ---
+import { JobCalendar } from "@/components/leader/JobCalendar";
+import { UserJobTable } from "@/components/user/UserJobTable";
+import { UserJobDetailDialog } from "@/components/user/UserJobDetailDialog";
+import type { Job } from "@/types/index";
 
+export default function UserDashboard() {
+  // (หรือชื่อ function ที่คุณใช้)
+  const { jobs } = useJobs();
+  const { user } = useAuth();
 
-
-export default function UserWorks() {
-  const { jobs } = useJobs(); // 1. ดึง "งานทั้งหมด" จากสมอง
-  const { user } = useAuth(); // 2. ดึง "ข้อมูลช่าง" ที่ Login อยู่
-
-  // --- State ---
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-  // --- "สมอง" กรองงาน ---
-
-  // 3. กรอง "งานของฉัน" (เฉพาะงานที่ฉันถูก Assign)
+  // --- "สมอง" กรองงาน (แก้ไข!) ---
   const myJobs = useMemo(() => {
     if (!user) return [];
-    return jobs
-      .filter(job => job.assignedTechs.includes(user.id)) // <-- กรองจาก assignedTechs
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // เรียงจากล่าสุด
+    return (
+      jobs
+        // ▼▼▼ (แก้ไขจุดนี้!) ▼▼▼
+        // แปลง user.id (Number) เป็น String ก่อนเทียบ
+        .filter((job) => job.assignedTechs.includes(String(user.id)))
+        // ▲▲▲ (แก้ไขจุดนี้!) ▲▲▲
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    );
   }, [jobs, user]);
 
-  // 4. กรอง "งานที่จะแสดง" (ตามวันที่ในปฏิทิน)
+  // (กรองวันที่ ... เหมือนเดิม)
   const filteredJobs = useMemo(() => {
-    if (!selectedDate) {
-      return myJobs; // ถ้าไม่เลือกวัน ให้โชว์ทั้งหมด
-    }
-    
-    // ถ้าเลือกวัน ให้กรอง
+    if (!selectedDate) return myJobs;
     const start = startOfDay(selectedDate);
     const end = endOfDay(selectedDate);
-
-    return myJobs.filter(job => 
-      isWithinInterval(start, { start: job.startDate, end: job.endDate }) ||
-      isWithinInterval(end, { start: job.startDate, end: job.endDate }) ||
-      isWithinInterval(job.startDate, { start, end }) ||
-      isWithinInterval(job.endDate, { start, end })
+    return myJobs.filter(
+      (job) =>
+        isWithinInterval(start, { start: job.startDate, end: job.endDate }) ||
+        isWithinInterval(end, { start: job.startDate, end: job.endDate }) ||
+        isWithinInterval(job.startDate, { start, end }) ||
+        isWithinInterval(job.endDate, { start, end })
     );
   }, [myJobs, selectedDate]);
 
-  // --- Handlers ---
+  // (สมองหา "ใบงานสด" ... เหมือน Leader)
+  const liveSelectedJob = useMemo(() => {
+    if (!selectedJobId) return null;
+    return jobs.find((j) => j.id === selectedJobId) || null;
+  }, [jobs, selectedJobId]);
+
+  // --- Handlers (อัปเกรดให้ใช้ ID) ---
   const handleViewJob = (job: Job) => {
-    setSelectedJob(job);
+    setSelectedJobId(job.id);
     setIsDetailOpen(true);
   };
-  
+
+  const handleCloseDialog = () => {
+    setSelectedJobId(null);
+    setIsDetailOpen(false);
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (selectedDate && date && isSameDay(selectedDate, date)) {
       setSelectedDate(undefined);
@@ -71,45 +85,44 @@ export default function UserWorks() {
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
-      <h2 className="text-3xl font-bold tracking-tight">User Dashboard: {user.fname}</h2>
-      
+      <h2 className="text-3xl font-bold tracking-tight">
+        User Dashboard: {user.fname}
+      </h2>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* --- คอลัมน์ซ้าย: ปฏิทิน --- */}
+        {/* (ปฏิทิน) */}
         <div className="lg:col-span-1">
-          <JobCalendar 
-            jobs={myJobs} // ส่ง "งานของฉันทั้งหมด" ให้ปฏิทิน
+          <JobCalendar
+            jobs={myJobs}
             selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
           />
         </div>
-
-        {/* --- คอลัมน์ขวา: ตารางงาน --- */}
+        {/* (ตาราง) */}
         <div className="lg:col-span-2 space-y-4">
           <div>
             <h3 className="text-xl font-semibold">
-              {selectedDate 
-                ? `งานในวันที่ ${format(selectedDate, "dd MMM yyyy",{ locale: th })}`
+              {selectedDate
+                ? `งานในวันที่ ${format(selectedDate, "dd MMM yyyy", {
+                    locale: th,
+                  })}`
                 : "งานทั้งหมดของคุณ"}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {selectedDate 
+              {selectedDate
                 ? "คลิกวันที่เดิมอีกครั้งเพื่อดูทั้งหมด"
                 : "คลิกวันที่ในปฏิทินเพื่อกรอง"}
             </p>
           </div>
-          <UserJobTable 
-            jobs={filteredJobs} // ส่ง "งานที่กรองแล้ว" ให้ตาราง
-            onViewJob={handleViewJob}
-          />
+          <UserJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
         </div>
       </div>
 
-      {/* --- Pop-up รายละเอียด (จะ Render เมื่อถูกเรียก) --- */}
+      {/* (Pop-up ... อัปเกรดให้ใช้ "ใบงานสด") */}
       <UserJobDetailDialog
-        job={selectedJob}
+        job={liveSelectedJob}
         open={isDetailOpen}
-        onOpenChange={setIsDetailOpen}
+        onOpenChange={handleCloseDialog}
       />
     </div>
   );
