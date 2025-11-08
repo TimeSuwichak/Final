@@ -1,7 +1,7 @@
 export const leader = [
   // แผนกา (แก้ position + department แล้ว)
   {
-    id: 1,
+    id: 101,
     fname: "บุญมี",
     lname: "แต่กำบัง",
     position: "หัวหน้างาน",
@@ -16,7 +16,7 @@ export const leader = [
     jobsThisMonth: 8,
   },
   {
-    id: 4,
+    id: 104,
     fname: "ประเสริฐ",
     lname: "วงศ์สุวรรณ",
     position: "หัวหน้างาน",
@@ -31,7 +31,7 @@ export const leader = [
     jobsThisMonth: 11,
   },
   {
-    id: 5,
+    id: 105,
     fname: "กิตติศักดิ์",
     lname: "ชัยชนะ",
     position: "หัวหน้างาน",
@@ -46,7 +46,7 @@ export const leader = [
     jobsThisMonth: 5,
   },
   {
-    id: 6,
+    id: 106,
     fname: "สมเกียรติ",
     lname: "เจริญยิ่ง",
     position: "หัวหน้างาน",
@@ -61,7 +61,7 @@ export const leader = [
     jobsThisMonth: 14,
   },
   {
-    id: 7,
+    id: 107,
     fname: "วิรัช",
     lname: "ทองมี",
     position: "หัวหน้างาน",
@@ -78,7 +78,7 @@ export const leader = [
 
   // แผนกอาคารอัจฉริยะ (แก้ position + department แล้ว)
   {
-    id: 2,
+    id: 102,
     fname: "โชคชัย",
     lname: "มณีโชติ",
     position: "หัวหน้างาน",
@@ -93,7 +93,7 @@ export const leader = [
     jobsThisMonth: 9,
   },
   {
-    id: 8,
+    id: 108,
     fname: "อนันต์",
     lname: "สุขเกษม",
     position: "หัวหน้างาน",
@@ -108,7 +108,7 @@ export const leader = [
     jobsThisMonth: 12,
   },
   {
-    id: 9,
+    id: 109,
     fname: "ชาญชัย",
     lname: "รักธรรม",
     position: "หัวหน้างาน",
@@ -123,7 +123,7 @@ export const leader = [
     jobsThisMonth: 6,
   },
   {
-    id: 10,
+    id: 100,
     fname: "พรชัย",
     lname: "โพธิ์ศรี",
     position: "หัวหน้างาน",
@@ -138,7 +138,7 @@ export const leader = [
     jobsThisMonth: 15,
   },
   {
-    id: 11,
+    id: 111,
     fname: "สุรศักดิ์",
     lname: "แสงสุวรรณ",
     position: "หัวหน้างาน",
@@ -155,7 +155,7 @@ export const leader = [
 
   // แผนกโครงสร้างพื้นฐาน (แก้ position + department แล้ว)
   {
-    id: 3,
+    id: 103,
     fname: "วัฒนา",
     lname: "กิจเจริญ",
     position: "หัวหน้างาน",
@@ -170,7 +170,7 @@ export const leader = [
     jobsThisMonth: 10,
   },
   {
-    id: 12,
+    id: 102,
     fname: "นพพร",
     lname: "ทรัพย์มั่นคง",
     position: "หัวหน้างาน",
@@ -185,7 +185,7 @@ export const leader = [
     jobsThisMonth: 4,
   },
   {
-    id: 13,
+    id: 103,
     fname: "ปัญญา",
     lname: "จิตต์สว่าง",
     position: "หัวหน้างาน",
@@ -200,7 +200,7 @@ export const leader = [
     jobsThisMonth: 13,
   },
   {
-    id: 14,
+    id: 114,
     fname: "อมร",
     lname: "เพิ่มพูน",
     position: "หัวหน้างาน",
@@ -215,7 +215,7 @@ export const leader = [
     jobsThisMonth: 7,
   },
   {
-    id: 15,
+    id: 115,
     fname: "ไพศาล",
     lname: "ศรีงาม",
     position: "หัวหน้างาน",

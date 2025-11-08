@@ -46,7 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FaImage } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom"; // ✨ Import useNavigate ✨
 // ==========================================================
 // ข้อมูล Mock Data (สมมติว่า import มาจากไฟล์อื่น)
 // ==========================================================
@@ -70,6 +70,7 @@ const initialFormattedPersonnel = allPersonnel.map((person, index) => {
   const iconProflie = `${person.avatarUrl}`;
   return {
     id: `${person.department.slice(0, 4)}-${person.id}-${index}`,
+    originalId: person.id,
     name: fullName,
     email: email,
     position: person.position,
@@ -421,10 +422,10 @@ export default function Datauser() {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <img
-                          src={item.urlImage}
-                          className="w-8 h-8 rounded-full object-cover bg-muted"
-                          alt={item.name}
-                        />
+                    src={item.urlImage}
+                    className="w-8 h-8 rounded-full object-cover bg-muted"
+                    alt={item.name}
+                  />
                   <div className="overflow-hidden">
                     <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-muted-foreground truncate">
@@ -449,14 +450,17 @@ export default function Datauser() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                            key={item.id}
-                            onClick={() =>
-                              navigate(`/admin/user-detail/:id${item.id}`)
-                            }
-                          >
-                            ดูรายละเอียด
-                          </DropdownMenuItem>
+                    <DropdownMenuItem
+                      key={item.id}
+                      onClick={() =>
+                        navigate(
+                          `/admin/user-detail/${item.id}`, // ส่ง ID ดั้งเดิม (number)
+                          { state: { personnel: allPersonnel } } // ✨ แนบข้อมูลทั้งหมดไปด้วย ✨
+                        )
+                      }
+                    >
+                      ดูรายละเอียด
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
                         setEditingUser(item);
@@ -525,7 +529,7 @@ export default function Datauser() {
                           <DropdownMenuItem
                             key={item.id}
                             onClick={() =>
-                              navigate(`/admin/user-detail/:id${item.id}`)
+                              navigate(`/admin/user-detail/${item.originalId}`)
                             }
                           >
                             ดูรายละเอียด

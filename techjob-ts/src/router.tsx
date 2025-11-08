@@ -24,6 +24,7 @@ import UserDetail from "./pages/admin/UserDetail";
 import ExDashboard from "./pages/executive/ExDashboard";
 import UserWorks from "./pages/user/UserWorks";
 import LeaderWorks from "./pages/leader/LeaderWorks";
+import UserDetailPage from "./pages/admin/UserDetailPage";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -64,6 +65,9 @@ const router = createBrowserRouter([
       { path: "security", element: <ProtectedRoute element={<Security />} /> },
       { path: "theme", element: <ProtectedRoute element={<Theme />} /> },
       { path: "system", element: <ProtectedRoute element={<System />} /> },
+      { path: "user-detail/:userId", element: <UserDetailPage /> }
+        
+
     ],
   },
 
