@@ -58,7 +58,7 @@ import { admin } from "@/Data/admin";
 // ==========================================================
 // แปลพจนานุกรมแผนก (department mapping)
 // ==========================================================
-import { departmentMap } from "@/data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
+import { departmentMap } from "@/Data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -134,7 +134,7 @@ function UserForm({ initialData, onSubmit, onClose }) {
     return positionsByDepartment[department] || [];
   }, [department]);
 
-  const handleImageChange = (event) => {
+  const handleImageChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -145,7 +145,7 @@ function UserForm({ initialData, onSubmit, onClose }) {
     }
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: any) => {
     event.preventDefault();
     if (!fname || !lname || !department || !position) {
       alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
@@ -221,7 +221,7 @@ function UserForm({ initialData, onSubmit, onClose }) {
               <SelectValue placeholder="เลือกตำแหน่ง..." />
             </SelectTrigger>
             <SelectContent>
-              {availablePositions.map((pos) => (
+              {availablePositions.map((pos: any) => (
                 <SelectItem key={pos} value={pos}>
                   {pos}
                 </SelectItem>
@@ -309,7 +309,7 @@ export default function Datauser() {
     });
   }, [query, filterDepartment, filterPosition, personnelData]);
 
-  const handleAddUser = (newUserData) => {
+  const handleAddUser = (newUserData: any) => {
     setPersonnelData((prev) => [
       ...prev,
       { ...newUserData, id: `NEW-${Date.now()}` },
@@ -317,7 +317,7 @@ export default function Datauser() {
     setIsDialogOpen(false);
   };
 
-  const handleUpdateUser = (updatedUserData) => {
+  const handleUpdateUser = (updatedUserData: any) => {
     setPersonnelData((prev) =>
       prev.map((user) =>
         user.id === updatedUserData.id ? updatedUserData : user
@@ -326,7 +326,7 @@ export default function Datauser() {
     setIsDialogOpen(false);
   };
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = (userId: any) => {
     if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?")) {
       setPersonnelData((prev) => prev.filter((user) => user.id !== userId));
     }
@@ -341,7 +341,7 @@ export default function Datauser() {
   };
 
   return (
-    <div className="w-full space-y-4 p-4 md:p-6">
+    <div className="w-full space-y-4 p-4 md:p-6 m-5">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
         <div className="relative w-full md:w-auto md:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -410,9 +410,9 @@ export default function Datauser() {
         </div>
       </div>
 
-      <div className="rounded-xl border shadow-sm overflow-hidden">
+      <div className="rounded-xl border shadow-sm overflow-hidden ">
         {/* Mobile View */}
-        <div className="flex flex-col gap-3 md:hidden p-2">
+        <div className="flex flex-col gap-3 md:hidden p-2 ">
           {pagedData.length > 0 ? (
             pagedData.map((item) => (
               <div
@@ -421,9 +421,10 @@ export default function Datauser() {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <img
-                    src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
-                    className="w-12 h-12 rounded-full object-cover bg-muted `flex-shrink-0`"
-                  />
+                          src={item.urlImage}
+                          className="w-8 h-8 rounded-full object-cover bg-muted"
+                          alt={item.name}
+                        />
                   <div className="overflow-hidden">
                     <div className="font-medium truncate">{item.name}</div>
                     <div className="text-sm text-muted-foreground truncate">
@@ -448,6 +449,14 @@ export default function Datauser() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                            key={item.id}
+                            onClick={() =>
+                              navigate(`/admin/user-detail/:id${item.id}`)
+                            }
+                          >
+                            ดูรายละเอียด
+                          </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
                         setEditingUser(item);
