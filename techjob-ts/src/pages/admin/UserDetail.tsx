@@ -1,9 +1,15 @@
 import { useParams } from "react-router-dom"
 import { user } from "@/Data/user"
+import { leader } from "@/Data/leader"
+import { executive } from "@/Data/executive"
+import { admin } from "@/Data/admin"
 
 const UserDetail = () => {
   const { id } = useParams() // ดึง id จาก URL
   const userData = user.find((item) => item.id === Number(id)) // หาใน array
+    || leader.find((item) => item.id === Number(id))
+    || executive.find((item) => item.id === Number(id))
+    || admin.find((item) => item.id === Number(id))
 
   if (!userData) {
     return <div className="p-6">ไม่พบข้อมูลผู้ใช้</div>

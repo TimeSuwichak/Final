@@ -453,10 +453,7 @@ export default function Datauser() {
                     <DropdownMenuItem
                       key={item.id}
                       onClick={() =>
-                        navigate(
-                          `/admin/user-detail/${item.id}`, // ส่ง ID ดั้งเดิม (number)
-                          { state: { personnel: allPersonnel } } // ✨ แนบข้อมูลทั้งหมดไปด้วย ✨
-                        )
+                        navigate(`/admin/user-detail/${item.id}`) // ส่ง ID ดั้งเดิม (number)
                       }
                     >
                       ดูรายละเอียด
