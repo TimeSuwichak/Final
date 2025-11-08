@@ -93,7 +93,8 @@ export function EditJobDialog({
   const [customerContactOther, setCustomerContactOther] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
-  const [selectedLead, setSelectedLead] = useState<any | null>(null); // ✨ [สำคัญ] State สำหรับเก็บ "Object เต็ม" ของ Leader
+
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // <-- ✨ กลับมาใช้ ID (string) ✨
 
   // --- EFFECT: "ซิงค์" ข้อมูลจาก prop `job` เข้ามาใน State ของฟอร์ม ---
   // Effect นี้จะทำงานทุกครั้งที่ Dialog เปิด หรือ `job` ที่ถูกส่งเข้ามาเปลี่ยนแปลง
@@ -108,7 +109,7 @@ export function EditJobDialog({
       setStartDate(job.startDate ? new Date(job.startDate) : undefined);
       setEndDate(job.endDate ? new Date(job.endDate) : undefined);
       // ✨ [สำคัญ] ค้นหาและตั้งค่า "Object เต็ม" ของ Leader ที่ถูกเลือก
-      setSelectedLead(ALL_LEADERS.find((l) => l.id === job.leadId) || null);
+      setSelectedLeadId(job.leadId ? String(job.leadId) : null);
     }
   }, [open, job]);
 
@@ -160,6 +161,10 @@ export function EditJobDialog({
       return;
     }
 
+    if (selectedLeadId !== String(job.leadId)) {
+      // แปลงกลับเป็น number ตอนจะบันทึก
+      changes.leadId = selectedLeadId ? Number(selectedLeadId) : null;
+    }
     setPendingChanges(changes);
     setIsAlertOpen(true);
   };
@@ -405,8 +410,8 @@ export function EditJobDialog({
                       <Label>หัวหน้างาน* (จะแสดงเฉพาะคนที่ว่าง)</Label>
                       <LeaderSelect
                         leaders={availableLeads}
-                        selectedLead={selectedLead} // ✨ [สำคัญ] ส่ง "Object เต็ม"
-                        onSelect={setSelectedLead} // ✨ [สำคัญ] ส่ง "Setter" ที่รับ "Object เต็ม"
+                        selectedValue={selectedLeadId} // <-- ส่ง ID (string)
+                        onValueChange={setSelectedLeadId} // <-- ส่ง setter ที่รับ ID (string)
                         disabled={!startDate || !endDate}
                       />
                     </div>

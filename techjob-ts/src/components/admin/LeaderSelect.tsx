@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/select";
 // (ในอนาคตอาจจะ import Type 'Leader' มาจาก /types)
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Leader } from "@/types/index";
 
-// ▼▼▼ 1. (เพิ่ม!) "พิมพ์เขียว" ต้องรับ 'selectedValue' (ที่เป็น optional) ▼▼▼
 interface LeaderSelectProps {
-  leaders: any[];
-  onSelect: (id: string | null) => void;
+  leaders: Leader[];
+  selectedValue: string | null; // <-- รับแค่ ID (string)
+  onValueChange: (id: string) => void; // <-- ส่งกลับแค่ ID (string)
   disabled: boolean;
-  selectedValue?: string | null; // <-- เพิ่ม Prop นี้
 }
 
 export function LeaderSelect({ leaders, onSelect, disabled, selectedValue }: LeaderSelectProps) {

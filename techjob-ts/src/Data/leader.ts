@@ -1,11 +1,11 @@
 export const leader = [
-  // แผนกระบบเครือข่ายและความปลอดภัย
+  // แผนกา (แก้ position + department แล้ว)
   {
     id: 1,
     fname: "บุญมี",
     lname: "แต่กำบัง",
-    position: "หัวหน้าแผนกระบบเครือข่ายและความปลอดภัย",
-    department: "network_security", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "boonmee@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -19,8 +19,8 @@ export const leader = [
     id: 4,
     fname: "ประเสริฐ",
     lname: "วงศ์สุวรรณ",
-    position: "หัวหน้าแผนกระบบเครือข่ายและความปลอดภัย",
-    department: "network_security", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "prasert@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -34,8 +34,8 @@ export const leader = [
     id: 5,
     fname: "กิตติศักดิ์",
     lname: "ชัยชนะ",
-    position: "หัวหน้าแผนกระบบเครือข่ายและความปลอดภัย",
-    department: "network_security", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "kittisak@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -49,8 +49,8 @@ export const leader = [
     id: 6,
     fname: "สมเกียรติ",
     lname: "เจริญยิ่ง",
-    position: "หัวหน้าแผนกระบบเครือข่ายและความปลอดภัย",
-    department: "network_security", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "somkiat.j@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -64,8 +64,8 @@ export const leader = [
     id: 7,
     fname: "วิรัช",
     lname: "ทองมี",
-    position: "หัวหน้าแผนกระบบเครือข่ายและความปลอดภัย",
-    department: "network_security", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "wirat@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -76,13 +76,13 @@ export const leader = [
     jobsThisMonth: 7,
   },
 
-  // แผนกระบบอาคารอัจฉริยะและมัลติมีเดีย
+  // แผนกอาคารอัจฉริยะ (แก้ position + department แล้ว)
   {
     id: 2,
     fname: "โชคชัย",
     lname: "มณีโชติ",
-    position: "หัวหน้าแผนกระบบอาคารอัจฉริยะ",
-    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "chokchai@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -96,8 +96,8 @@ export const leader = [
     id: 8,
     fname: "อนันต์",
     lname: "สุขเกษม",
-    position: "หัวหน้าแผนกระบบอาคารอัจฉริยะ",
-    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "anan@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -111,8 +111,8 @@ export const leader = [
     id: 9,
     fname: "ชาญชัย",
     lname: "รักธรรม",
-    position: "หัวหน้าแผนกระบบอาคารอัจฉริยะ",
-    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "chanchai@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -126,8 +126,8 @@ export const leader = [
     id: 10,
     fname: "พรชัย",
     lname: "โพธิ์ศรี",
-    position: "หัวหน้าแผนกระบบอาคารอัจฉริยะ",
-    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "pornchai@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -141,8 +141,8 @@ export const leader = [
     id: 11,
     fname: "สุรศักดิ์",
     lname: "แสงสุวรรณ",
-    position: "หัวหน้าแผนกระบบอาคารอัจฉริยะ",
-    department: "smart_building_multimedia", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "surasak@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -153,13 +153,13 @@ export const leader = [
     jobsThisMonth: 3,
   },
 
-  // แผนกโครงสร้างพื้นฐานและไฟฟ้า
+  // แผนกโครงสร้างพื้นฐาน (แก้ position + department แล้ว)
   {
     id: 3,
     fname: "วัฒนา",
     lname: "กิจเจริญ",
-    position: "หัวหน้าแผนกโครงสร้างพื้นฐาน",
-    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "wattana@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -173,8 +173,8 @@ export const leader = [
     id: 12,
     fname: "นพพร",
     lname: "ทรัพย์มั่นคง",
-    position: "หัวหน้าแผนกโครงสร้างพื้นฐาน",
-    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "nopporn@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -188,8 +188,8 @@ export const leader = [
     id: 13,
     fname: "ปัญญา",
     lname: "จิตต์สว่าง",
-    position: "หัวหน้าแผนกโครงสร้างพื้นฐาน",
-    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "panya@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -203,8 +203,8 @@ export const leader = [
     id: 14,
     fname: "อมร",
     lname: "เพิ่มพูน",
-    position: "หัวหน้าแผนกโครงสร้างพื้นฐาน",
-    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "amorn@techjob.com",
     password: "lead1234",
     role: "leader",
@@ -218,8 +218,8 @@ export const leader = [
     id: 15,
     fname: "ไพศาล",
     lname: "ศรีงาม",
-    position: "หัวหน้าแผนกโครงสร้างพื้นฐาน",
-    department: "infrastructure_electrical", // <-- แก้ไขแล้ว
+    position: "หัวหน้างาน",
+    department: "ฝ่ายควบคุมงาน",
     email: "paisan@techjob.com",
     password: "lead1234",
     role: "leader",
