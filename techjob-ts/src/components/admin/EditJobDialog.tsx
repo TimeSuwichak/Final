@@ -138,6 +138,7 @@ export function EditJobDialog({
 
   // --- HANDLERS ---
   const handleSave = () => {
+    console.log("--- 'บันทึกการแก้ไข' button clicked! ---");
     if (!job) return;
     const changes: Partial<Job> = {};
     if (title !== job.title) changes.title = title;
@@ -153,18 +154,15 @@ export function EditJobDialog({
       changes.startDate = startDate;
     if (endDate?.getTime() !== new Date(job.endDate).getTime())
       changes.endDate = endDate;
-    if (selectedLead?.id !== job.leadId) changes.leadId = selectedLead?.id;
-
+    if (selectedLeadId !== String(job.leadId)) {
+      changes.leadId = selectedLeadId ? Number(selectedLeadId) : null;
+    }
     if (Object.keys(changes).length === 0) {
       alert("ไม่มีข้อมูลเปลี่ยนแปลง");
-      onOpenChange(false);
+      onOpenChange(false); // ปิด Dialog
       return;
     }
 
-    if (selectedLeadId !== String(job.leadId)) {
-      // แปลงกลับเป็น number ตอนจะบันทึก
-      changes.leadId = selectedLeadId ? Number(selectedLeadId) : null;
-    }
     setPendingChanges(changes);
     setIsAlertOpen(true);
   };
