@@ -30,7 +30,7 @@ interface LeaderJobDetailDialogProps {
 }
 
 export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDetailDialogProps) {
-    const { updateJob } = useJobs();
+    const { updateJobWithActivity } = useJobs();
     const { user } = useAuth(); 
 
     const [draftTechs, setDraftTechs] = useState<string[]>([]);
@@ -45,8 +45,14 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
 
     // --- ฟังก์ชัน "รับทราบงาน" ---
     const handleAcknowledge = () => {
-        const reason = "หัวหน้างานรับทราบและยืนยันใบงาน";
-        updateJob(job.id, { status: 'in-progress' }, reason, user.fname);
+        updateJobWithActivity(
+            job.id,
+            { status: 'in-progress' },
+            'acknowledge',
+            "หัวหน้างานรับทราบและยืนยันใบงาน",
+            user.fname,
+            'leader'
+        );
         // (เราจะไม่ปิด Pop-up เพื่อให้ Leader จ่ายงานต่อได้เลย)
     };
 
@@ -56,8 +62,15 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
             alert("ไม่ได้เปลี่ยนแปลงทีมช่าง");
             return;
         }
-        const reason = "อัปเดต/มอบหมายทีมช่างเทคนิค";
-        updateJob(job.id, { assignedTechs: draftTechs }, reason, user.fname);
+        updateJobWithActivity(
+            job.id,
+            { assignedTechs: draftTechs },
+            'tech_assigned',
+            `อัปเดต/มอบหมายทีมช่างเทคนิค (${draftTechs.length} คน)`,
+            user.fname,
+            'leader',
+            { techIds: draftTechs }
+        );
         alert("บันทึกทีมช่างเรียบร้อย!");
     };
 

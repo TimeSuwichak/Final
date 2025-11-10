@@ -1,7 +1,7 @@
 // src/contexts/JobContext.tsx (ฉบับอัปเกรดให้ "จำเก่ง")
 "use client";
 
-import type { EditHistory, Job } from '@/types/index';
+import type { EditHistory, ActivityLog, Job } from '@/types/index';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'; // 1. Import useEffect
 
 
@@ -16,13 +16,17 @@ const reviveDates = (job: any): Job => {
     startDate: new Date(job.startDate),
     endDate: new Date(job.endDate),
     createdAt: new Date(job.createdAt),
-    editHistory: job.editHistory.map((entry: any) => ({
+    editHistory: (job.editHistory || []).map((entry: any) => ({
       ...entry,
       editedAt: new Date(entry.editedAt),
     })),
-    tasks: job.tasks.map((task: any) => ({
+    activityLog: (job.activityLog || []).map((entry: any) => ({
+      ...entry,
+      timestamp: new Date(entry.timestamp),
+    })),
+    tasks: (job.tasks || []).map((task: any) => ({
       ...task,
-      updates: task.updates.map((update: any) => ({
+      updates: (task.updates || []).map((update: any) => ({
         ...update,
         updatedAt: new Date(update.updatedAt),
       })),
@@ -48,8 +52,25 @@ const loadJobsFromStorage = (): Job[] => {
 // --- สร้าง Context (เหมือนเดิม) ---
 interface JobContextType {
   jobs: Job[];
-  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator'>, adminName: string) => void;
+  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator' | 'editHistory' | 'activityLog'>, adminName: string) => void;
   updateJob: (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => void;
+  addActivityLog: (
+    jobId: string, 
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => void;
+  updateJobWithActivity: (
+    jobId: string,
+    updatedData: Partial<Job>,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => void;
 }
 
 const JobContext = createContext<JobContextType | undefined>(undefined);
@@ -87,6 +108,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       createdAt: date,
       status: 'new',
       editHistory: [],
+      activityLog: [],
       tasks: [],
       assignedTechs: [],
     };
@@ -94,7 +116,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     setJobs(prevJobs => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
   };
 
-  // --- ฟังก์ชัน "อัปเดตใบงาน" (เหมือนเดิม) ---
+  // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---
   const updateJob = (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => {
     setJobs(prevJobs =>
       prevJobs.map(job => {
@@ -109,7 +131,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           return {
             ...job,
             ...updatedData,
-            editHistory: [...job.editHistory, newHistory]
+            editHistory: [...(job.editHistory || []), newHistory]
           };
         }
         return job;
@@ -117,8 +139,72 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     ); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
   };
 
+  // --- ฟังก์ชัน "เพิ่ม Activity Log" (สำหรับ Leader/Tech เท่านั้น) ---
+  const addActivityLog = (
+    jobId: string,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => {
+    setJobs(prevJobs =>
+      prevJobs.map(job => {
+        if (job.id === jobId) {
+          const newActivity: ActivityLog = {
+            actorName,
+            actorRole,
+            activityType,
+            message,
+            timestamp: new Date(),
+            metadata,
+          };
+
+          return {
+            ...job,
+            activityLog: [...(job.activityLog || []), newActivity]
+          };
+        }
+        return job;
+      })
+    );
+  };
+
+  // --- ฟังก์ชัน "อัปเดตงานพร้อม Activity Log" (สำหรับ Leader/Tech) ---
+  const updateJobWithActivity = (
+    jobId: string,
+    updatedData: Partial<Job>,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => {
+    setJobs(prevJobs =>
+      prevJobs.map(job => {
+        if (job.id === jobId) {
+          const newActivity: ActivityLog = {
+            actorName,
+            actorRole,
+            activityType,
+            message,
+            timestamp: new Date(),
+            metadata,
+          };
+
+          return {
+            ...job,
+            ...updatedData,
+            activityLog: [...(job.activityLog || []), newActivity]
+          };
+        }
+        return job;
+      })
+    );
+  };
+
   return (
-    <JobContext.Provider value={{ jobs, addJob, updateJob }}>
+    <JobContext.Provider value={{ jobs, addJob, updateJob, addActivityLog, updateJobWithActivity }}>
       {children}
     </JobContext.Provider>
   );

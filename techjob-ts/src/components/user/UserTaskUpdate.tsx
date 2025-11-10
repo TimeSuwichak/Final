@@ -17,7 +17,7 @@ interface UserTaskUpdateProps {
 }
 
 export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
-  const { updateJob } = useJobs();
+  const { updateJobWithActivity } = useJobs();
   const { user } = useAuth(); // ช่างที่ Login อยู่
 
   // State สำหรับฟอร์ม "ส่งอัปเดต"
@@ -44,7 +44,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
     // 2. สร้าง "Task" object ที่อัปเดตแล้ว
     const updatedTask: Task = {
       ...task,
-      updates: [...task.updates, newUpdate], // เพิ่ม "Update" ใหม่เข้าไป
+      updates: [...(task.updates || []), newUpdate], // เพิ่ม "Update" ใหม่เข้าไป
       status: 'in-progress', // (อาจจะเปลี่ยน status ด้วยก็ได้)
     };
 
@@ -53,12 +53,15 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
       t.id === task.id ? updatedTask : t
     );
 
-    // 4. เรียก "สมอง" ให้อัปเดตใบงาน
-    updateJob(
+    // 4. เรียก "สมอง" ให้อัปเดตใบงานพร้อม Activity Log
+    updateJobWithActivity(
       job.id,
       { tasks: updatedTasks }, // สิ่งที่อัปเดต
-      `ช่าง (${user.fname}) อัปเดต Task: ${task.title}`, // เหตุผลการแก้ไข (สำหรับ Admin)
-      user.fname
+      'task_updated', // activity type
+      `อัปเดต Task: ${task.title} - ${message}`, // ข้อความ
+      user.fname, // ชื่อช่าง
+      'tech', // บทบาท
+      { taskId: task.id, taskTitle: task.title } // metadata
     );
 
     // 5. เคลียร์ฟอร์ม
@@ -75,7 +78,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
       {/* --- 2. ประวัติการอัปเดต (จากช่าง) --- */}
       <div className="space-y-2 max-h-[150px] overflow-auto pr-2">
-        {task.updates.length > 0 ? (
+        {task.updates && task.updates.length > 0 ? (
           task.updates.map((update, index) => (
             <div key={index} className="text-xs p-2 bg-background rounded-md border">
               <p><strong>{update.updatedBy}</strong> ({format(update.updatedAt, "dd/MM/yy HH:mm")}):</p>

@@ -234,26 +234,55 @@ export function EditJobDialog({
                         <TabsTrigger value="leader">ความคืบหน้า (Leader/Tech)</TabsTrigger>
                         <TabsTrigger value="admin">ประวัติแก้ไข (Admin)</TabsTrigger>
                       </TabsList>
-                      <TabsContent value="leader" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
-                        {job.tasks.length === 0 && (
-                          <p className="text-sm text-muted-foreground p-4 text-center">หัวหน้ายังไม่สร้าง Task</p>
-                        )}
-                        {job.tasks.map((task) => (
-                          <div key={task.id} className="p-3 border rounded-md">
-                            <p className="font-semibold">{task.title}</p>
-                            <p className="text-xs text-muted-foreground">{task.description}</p>
-                            {task.updates.map((update, idx) => (
-                              <div key={idx} className="mt-2 p-2 bg-background rounded-md text-xs border">
-                                <p>
-                                  <strong>{update.updatedBy}</strong> (เมื่อ{" "}
-                                  {format(update.updatedAt, "PPpp", { locale: th })}):
-                                </p>
-                                <p>{update.message}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </TabsContent>
+                      <TabsContent value="leader" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
+                        {/* แสดง Activity Log */}
+                        {(!job.activityLog || job.activityLog.length === 0) && job.tasks.length === 0 && (
+                          <p className="text-sm text-muted-foreground p-4 text-center">ยังไม่มีความคืบหน้า</p>
+                        )}
+                        {job.activityLog && job.activityLog.length > 0 && (
+                          <div className="space-y-2">
+                            {job.activityLog.map((activity, idx) => (
+                              <div key={idx} className="p-3 bg-muted rounded-md text-sm">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold">{activity.actorName}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({activity.actorRole === 'leader' ? 'หัวหน้า' : 'ช่าง'})
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    - {format(activity.timestamp, "PPpp", { locale: th })}
+                                  </span>
+                                </div>
+                                <p className="text-sm">{activity.message}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {/* แสดง Tasks */}
+                        {job.tasks.length > 0 && (
+                          <div className="mt-4 space-y-2">
+                            <h5 className="font-semibold text-sm">งานย่อย (Tasks)</h5>
+                            {job.tasks.map((task) => (
+                              <div key={task.id} className="p-3 border rounded-md">
+                                <p className="font-semibold text-sm">{task.title}</p>
+                                <p className="text-xs text-muted-foreground">{task.description}</p>
+                                {task.updates && task.updates.length > 0 && (
+                                  <div className="mt-2 space-y-1">
+                                    {task.updates.map((update, idx) => (
+                                      <div key={idx} className="p-2 bg-background rounded-md text-xs border">
+                                        <p>
+                                          <strong>{update.updatedBy}</strong> (เมื่อ{" "}
+                                          {format(update.updatedAt, "PPpp", { locale: th })}):
+                                        </p>
+                                        <p>{update.message}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </TabsContent>
                       <TabsContent value="admin" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
                         {job.editHistory.length === 0 && (
                           <p className="text-sm text-muted-foreground p-4 text-center">ยังไม่มีการแก้ไขโดย Admin</p>

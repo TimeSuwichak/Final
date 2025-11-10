@@ -102,7 +102,6 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         assignedTechs: [],
         tasks: [],
         status: "new",
-        editHistory: [],
       },
       adminName
     );

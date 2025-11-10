@@ -16,7 +16,7 @@ interface TaskManagementProps {
 }
 
 export function TaskManagement({ job }: TaskManagementProps) {
-  const { updateJob } = useJobs();
+  const { updateJobWithActivity } = useJobs();
   const { user } = useAuth(); // Leader ที่ Login อยู่
 
   // State สำหรับฟอร์ม "สร้าง Task ใหม่"
@@ -43,12 +43,15 @@ export function TaskManagement({ job }: TaskManagementProps) {
     // 2. สร้าง Array "Tasks" ชุดใหม่ (ของเก่า + ของใหม่)
     const updatedTasks = [...job.tasks, newTask];
 
-    // 3. เรียก "สมอง" ให้อัปเดตใบงาน
-    updateJob(
+    // 3. เรียก "สมอง" ให้อัปเดตใบงานพร้อม Activity Log
+    updateJobWithActivity(
       job.id, 
       { tasks: updatedTasks }, // สิ่งที่อัปเดต
-      `เพิ่ม Task ใหม่: ${newTitle}`, // เหตุผลการแก้ไข
-      user.fname // ชื่อคนแก้
+      'task_created', // activity type
+      `เพิ่ม Task ใหม่: ${newTitle}`, // ข้อความ
+      user.fname, // ชื่อคนทำ
+      'leader', // บทบาท
+      { taskId: newTask.id, taskTitle: newTitle } // metadata
     );
 
     // 4. เคลียร์ฟอร์ม
