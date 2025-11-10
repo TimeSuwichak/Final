@@ -451,11 +451,11 @@ export default function Datauser() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem
-                      key={item.id}
-                      onClick={() =>
-                        navigate(`/admin/user-detail/${item.id}`) // ส่ง ID ดั้งเดิม (number)
-                      }
-                    >
+                            key={item.id}
+                            onClick={() =>
+                              navigate(`/admin/user-detail/${item.originalId}`)
+                            }
+                          >
                       ดูรายละเอียด
                     </DropdownMenuItem>
                     <DropdownMenuItem
