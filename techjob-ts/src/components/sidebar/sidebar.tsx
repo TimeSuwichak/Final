@@ -10,6 +10,7 @@ import { HiMenu, HiX } from "react-icons/hi";
 import { ModeToggle } from "../common/mode-toggle";
 import LogoutButton from "../auth/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
+import techJobLogo from "@/assets/techjob-logo.png"; // ตัวอย่าง path
 
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -20,7 +21,6 @@ export default function Sidebar() {
   const activeLinkClass = "border-l-4 border-purple-500";
   const inactiveLinkClass = "border-l-4 border-transparent";
 
-  // 🧭 Config เมนูแต่ละ role
   const menuConfig = {
     user: [
       { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
@@ -36,13 +36,11 @@ export default function Sidebar() {
       { path: "/admin/report", icon: <TbAlertHexagon />, label: "การแจ้งปัญหา" },
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
-
-        leader: [
+    leader: [
       { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
     ],
   };
 
-  // 🧩 ดึง role ปัจจุบันจาก user (default เป็น user)
   const role = user?.role?.toLowerCase() || "user";
   const menuItems = menuConfig[role] || menuConfig.user;
 
@@ -67,7 +65,14 @@ export default function Sidebar() {
       >
         {/* Header */}
         <div>
-          <div className="p-5 pl-8 text-white text-xl font-bold">TECH JOB</div>
+          <div className="p-5 pl-8 text-white text-xl font-bold flex items-center gap-3">
+            <img
+              src={techJobLogo}
+              alt="TechJob Logo"
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+
           <nav className="flex flex-col gap-2 px-4">
             {menuItems.map((item) => (
               <NavLink
@@ -123,3 +128,4 @@ export default function Sidebar() {
     </div>
   );
 }
+
