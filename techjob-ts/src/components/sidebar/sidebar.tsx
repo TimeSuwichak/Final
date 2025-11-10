@@ -11,6 +11,7 @@ import { ModeToggle } from "../common/mode-toggle";
 import LogoutButton from "../auth/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import techJobLogo from "@/assets/techjob-logo.png"; // ตัวอย่าง path
+import { JobProvider } from "@/contexts/JobContext";
 
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
