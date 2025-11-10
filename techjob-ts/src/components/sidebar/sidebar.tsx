@@ -24,7 +24,7 @@ export default function Sidebar() {
   const menuConfig = {
     user: [
       { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/user/workorders", icon: <MdEngineering />, label: "การเข้างานช่าง" },
+      { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
@@ -39,24 +39,30 @@ export default function Sidebar() {
     leader: [
       { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
     ],
+
+    executive: [
+      { path: "/executive/exdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+    ],
+
   };
 
   const role = user?.role?.toLowerCase() || "user";
   const menuItems = menuConfig[role] || menuConfig.user;
 
   return (
-    <div className="flex h-screen">
-      {/* ปุ่มเปิด/ปิด sidebar สำหรับ mobile */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="absolute top-4 left-4 z-50 p-2 text-white bg-[#222] rounded-md md:hidden"
-      >
-        {isSidebarOpen ? <HiX size={24} /> : <HiMenu size={24} />}
-      </button>
+    <JobProvider>
+      <div className="flex h-screen">
+        {/* ปุ่มเปิด/ปิด sidebar สำหรับ mobile */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute top-4 left-4 z-50 p-2 text-white bg-[#222] rounded-md md:hidden"
+        >
+          {isSidebarOpen ? <HiX size={24} /> : <HiMenu size={24} />}
+        </button>
 
-      {/* Sidebar */}
-      <div
-        className={`
+        {/* Sidebar */}
+        <div
+          className={`
           fixed inset-y-0 left-0 w-64 bg-[#111014] flex flex-col justify-between border-r border-[#222]
           transform transition-transform duration-300 z-40
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
@@ -90,42 +96,43 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-[#222] space-y-4">
-          {user && (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-600/50 flex items-center justify-center font-bold text-purple-200">
-                {user.fname.charAt(0)}
+          {/* Footer */}
+          <div className="p-4 border-t border-[#222] space-y-4">
+            {user && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-600/50 flex items-center justify-center font-bold text-purple-200">
+                  {user.fname.charAt(0)}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-semibold text-white truncate">
+                    {user.fname} {user.lname}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">{user.role}</p>
+                </div>
+                <ModeToggle />
               </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-semibold text-white truncate">
-                  {user.fname} {user.lname}
-                </p>
-                <p className="text-xs text-gray-400 truncate">{user.role}</p>
-              </div>
-              <ModeToggle />
-            </div>
-          )}
+            )}
 
-          <div className="w-full">
-            <LogoutButton />
+            <div className="w-full">
+              <LogoutButton />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* เนื้อหาหลัก */}
-      <div className="flex-1 p-6 overflow-auto md:ml-0">
-        <Outlet />
-      </div>
+        {/* เนื้อหาหลัก */}
+        <div className="flex-1 p-6 overflow-auto md:ml-0">
+          <Outlet />
+        </div>
 
-      {/* Overlay (mobile) */}
-      {isSidebarOpen && (
-        <div
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black opacity-40 md:hidden z-30"
-        ></div>
-      )}
-    </div>
+        {/* Overlay (mobile) */}
+        {isSidebarOpen && (
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black opacity-40 md:hidden z-30"
+          ></div>
+        )}
+      </div>
+    </JobProvider>
   );
 }
 

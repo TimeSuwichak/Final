@@ -20,6 +20,11 @@ import UserDashboard from "./pages/user/UserDashboard";
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import ReportProblem from "./pages/user/ReportProblem";
 import ProtectedRoute from "./components/ProtectedRoute";
+import UserDetail from "./pages/admin/UserDetail";
+import ExDashboard from "./pages/executive/ExDashboard";
+import UserWorks from "./pages/user/UserWorks";
+import LeaderWorks from "./pages/leader/LeaderWorks";
+import UserDetailPage from "./pages/admin/UserDetailPage";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -35,6 +40,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
       },
       { path: "admin/datauser", element: <ProtectedRoute allowedRoles={["admin"]} element={<Datauser />} /> },
+      { path: "admin/user-detail/:id", element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetail />} /> },
       { path: "admin/workoders", element: <ProtectedRoute allowedRoles={["admin"]} element={<WorkOders />} /> },
       { path: "admin/material", element: <ProtectedRoute allowedRoles={["admin"]} element={<MaterialPage />} /> },
       { path: "admin/report", element: <ProtectedRoute allowedRoles={["admin"]} element={<Report />} /> },
@@ -43,9 +49,14 @@ const router = createBrowserRouter([
       // ──────── USER ────────
       { path: "user/userdashboard", element: <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} /> },
       { path: "user/report-problem", element: <ProtectedRoute allowedRoles={["user"]} element={<ReportProblem />} /> },
+      { path: "user/userworks", element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} /> },
 
       // ──────── LEADER ────────
       { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
+      { path: "leader/leaderworks", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> },
+
+      // ──────── Executive ────────
+      { path: "executive/exdashboard", element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} /> },
 
       // ──────── COMMON SETTINGS ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
@@ -54,6 +65,9 @@ const router = createBrowserRouter([
       { path: "security", element: <ProtectedRoute element={<Security />} /> },
       { path: "theme", element: <ProtectedRoute element={<Theme />} /> },
       { path: "system", element: <ProtectedRoute element={<System />} /> },
+      { path: "user-detail/:userId", element: <UserDetailPage /> }
+        
+
     ],
   },
 
