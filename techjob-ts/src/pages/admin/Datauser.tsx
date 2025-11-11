@@ -76,6 +76,7 @@ const initialFormattedPersonnel = allPersonnel.map((person, index) => {
     position: person.position,
     department: person.department,
     urlImage: iconProflie,
+    role: (person as any).role || "user",
   };
 });
 
@@ -390,14 +391,18 @@ export default function Datauser() {
             <SelectTrigger className="w-full `sm:w-[240px]`">
               <SelectValue placeholder="เลือกตำแหน่ง" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ทั้งหมด">ตำแหน่ง (ทั้งหมด)</SelectItem>
-              {availablePositionsForFilter.map((pos) => (
-                <SelectItem key={pos} value={pos}>
-                  {pos}
+              <SelectContent>
+                <SelectItem value="ทั้งหมด">
+                  {filterDepartment === "ทั้งหมด"
+                    ? "ตำแหน่ง (ทั้งหมด)"
+                    : `ตำแหน่ง (${departmentMap[filterDepartment]})`}
                 </SelectItem>
-              ))}
-            </SelectContent>
+                {availablePositionsForFilter.map((pos) => (
+                  <SelectItem key={pos} value={pos}>
+                    {pos}
+                  </SelectItem>
+                ))}
+              </SelectContent>
           </Select>
           <Button
             onClick={() => {
@@ -490,8 +495,8 @@ export default function Datauser() {
               <TableRow>
                 <TableHead className="w-[280px]">ชื่อ</TableHead>
                 <TableHead>อีเมล</TableHead>
-                <TableHead className="w-[280px]">ตำแหน่ง</TableHead>
                 <TableHead className="w-[280px]">แผนก</TableHead>
+                <TableHead className="w-[280px]">บทบาท</TableHead>
                 <TableHead className="text-right `w-[80px]`">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
@@ -510,10 +515,10 @@ export default function Datauser() {
                       </div>
                     </TableCell>
                     <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.position}</TableCell>
                     <TableCell>
                       {departmentMap[item.department] || item.department}
                     </TableCell>
+                    <TableCell className="">{item.role}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
