@@ -11,39 +11,46 @@ import { th } from "date-fns/locale";
 // --- SHADCN/UI & CUSTOM COMPONENTS ---
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { leader as ALL_LEADERS } from "@/data/leader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import type { Job } from "@/types/index";
 
 // --- CONSTANTS ---
@@ -305,80 +312,116 @@ export function EditJobDialog({
               </DialogFooter>
             </>
           ) : (
-            // --- โหมด "แก้ไข" ---
-            <>
-              <ScrollArea className="h-[70vh] p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">1. รายละเอียดงาน (โหมดแก้ไข)</h4>
-                    <div>
-                      <Label>หัวข้องาน*</Label>
-                      <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label>ประเภทงาน*</Label>
-                      <Select onValueChange={setJobType} value={jobType}>
-                        <SelectTrigger><SelectValue placeholder="เลือกประเภทงาน..." /></SelectTrigger>
-                        <SelectContent>
-                          {JOB_TYPES.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>รายละเอียดงาน</Label>
-                      <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">2. ข้อมูลลูกค้า</h4>
-                    <div>
-                      <Label>ชื่อลูกค้า*</Label>
-                      <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-                    </div>
-                    <div>
-                    {/* (ลบ * ออก) */}
-                      <Label>เบอร์โทร</Label>
-                      <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label>ติดต่ออื่นๆ</Label>
-                      <Input value={customerContactOther} onChange={(e) => setCustomerContactOther(e.target.value)} />
-                    </div>
-                    <h4 className="font-semibold pt-4">3. มอบหมายงาน</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>วันเริ่มงาน*</Label>
-                        <DatePicker date={startDate} setDate={setStartDate} />
-                      </div>
-                      <div>
-                        <Label>วันจบงาน*</Label>
-                        <DatePicker date={endDate} setDate={setEndDate} />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>หัวหน้างาน* (จะแสดงเฉพาะคนที่ว่าง)</Label>
-                      
-                      {/* (โค้ดส่วนนี้ถูกต้องอยู่แล้ว) */}
-                      <LeaderSelect
-                        leaders={availableLeads}
-                        selectedValue={selectedLeadId} // <-- ส่ง ID (string | null)
-                        onValueChange={setSelectedLeadId} // <-- ส่ง setter ที่รับ ID (string)
-                        disabled={!startDate || !endDate}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </ScrollArea>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => onModeChange("view")}>
-                  กลับไปโหมดดู
-                </Button>
-                <Button onClick={handleSave}>บันทึกการแก้ไข</Button>
-              </DialogFooter>
-            </>
-          )}
+            // --- โหมด "แก้ไข" ---
+            <>
+              <ScrollArea className="h-[70vh] p-4">
+                <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>ข้อมูลพื้นฐาน</CardTitle>
+                      <CardDescription>อัปเดตหัวข้องานและประเภทงาน</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <Label className="mb-1 block text-sm font-medium">หัวข้องาน*</Label>
+                        <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="mb-1 block text-sm font-medium">ประเภทงาน*</Label>
+                        <Select onValueChange={setJobType} value={jobType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="เลือกประเภทงาน..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {JOB_TYPES.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label className="mb-1 block text-sm font-medium">รายละเอียดงาน</Label>
+                        <Textarea
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          rows={6}
+                          placeholder="รายละเอียด, ขอบเขตงาน, หรือหมายเหตุ"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>ข้อมูลลูกค้า</CardTitle>
+                      <CardDescription>ตรวจสอบและแก้ไขข้อมูลการติดต่อของลูกค้า</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <Label className="mb-1 block text-sm font-medium">ชื่อลูกค้า*</Label>
+                        <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="mb-1 block text-sm font-medium">เบอร์โทร</Label>
+                        <Input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="mb-1 block text-sm font-medium">ช่องทางติดต่ออื่น</Label>
+                        <Input
+                          value={customerContactOther}
+                          onChange={(e) => setCustomerContactOther(e.target.value)}
+                          placeholder="Line, Email เป็นต้น"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>กำหนดการและหัวหน้างาน</CardTitle>
+                      <CardDescription>อัปเดตช่วงเวลางาน และเลือกหัวหน้างานใหม่หากจำเป็น</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label className="mb-1 block text-sm font-medium">วันเริ่มงาน*</Label>
+                        <DatePicker date={startDate} setDate={setStartDate} />
+                      </div>
+                      <div>
+                        <Label className="mb-1 block text-sm font-medium">วันจบงาน*</Label>
+                        <DatePicker date={endDate} setDate={setEndDate} />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-sm font-medium">
+                          หัวหน้างาน* <span className="text-xs text-muted-foreground">(จะแสดงเฉพาะคนที่ว่าง)</span>
+                        </Label>
+                        <LeaderSelect
+                          leaders={availableLeads}
+                          selectedValue={selectedLeadId}
+                          onValueChange={setSelectedLeadId}
+                          disabled={!startDate || !endDate}
+                        />
+                        {(!startDate || !endDate) && (
+                          <p className="text-xs text-muted-foreground">
+                            กรุณาเลือกวันเริ่มและวันจบก่อน เพื่อกรองหัวหน้างานที่พร้อม
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+              <DialogFooter className="border-t bg-background">
+                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Button variant="outline" onClick={() => onModeChange("view")}>
+                    กลับไปโหมดดู
+                  </Button>
+                  <Button onClick={handleSave}>บันทึกการแก้ไข</Button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -16,7 +16,15 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 // (Import เครื่องมือ 2 ชิ้น)
 import { TechSelectMultiDept } from './TechSelectMultiDept';
@@ -86,81 +94,107 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
 
                 {/* ▼▼▼ (แก้ไข!) นี่คือ Layout ที่ถูกต้อง ▼▼▼ */}
                 <ScrollArea className="h-[70vh] p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        {/* --- คอลัมน์ซ้าย: ข้อมูลงาน & TASKS --- */}
-                        <div className="space-y-4">
-                            <h4 className="font-semibold">ข้อมูลงาน</h4>
-                            <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                                <p><strong>หัวข้อ:</strong> {job.title}</p>
-                                <p><strong>ประเภท:</strong> {job.jobType}</p>
-                                <p><strong>รายละเอียด:</strong> {job.description || "ไม่มี"}</p>
-                            </div>
-
-                            <h4 className="font-semibold">ข้อมูลลูกค้า</h4>
-                            <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                                <p><strong>ชื่อ:</strong> {job.customerName}</p>
-                                <p><strong>โทร:</strong> {job.customerPhone}</p>
-                            </div>
-                            
-                            <h4 className="font-semibold">สถานที่ (รอ Map)</h4>
-                            <div className="p-3 bg-muted rounded-md text-sm">
-                                <p>{job.location}</p>
-                            </div>
-
-                            <Separator className="my-4" />
-
-                            {/* (เครื่องมือสร้าง Task จะอยู่คอลัมน์ซ้าย) */}
-                            {isAcknowledged ? (
-                                <TaskManagement job={job} />
-                            ) : (
-                                <p className="text-center text-amber-600 font-semibold p-6">
-                                    โปรดกดยืนยันรับทราบงาน (ปุ่มสีเขียวด้านล่าง)
-                                    <br />
-                                    เพื่อเริ่มการมอบหมายงาน
-                                </p>
-                            )}
-                        </div>
-
-                        {/* --- คอลัมน์ขวา: ข้อมูลระบบ & เลือกช่าง --- */}
-                        <div className="space-y-4">
-                            <h4 className="font-semibold">ข้อมูลระบบ</h4>
-                            <div className="p-3 bg-muted/50 rounded-md text-sm">
-                                <p><strong>สถานะ:</strong> {job.status}</p>
-                                <p><strong>Admin ผู้สร้าง:</strong> {job.adminCreator}</p>
-                                <p><strong>วันที่:</strong> {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}</p>
-                            </div>
-                            
-                            <Separator className="my-4" />
-
-                            {/* (เครื่องมือเลือกช่าง จะอยู่คอลัมน์ขวา) */}
-                            {isAcknowledged ? (
-                                <div className="space-y-4">
-                                    <h4 className="font-semibold">มอบหมายทีมช่าง</h4>
-                                    <TechSelectMultiDept
-                                        jobStartDate={job.startDate}
-                                        jobEndDate={job.endDate}
-                                        selectedTechIds={draftTechs}
-                                        onTechsChange={setDraftTechs}
-                                    />
-                                    <Button size="sm" className="w-full" onClick={handleSaveTeam}>
-                                        บันทึกทีมช่าง
-                                    </Button>
+                    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
+                                    {job.title}
+                                    <Badge variant={isAcknowledged ? "secondary" : "default"}>
+                                        {isAcknowledged ? "กำลังดำเนินการ" : "รอรับทราบ"}
+                                    </Badge>
+                                </CardTitle>
+                                <CardDescription>
+                                    สร้างโดย {job.adminCreator} เมื่อ {format(job.createdAt, "dd/MM/yyyy")}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 text-sm">
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <p><strong>ประเภทงาน:</strong> {job.jobType}</p>
+                                        <p><strong>สถานะ:</strong> {job.status}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p>
+                                            <strong>ช่วงเวลางาน:</strong> {format(job.startDate, "dd/MM/yyyy")} - {format(job.endDate, "dd/MM/yyyy")}
+                                        </p>
+                                        <p><strong>จำนวนงานย่อย:</strong> {job.tasks.length} งาน</p>
+                                    </div>
                                 </div>
-                            ) : (
-                                null // (ซ่อนไว้ถ้ายังไม่รับงาน)
-                            )}
-                        </div>
+                                <div className="rounded-lg bg-muted p-3 text-sm leading-relaxed">
+                                    <p className="font-semibold">รายละเอียดงาน</p>
+                                    <p>{job.description || "(ไม่มีรายละเอียดเพิ่มเติม)"}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>ข้อมูลลูกค้า</CardTitle>
+                                <CardDescription>ช่องทางติดต่อและสถานที่ปฏิบัติงาน</CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-4 md:grid-cols-2 text-sm">
+                                <div className="space-y-2">
+                                    <p><strong>ชื่อลูกค้า:</strong> {job.customerName}</p>
+                                    <p><strong>โทร:</strong> {job.customerPhone || "-"}</p>
+                                    <p><strong>ติดต่ออื่น:</strong> {job.customerContactOther || "-"}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="font-semibold">สถานที่</p>
+                                    <div className="rounded-md border border-dashed p-3 text-muted-foreground">
+                                        {job.location}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>ทีมงานและการมอบหมาย</CardTitle>
+                                <CardDescription>กำหนดหัวหน้างานและเลือกทีมช่างที่พร้อมทำงาน</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 text-sm">
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <p className="text-xs uppercase text-muted-foreground">หัวหน้างาน</p>
+                                        <p className="text-base font-semibold">{user.fname}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs uppercase text-muted-foreground">สถานะหัวหน้างาน</p>
+                                        <p className="text-base font-semibold">
+                                            {isAcknowledged ? "รับทราบแล้ว" : "รอรับทราบ"}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {isAcknowledged ? (
+                                    <>
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-semibold">เลือกทีมช่าง</p>
+                                            <TechSelectMultiDept
+                                                jobStartDate={job.startDate}
+                                                jobEndDate={job.endDate}
+                                                selectedTechIds={draftTechs}
+                                                onTechsChange={setDraftTechs}
+                                            />
+                                            <Button size="sm" className="w-full md:w-auto" onClick={handleSaveTeam}>
+                                                บันทึกทีมช่าง
+                                            </Button>
+                                        </div>
+                                        <Separator className="my-2" />
+                                        <TaskManagement job={job} />
+                                    </>
+                                ) : (
+                                    <div className="rounded-md bg-amber-100/80 p-4 text-center text-sm font-medium text-amber-700">
+                                        โปรดกดยืนยันรับทราบงานก่อน เพื่อจัดการทีมและงานย่อย
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
                 </ScrollArea>
-                {/* ▲▲▲ (แก้ไข!) จบพื้นที่เลื่อน ▲▲▲ */}
-
-
-                {/* ▼▼▼ (แก้ไข!) Footer จะเหลือแค่ปุ่ม ▼▼▼ */}
-                <DialogFooter>
+                <DialogFooter className="mt-4 border-t pt-4">
                     <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
-                    
+
                     {/* (ปุ่มรับทราบงาน จะอยู่ที่นี่ที่เดียว) */}
                     {!isAcknowledged && (
                         <Button 

@@ -39,6 +39,7 @@ export default function Sidebar() {
     ],
     leader: [
       { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
     ],
 
     executive: [
