@@ -27,6 +27,7 @@ import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/data/leader";
+import { AdminMap } from "./AdminMap"
 
 // "ประเภทงาน" ที่ Admin จะเลือก
 const JOB_TYPES = [
@@ -50,6 +51,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // --- "สมอง" กรองหัวหน้างาน ---
+    const [location, setLocation] = useState("")
+  const [mapPosition, setMapPosition] = useState<[number, number] | undefined>()
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -100,7 +103,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         customerName,
         customerPhone: customerPhone || "ไม่มีข้อมูล",
         customerContactOther: customerContactOther || "ไม่มีข้อมูล",
-        location: "(ข้อมูลจาก Map)",
+        location: location || "ไม่ได้ระบุสถานที่", // ใช้ค่า location จาก state
+        latitude: mapPosition?.[0], // บันทึก latitude
+        longitude: mapPosition?.[1], // บันทึก longitude
         startDate,
         endDate,
         leadId: Number(selectedLeadId), // (แปลง ID กลับเป็น Number ตอนส่ง)
@@ -228,10 +233,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                 />
               </div>
               <div className="md:col-span-2">
-                <Label className="mb-1 block text-sm font-medium">สถานที่ปฏิบัติงาน</Label>
-                <div className="flex h-40 w-full items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-                  (เตรียมพื้นที่สำหรับแผนที่หรือคำอธิบายที่อยู่)
-                </div>
+               <AdminMap
+                  initialAddress={location}
+                  initialPosition={mapPosition}
+                  onAddressChange={setLocation}
+                  onPositionChange={setMapPosition}
+                />
               </div>
             </CardContent>
           </Card>

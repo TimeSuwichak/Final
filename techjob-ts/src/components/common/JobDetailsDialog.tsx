@@ -48,15 +48,16 @@ export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, o
 
             {/* --- สถานที่ --- */}
             <div className="space-y-2">
-              <h3 className="font-semibold">สถานที่ปฏิบัติงาน</h3>
+              <h3 className="font-semibold">ชื่อสถานที่</h3>
               <Separator />
               <div className="space-y-3 pt-2">
-                <div className="text-sm text-muted-foreground">
-                  <p>
-                    <strong>ที่อยู่:</strong> {job.location?.address || "ไม่มีข้อมูล"}
-                  </p>
-                </div>
+                {job.location?.address && (
+                  <div className="text-sm">
+                    <p className="font-medium">{job.location.address}</p>
+                  </div>
+                )}
                 {job.location?.mapPosition && (
+                  <div>
                   <div className="h-64 w-full rounded-md border overflow-hidden">
                     <InteractiveMap
                       center={job.location.mapPosition}
@@ -65,6 +66,11 @@ export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, o
                       interactive={false}
                     />
                   </div>
+                  </div>
+                )}
+                {!job.location?.address && !job.location?.mapPosition && (
+                  <p className="text-sm text-muted-foreground">ไม่มีข้อมูลสถานที่</p>
+
                 )}
                 {job.images && job.images.length > 0 && (
                   <div className="space-y-2 pt-2">

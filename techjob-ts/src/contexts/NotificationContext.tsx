@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import type { NotificationItem } from "@/types/index";
 
@@ -32,6 +32,64 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
+
+/**
+ * ==================== คำอธิบาย: ประเภทของการแจ้งเตือน ====================
+ *
+ * ปัจจุบัน ระบบแจ้งเตือนประกอบด้วยการแจ้งเตือนประเภทต่อไปนี้:
+ *
+ * 1. "หัวหน้างานถูกเปลี่ยน" (leader_change)
+ *    - ส่งให้: ช่าง (user)
+ *    - เหตุการณ์: เมื่อ Admin เปลี่ยนหัวหน้างาน
+ *    - ที่แก้ไข: src/contexts/JobContext.tsx line ~160-177 ตรง updateJob() function
+ *
+ * 2. "มีการเปลี่ยนหัวหน้างาน" (leader_reassignment)
+ *    - ส่งให้: หัวหน้างานเดิม (leader ที่ถูกเปลี่ยน)
+ *    - เหตุการณ์: เมื่อ Admin เปลี่ยนหัวหน้างาน
+ *    - ที่แก้ไข: src/contexts/JobContext.tsx line ~179-194
+ *
+ * 3. "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่" (leader_assignment)
+ *    - ส่งให้: หัวหน้างานใหม่ (leader ที่ได้รับมอบหมาย)
+ *    - เหตุการณ์: เมื่อ Admin เปลี่ยนหัวหน้างาน
+ *    - ที่แก้ไข: src/contexts/JobContext.tsx line ~196-209
+ *
+ * 4. "ได้รับมอบหมายงานใหม่" (team_assignment_added)
+ *    - ส่งให้: ช่าง (user) ที่ถูกเพิ่มเข้าทีม
+ *    - เหตุการณ์: เมื่อ Leader เพิ่มช่างเข้าทีมงาน
+ *    - ที่แก้ไข: src/components/leader/LeaderJobDetailDialog.tsx line ~126-138
+ *
+ * 5. "มีการถอดคุณออกจากงาน" (team_assignment_removed)
+ *    - ส่งให้: ช่าง (user) ที่ถูกถอดออกจากทีม
+ *    - เหตุการณ์: เมื่อ Leader ถอดช่างออกจากทีมงาน
+ *    - ที่แก้ไข: src/components/leader/LeaderJobDetailDialog.tsx line ~140-152
+ *
+ * ==================== วิธีเพิ่มเงื่อนไขใหม่ ====================
+ *
+ * ถ้าคุณต้องการเพิ่มการแจ้งเตือนแบบใหม่:
+ *
+ * ขั้นตอนที่ 1: หาตำแหน่งที่ต้องการส่งการแจ้งเตือน
+ *   - เช่น: ในฟังก์ชัน updateJob() หรือ handleConfirmTeamChange() เป็นต้น
+ *
+ * ขั้นตอนที่ 2: เรียก addNotification() ด้วย object ที่มี properties:
+ *   - title: ชื่อเรื่องสั้น ๆ
+ *   - message: ข้อความรายละเอียด
+ *   - recipientRole: บทบาทผู้รับ ('admin', 'leader', 'user', 'executive')
+ *   - recipientId: (ถ้ามี) id ของคนรับเฉพาะตัว
+ *   - relatedJobId: (ถ้ามี) id ของงานที่เกี่ยวข้อง
+ *   - metadata: (optional) ข้อมูลเพิ่มเติม เช่น { type: 'your_event_type' }
+ *
+ * ตัวอย่าง:
+ *   addNotification({
+ *     title: "สถานะงานเปลี่ยน",
+ *     message: `งาน ${job.title} เปลี่ยนเป็น "เสร็จสิ้น"`,
+ *     recipientRole: "leader",
+ *     recipientId: String(job.leadId),
+ *     relatedJobId: job.id,
+ *     metadata: { type: "job_status_changed", newStatus: "done" }
+ *   });
+ *
+ * ===================================================================
+ */
 
 function reviveNotification(notification: NotificationItem): NotificationItem {
   return {
@@ -114,16 +172,36 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       })
     );
   };
-
+  // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ user คนนี้ ==================
+  // ตัวอย่าง: getNotificationsForUser("leader", "101")
+  //   → จะหา notification ที่มี recipientRole="leader" AND recipientId="101"
   const getNotificationsForUser: NotificationContextType["getNotificationsForUser"] =
     (role, recipientId) => {
+      // ใช้ filter() เพื่อตรวจสอบแต่ละ notification ว่าตรงกันไหม
       return notifications.filter((notification) => {
+        // ✓ ขั้นตอที่ 1: ตรวจ role (บทบาท)
+        //   notification.recipientRole ต้องเป็น "leader" หรือ "user" หรืออื่น ๆ
+        //   ถ้าไม่ตรง → return false (ไม่ให้ notification นี้อยู่ในผลลัพธ์)
         if (notification.recipientRole !== role) return false;
+        
+        // ✓ ขั้นตอที่ 2: ตรวจ recipientId
+        //   ถ้า notification ไม่ระบุ recipientId (null/undefined)
+        //   → แสดงว่า notification นั้นส่งให้ทุกคน (ทุก role นั้น)
+        //   → ให้ pass (return true)
         if (!notification.recipientId) return true;
+        
+        // ✓ ขั้นตอที่ 3: ถ้า recipientId มีค่า แต่ user.id ไม่มี
+        //   → return false (ไม่ให้แสดง)
         if (!recipientId) return false;
+        
+        // ✓ ขั้นตอที่ 4: ตรวจสอบ recipientId ตรงกันหรือไม่
+        //   แปลงทั้งสองค่าเป็น String เพื่อเปรียบเทียบ
+        //   เพราะว่า recipientId อาจเป็น Number (101) หรือ String ("101")
+        //   แปลงทั้งคู่เป็น String (เช่น "101") แล้วเปรียบเทียบ
         return String(notification.recipientId) === String(recipientId);
       });
     };
+  // ======================================================================
 
   const getUnreadCount: NotificationContextType["getUnreadCount"] = (
     role,

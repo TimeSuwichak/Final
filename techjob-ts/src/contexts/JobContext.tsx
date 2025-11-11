@@ -2,7 +2,7 @@
 "use client";
 
 import type { EditHistory, ActivityLog, Job } from '@/types/index';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'; // 1. Import useEffect
+import React, { createContext, useContext, useState, type ReactNode, useEffect } from 'react'; // 1. Import useEffect
 import { useNotifications } from '@/contexts/NotificationContext';
 import { leader as LEADER_DIRECTORY } from '@/data/leader';
 
@@ -124,7 +124,43 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       assignedTechs: [],
     };
 
+    // 🔥 เพิ่มโค้ด: ถ้าระบุ leadId ให้ส่ง notification ให้ Leader
+    // ======================== ขั้นตอนการส่ง Notification ========================
+    // 1. สร้าง array เปล่าเก็บ notification ที่จะส่ง
+    const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
+    
+    // 2. ตรวจสอบว่า leadId มีค่าหรือไม่ (leadId คือ ID ของหัวหน้างาน)
+    //    leadId อาจเป็น null, undefined, หรือมีค่าจริง (เช่น 101, 104 เป็นต้น)
+    if (newJobData.leadId && newJobData.leadId !== null && newJobData.leadId !== undefined) {
+      // 3. ค้นหาชื่อของหัวหน้างานจากฟังก์ชัน findLeaderName()
+      //    findLeaderName() จะหา ID ใน database leader มา
+      const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
+      
+      // 4. เพิ่ม log เพื่อตรวจสอบว่าจะส่งให้ leader ID ไหน
+      console.log(`[addJob] Adding notification for leadId: ${newJobData.leadId}, leaderName: ${leaderName}`);
+      
+      // 5. สร้าง object notification
+      //    object นี้จะถูกเก็บไว้ใน notificationsToSend array
+      //    แล้วจึงส่งไปให้ NotificationContext จัดการลงใน localStorage
+      notificationsToSend.push({
+        title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
+        message: `คุณได้รับมอบหมายให้ดูแลงาน "${newJobData.title}" จาก ${adminName}`,
+        recipientRole: "leader",  // ← บอก NotificationContext ว่า "ส่งให้ Leader"
+        recipientId: String(newJobData.leadId),  // ← แปลง leadId (Number) เป็น String เพื่อเก็บสม่ำเสมอ
+        relatedJobId: newId,  // ← บอก Job ID เพื่อให้ Leader คลิกไปดูงาน
+        metadata: {
+          type: "leader_assignment_new",
+          jobId: newId,
+        },
+      });
+    }
+    // =====================================================================
+
     setJobs(prevJobs => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
+    
+    // 🔥 ส่ง notification ทั้งหมดที่เตรียมไว้ให้ NotificationContext จัดการ
+    // ลูป forEach จะเรียก addNotification() หลายครั้ง (ครั้งละ 1 notification)
+    notificationsToSend.forEach(addNotification);
   };
 
   // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---

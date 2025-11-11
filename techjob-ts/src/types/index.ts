@@ -61,7 +61,7 @@ export interface Job {
   customerPhone: string;
   customerContactOther?: string;
   location: string; // (ที่อยู่สำหรับ Map)
-  
+ 
   // ไฟล์แนบ
   imageUrl?: string;
   otherFileUrl?: string;
