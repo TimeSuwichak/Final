@@ -1,18 +1,14 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { geocodeAddress, reverseGeocode } from "@/lib/geocoding"
 import "leaflet/dist/leaflet.css"
 
-// Dynamic imports for Leaflet to avoid SSR issues
-const MapContainer = React.lazy(() => import("react-leaflet").then((mod) => ({ default: mod.MapContainer })))
-const TileLayer = React.lazy(() => import("react-leaflet").then((mod) => ({ default: mod.TileLayer })))
-const Marker = React.lazy(() => import("react-leaflet").then((mod) => ({ default: mod.Marker })))
-const Popup = React.lazy(() => import("react-leaflet").then((mod) => ({ default: mod.Popup })))
-const useMapEvents = React.lazy(() => import("react-leaflet").then((mod) => ({ default: mod.useMapEvents })))
+// Use direct imports from react-leaflet to avoid Suspense/lazy timing issues
 
 interface AdminMapProps {
   initialAddress?: string
@@ -36,52 +32,28 @@ function LocationMarker({
   readOnly?: boolean
   locationName?: string // เพิ่ม prop สำหรับชื่อสถานที่
 }) {
-  const [MapEvents, setMapEvents] = useState<any>(null)
-  const [MarkerComponent, setMarkerComponent] = useState<any>(null)
-  const [PopupComponent, setPopupComponent] = useState<any>(null)
+  // useMapEvents hook (direct import) สำหรับดักจับการคลิกบนแผนที่
+  useMapEvents({
+    async click(e: any) {
+      if (readOnly) return
 
-  useEffect(() => {
-    // Load react-leaflet components
-    Promise.all([
-      import("react-leaflet").then((mod) => mod.useMapEvents),
-      import("react-leaflet").then((mod) => mod.Marker),
-      import("react-leaflet").then((mod) => mod.Popup),
-    ]).then(([useMapEventsHook, MarkerComp, PopupComp]) => {
-      setMapEvents(() => useMapEventsHook)
-      setMarkerComponent(() => MarkerComp)
-      setPopupComponent(() => PopupComp)
-    })
-  }, [])
+      const newPos: [number, number] = [e.latlng.lat, e.latlng.lng]
+      setPosition(newPos)
 
-  if (!MapEvents || !MarkerComponent || !PopupComponent) {
-    return null
-  }
-
-  const MapEventsComponent = () => {
-    MapEvents({
-      async click(e: any) {
-        if (readOnly) return
-
-        const newPos: [number, number] = [e.latlng.lat, e.latlng.lng]
-        setPosition(newPos)
-
-        if (onAddressFound) {
-          const address = await reverseGeocode(e.latlng.lat, e.latlng.lng)
-          if (address) {
-            onAddressFound(address)
-          }
+      if (onAddressFound) {
+        const address = await reverseGeocode(e.latlng.lat, e.latlng.lng)
+        if (address) {
+          onAddressFound(address)
         }
-      },
-    })
-    return null
-  }
+      }
+    },
+  })
 
   return (
     <>
-      <MapEventsComponent />
       {position && (
-        <MarkerComponent position={position}>
-          <PopupComponent>
+        <Marker position={position}>
+          <Popup>
             <div className="text-sm">
               <p className="font-semibold">{locationName || "ตำแหน่งที่เลือก"}</p>
               {locationName && (
@@ -90,11 +62,24 @@ function LocationMarker({
                 </p>
               )}
             </div>
-          </PopupComponent>
-        </MarkerComponent>
+          </Popup>
+        </Marker>
       )}
     </>
   )
+}
+
+// Child component to set mapRef using react-leaflet's useMap()
+function MapRefSetter({ mapRef }: { mapRef: React.MutableRefObject<any | null> }) {
+  const map = useMapEvents({}) as any
+  useEffect(() => {
+    mapRef.current = map
+    return () => {
+      // clear reference on unmount
+      if (mapRef.current === map) mapRef.current = null
+    }
+  }, [map, mapRef])
+  return null
 }
 
 export function AdminMap({
@@ -109,6 +94,8 @@ export function AdminMap({
   const [position, setPosition] = useState<[number, number] | null>(initialPosition || null)
   const [address, setAddress] = useState(initialAddress)
   const [isSearching, setIsSearching] = useState(false)
+  // ref เก็บ instance ของแผนที่เพื่อนำไปเรียก setView ได้โดยไม่ต้อง remount
+  const mapRef = useRef<any | null>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -120,6 +107,18 @@ export function AdminMap({
       setMapCenter(initialPosition)
     }
   }, [initialPosition])
+
+  // ถ้ามี mapRef ให้ใช้ setView/ panTo เพื่ออัปเดตมุมมองของแผนที่
+  useEffect(() => {
+    if (!mapRef.current) return
+    try {
+      const target = position || mapCenter
+      mapRef.current.setView(target, 13)
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn('[AdminMap] failed to setView', e)
+    }
+  }, [mapCenter, position])
 
   const handlePositionChange = (newPosition: [number, number]) => {
     setPosition(newPosition)
@@ -212,34 +211,30 @@ export function AdminMap({
       )}
 
       <div className="h-[400px] w-full overflow-hidden rounded-md border">
-        <React.Suspense
-          fallback={
-            <div className="flex h-full items-center justify-center bg-muted">
-              <p className="text-sm text-muted-foreground">กำลังโหลดแผนที่...</p>
-            </div>
-          }
+        <MapContainer
+          center={mapCenter}
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+          // ไม่กำหนด key อีกต่อไป (หลีกเลี่ยง remount สั้น ๆ)
+          scrollWheelZoom={!readOnly}
         >
-          <MapContainer
-            center={mapCenter}
-            zoom={13}
-            style={{ height: "100%", width: "100%" }}
-            key={`${mapCenter[0]}-${mapCenter[1]}-${position?.[0]}-${position?.[1]}`}
-            scrollWheelZoom={!readOnly}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <LocationMarker
-              position={position}
-              setPosition={handlePositionChange}
-              onAddressFound={handleAddressFound}
-              readOnly={readOnly}
-              locationName={address}
-            />
-          </MapContainer>
-        </React.Suspense>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {/* ตั้งค่า mapRef ผ่าน child component ที่ใช้ useMap() */}
+          <MapRefSetter mapRef={mapRef} />
+          <LocationMarker
+            position={position}
+            setPosition={handlePositionChange}
+            onAddressFound={handleAddressFound}
+            readOnly={readOnly}
+            locationName={address}
+          />
+        </MapContainer>
       </div>
+
+      {/* mapRef ใช้งานผ่าน useEffect ด้านบน เพื่ออัปเดตมุมมองโดยไม่ต้อง remount */}
 
       {position && !readOnly && (
         <div className="rounded-md bg-muted p-3 text-sm">
