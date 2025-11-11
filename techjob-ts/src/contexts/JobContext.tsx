@@ -2,7 +2,7 @@
 "use client";
 
 import type { EditHistory, ActivityLog, Job } from '@/types/index';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'; // 1. Import useEffect
+import React, { createContext, useContext, useState, type ReactNode, useEffect } from 'react'; // 1. Import useEffect
 import { useNotifications } from '@/contexts/NotificationContext';
 import { leader as LEADER_DIRECTORY } from '@/data/leader';
 
@@ -124,7 +124,29 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       assignedTechs: [],
     };
 
+    // 🔥 เพิ่มโค้ด: ถ้าระบุ leadId ให้ส่ง notification ให้ Leader
+    const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
+    
+    if (newJobData.leadId && newJobData.leadId !== null && newJobData.leadId !== undefined) {
+      const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
+      console.log(`[addJob] Adding notification for leadId: ${newJobData.leadId}, leaderName: ${leaderName}`);
+      notificationsToSend.push({
+        title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
+        message: `คุณได้รับมอบหมายให้ดูแลงาน "${newJobData.title}" จาก ${adminName}`,
+        recipientRole: "leader",
+        recipientId: String(newJobData.leadId),
+        relatedJobId: newId,
+        metadata: {
+          type: "leader_assignment_new",
+          jobId: newId,
+        },
+      });
+    }
+
     setJobs(prevJobs => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
+    
+    // 🔥 เรียก notification ทั้งหมด
+    notificationsToSend.forEach(addNotification);
   };
 
   // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---

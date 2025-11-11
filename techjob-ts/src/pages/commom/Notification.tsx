@@ -1,11 +1,38 @@
+/**
+ * NotificationPage
+ * ----------------
+ * คอมโพเนนท์หน้าแจ้งเตือน (Notification) สำหรับผู้ใช้
+ *
+ * คำอธิบายสั้น ๆ (สำหรับมือใหม่):
+ * - หน้านี้จะแสดงรายการการแจ้งเตือนทั้งหมด (ทั้งหมด / ยังไม่ได้อ่าน)
+ * - ฝั่งซ้ายเป็นรายการแจ้งเตือน (list) เมื่อกดแล้วจะแสดงรายละเอียดด้านขวา
+ * - มีปุ่ม "ทำเครื่องหมายว่าอ่านแล้วทั้งหมด" เพื่อเปลี่ยนสถานะการแจ้งเตือนเป็นอ่าน
+ * - ใช้ context (`useAuth`, `useNotifications`) เพื่อดึงข้อมูลผู้ใช้และการแจ้งเตือน
+ *
+ * Inputs / dependencies:
+ * - ข้อมูลผู้ใช้มาจาก `useAuth()`
+ * - ฟังก์ชันจัดการการแจ้งเตือนมาจาก `useNotifications()`
+ * - ใช้ `react-router` search params เพื่อเก็บการเลือก (selected)
+ *
+ * Outputs / behavior:
+ * - แสดง UI รายการและรายละเอียดการแจ้งเตือน
+ * - เมื่อเลือกการแจ้งเตือน จะทำเครื่องหมายเป็นอ่าน (ถ้ายังไม่อ่าน) และเก็บ id ลงใน query param `selected`
+ *
+ * ตัวอย่าง edge-cases ที่โค้ดจัดการไว้:
+ * - ถ้ายังไม่ได้ล็อกอิน จะบอกให้ล็อกอินก่อนดูการแจ้งเตือน
+ * - ถ้าไม่มีการแจ้งเตือนในหมวด จะมีข้อความว่า "ไม่มีการแจ้งเตือน"
+ */
+
 import { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Clock, MailOpen, MailWarning } from "lucide-react";
 
+// Contexts: ดึงข้อมูลผู้ใช้และการแจ้งเตือนจาก context ของแอป
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+// UI components: Badge, Button, Card, ScrollArea, Tabs, Separator
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,9 +42,12 @@ import { Separator } from "@/components/ui/separator";
 
 import type { NotificationItem } from "@/types/index";
 
+// ฟังก์ชันช่วยจัดรูปแบบวันที่ตาม locale ไทย
 const formatDateTime = (date: Date) =>
   format(date, "dd MMM yyyy - HH:mm น.", { locale: th });
 
+// แยกรายการการแจ้งเตือนออกเป็น 2 กลุ่ม: ยังไม่ได้อ่าน (unread) และ อ่านแล้ว (read)
+// คืนค่าเป็น object { unread, read }
 function splitNotifications(
   notifications: NotificationItem[]
 ): { unread: NotificationItem[]; read: NotificationItem[] } {
@@ -35,8 +65,10 @@ function splitNotifications(
 }
 
 function NotificationPage() {
+  // ดึงข้อมูลผู้ใช้และฟังก์ชันจาก context
   const { user } = useAuth();
   const navigate = useNavigate();
+  // useSearchParams ใช้เก็บค่า query string ของURL (เราใช้เก็บ selected notification id)
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     getNotificationsForUser,
@@ -44,6 +76,7 @@ function NotificationPage() {
     markAllAsReadForUser,
   } = useNotifications();
 
+  // ถ้า user ยังไม่ได้ล็อกอิน ให้แสดงข้อความและหยุดการเรนเดอร์หน้าจอแจ้งเตือน
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl rounded-xl border border-muted-foreground/20 bg-card p-6 text-center text-muted-foreground">
@@ -52,13 +85,20 @@ function NotificationPage() {
     );
   }
 
+  // กำหนด role ของผู้ใช้งาน (ใช้เพื่อกรองการแจ้งเตือนตามบทบาท)
   const role = (user.role || "user").toLowerCase() as
     | "admin"
     | "leader"
     | "user"
     | "executive";
+  // recipientId คือ id ของผู้รับ (จะใช้ในการดึงการแจ้งเตือนเฉพาะคน)
   const recipientId = user.id ? String(user.id) : undefined;
 
+  // 🔥 DEBUG: แสดงข้อมูลว่ากำลังค้นหาอะไร
+  console.log(`[Notification] role: ${role}, recipientId: ${recipientId}, user.role: ${user.role}, user.id: ${user.id}`);
+
+  // ดึงรายการการแจ้งเตือนโดยใช้ useMemo เพื่อหลีกเลี่ยงการคำนวณซ้ำเมื่อ dependencies ไม่เปลี่ยน
+  // เราเรียงจากใหม่ -> เก่า (desc by createdAt)
   const notifications = useMemo(
     () =>
       getNotificationsForUser(role, recipientId).sort(
@@ -67,13 +107,19 @@ function NotificationPage() {
     [getNotificationsForUser, role, recipientId]
   );
 
+  // 🔥 DEBUG: แสดงการแจ้งเตือนที่พบ
+  console.log(`[Notification] found ${notifications.length} notifications:`, notifications);
+
+  // แยกรายการที่ยังไม่ได้อ่านออกมา (นำมาแสดงตัวเลขบน badge)
   const { unread } = useMemo(
     () => splitNotifications(notifications),
     [notifications]
   );
 
+  // อ่าน query param ชื่อ 'selected' เพื่อรู้ว่า user เลือกรายการไหนอยู่
   const selectedId = searchParams.get("selected");
 
+  // เมื่อเปิดการแจ้งเตือน: ถ้ายังไม่อ่าน จะเรียก markAsRead และเซ็ต selected id ลงใน URL
   const handleOpenNotification = (notification: NotificationItem) => {
     if (!notification.read) {
       markAsRead(notification.id);
@@ -84,6 +130,7 @@ function NotificationPage() {
     });
   };
 
+  // ยกเลิกการเลือก (ลบ selected query param)
   const handleClearSelection = () => {
     setSearchParams((params) => {
       params.delete("selected");
@@ -91,10 +138,12 @@ function NotificationPage() {
     });
   };
 
+  // ทำเครื่องหมายการแจ้งเตือนทั้งหมดว่าอ่านแล้ว
   const handleMarkAllAsRead = () => {
     markAllAsReadForUser(role, recipientId);
   };
 
+  // หา object ของการแจ้งเตือนที่ถูกเลือก (ถ้ามี)
   const selectedNotification = notifications.find(
     (notification) => notification.id === selectedId
   );
