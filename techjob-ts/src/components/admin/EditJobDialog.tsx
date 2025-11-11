@@ -52,6 +52,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import type { Job } from "@/types/index";
+import { AdminMap } from "./AdminMap"
+import { AdminMap } from "./AdminMap"
 
 // --- CONSTANTS ---
 const JOB_TYPES = [
