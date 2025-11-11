@@ -10,14 +10,14 @@ import { th } from "date-fns/locale";
 
 // --- SHADCN/UI & CUSTOM COMPONENTS ---
 import { Button } from "@/components/ui/button";
-import {
+import { 
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
+  } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,207 +46,229 @@ import { leader as ALL_LEADERS } from "@/data/leader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
-  CardContent,
+  CardContent,  
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
-import { AdminMap } from "./AdminMap"
 
 // --- CONSTANTS ---
 const JOB_TYPES = [
-  "ซ่อมบำรุง",
-  "รื้อถอน",
-  "ติดตั้งระบบ",
-  "ตรวจสอบประจำปี",
-  "อื่นๆ",
+  "ซ่อมบำรุง",
+  "รื้อถอน",
+  "ติดตั้งระบบ",
+  "ตรวจสอบประจำปี",
+  "อื่นๆ",
 ];
 
 // --- INTERFACE ---
 interface EditJobDialogProps {
-  job: Job | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  mode: "view" | "edit" | null;
-  onModeChange: (mode: "view" | "edit") => void;
+  job: Job | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode: "view" | "edit" | null;
+  onModeChange: (mode: "view" | "edit") => void;
 }
 
 // ==========================================================
 // ✨ EDIT JOB DIALOG COMPONENT (ฉบับสมบูรณ์) ✨
 // ==========================================================
-export function EditJobDialog({
-  job,
-  open,
-  onOpenChange,
-  mode,
-  onModeChange,
+export function EditJobDialog({ 
+  job, 
+  open, 
+  onOpenChange, 
+  mode, 
+  onModeChange,
 }: EditJobDialogProps) {
-  // --- CONTEXT & STATES ---
-  const { jobs, updateJob } = useJobs();
-  const { user } = useAuth();
+  // --- CONTEXT & STATES ---
+  const { jobs, updateJob } = useJobs();
+  const { user } = useAuth();
 
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [editReason, setEditReason] = useState("");
-  const [pendingChanges, setPendingChanges] = useState<Partial<Job>>({});
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [editReason, setEditReason] = useState("");
+  const [pendingChanges, setPendingChanges] = useState<Partial<Job>>({});
 
-  // State ของฟอร์มแก้ไข
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [jobType, setJobType] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerContactOther, setCustomerContactOther] = useState("");
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  
+  // State ของฟอร์มแก้ไข
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerContactOther, setCustomerContactOther] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [location, setLocation] = useState("")
+  const [mapPosition, setMapPosition] = useState<[number, number] | undefined>()
+
   // (ใช้ ID ที่เป็น string ตลอดการทำงานในฟอร์ม)
-  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
-  // --- EFFECT: "ซิงค์" ข้อมูลจาก prop `job` เข้ามาใน State ของฟอร์ม ---
-  useEffect(() => {
-    if (open && job) {
-      setTitle(job.title || "");
-      setDescription(job.description || "");
-      setJobType(job.jobType || "");
-      setCustomerName(job.customerName || "");
-      setCustomerPhone(job.customerPhone || "");
-      setCustomerContactOther(job.customerContactOther || "");
-      setStartDate(job.startDate ? new Date(job.startDate) : undefined);
-      setEndDate(job.endDate ? new Date(job.endDate) : undefined);
-      
-      // ▼▼▼ [แก้ไขข้อ 1] ตั้งค่า ID ของ Leader ให้เป็น string (หรือ null) ▼▼▼
-      setSelectedLeadId(job.leadId ? String(job.leadId) : null);
-    }
-  }, [open, job]);
+  // --- EFFECT: "ซิงค์" ข้อมูลจาก prop `job` เข้ามาใน State ของฟอร์ม ---
+  useEffect(() => {
+    if (open && job) {
+      setTitle(job.title || "");
+      setDescription(job.description || "");
+      setJobType(job.jobType || "");
+      setCustomerName(job.customerName || "");
+      setCustomerPhone(job.customerPhone || "");
+      setCustomerContactOther(job.customerContactOther || "");
+      setStartDate(job.startDate ? new Date(job.startDate) : undefined);
+      setEndDate(job.endDate ? new Date(job.endDate) : undefined);
+      setSelectedLeadId(job.leadId ? String(job.leadId) : null);
 
-  // --- LOGIC: กรองหา Leader ที่ว่าง ---
-  const availableLeads = useMemo(() => {
-    if (!startDate || !endDate || !job) return [];
-    
+      setLocation(job.location || "")
+      if (job.latitude && job.longitude) {
+        setMapPosition([job.latitude, job.longitude])
+      } else {
+        setMapPosition(undefined)
+      }
+    }
+  }, [open, job])
+
+  // --- LOGIC: กรองหา Leader ที่ว่าง ---
+  const availableLeads = useMemo(() => {
+    if (!startDate || !endDate || !job) return [];
+
     // (รวบรวม ID ของหัวหน้าที่ "ไม่ว่าง" โดยเทียบเป็น string)
     const busyLeadIds = new Set(
-      jobs
-        .filter(
-          (j) =>
+      jobs
+        .filter(
+          (j) =>
             // ไม่เช็ค Job ID ปัจจุบัน
-            j.id !== job.id && 
+            j.id !== job.id &&
             // เช็ควันซ้อน
-            isDateRangeOverlapping(startDate, endDate, j.startDate, j.endDate) &&
-            j.leadId
-        )
-        .map((j) => String(j.leadId)) // (แปลง ID เป็น string)
-    );
+            isDateRangeOverlapping(startDate, endDate, j.startDate, j.endDate) &&
+            j.leadId
+        )
+        .map((j) => String(j.leadId)) // (แปลง ID เป็น string)
+    );
 
     // (กรองจาก ALL_LEADERS โดยเทียบ ID เป็น string)
-    return ALL_LEADERS
-      .filter((lead) => !busyLeadIds.has(String(lead.id))) // (เทียบ string กับ string)
+    return ALL_LEADERS
+    .filter((lead) => !busyLeadIds.has(String(lead.id))) // (เทียบ string กับ string)
       .sort((a, b) => (a.jobsThisMonth || 0) - (b.jobsThisMonth || 0)
-    );
-  }, [startDate, endDate, jobs, job]);
+    );
+  }, [startDate, endDate, jobs, job]);
 
-  // --- HANDLERS ---
-  const handleSave = () => {
-    console.log("--- 'บันทึกการแก้ไข' button clicked! ---");
-    if (!job) return;
+  // --- HANDLERS ---
+  const handleSave = () => {
+    console.log("--- 'บันทึกการแก้ไข' button clicked! ---");
+    if (!job) return;
 
-    const changes: Partial<Job> = {};
-    
+    const changes: Partial<Job> = {};
+
     // (ตรวจจับการเปลี่ยนแปลง)
-    if (title !== job.title) changes.title = title;
-    if (description !== (job.description || "")) changes.description = description;
-    if (jobType !== job.jobType) changes.jobType = jobType;
-    if (customerName !== job.customerName) changes.customerName = customerName;
-    if (customerPhone !== (job.customerPhone || "")) changes.customerPhone = customerPhone;
-    if (customerContactOther !== (job.customerContactOther || "")) changes.customerContactOther = customerContactOther;
-    if (startDate?.getTime() !== new Date(job.startDate).getTime()) changes.startDate = startDate;
-    if (endDate?.getTime() !== new Date(job.endDate).getTime()) changes.endDate = endDate;
+    if (title !== job.title) changes.title = title;
+    if (description !== (job.description || "")) changes.description = description;
+    if (jobType !== job.jobType) changes.jobType = jobType;
+    if (customerName !== job.customerName) changes.customerName = customerName;
+    if (customerPhone !== (job.customerPhone || "")) changes.customerPhone = customerPhone;
+    if (customerContactOther !== (job.customerContactOther || "")) changes.customerContactOther = customerContactOther;
+    if (startDate?.getTime() !== new Date(job.startDate).getTime()) changes.startDate = startDate;
+    if (endDate?.getTime() !== new Date(job.endDate).getTime()) changes.endDate = endDate;
 
     // ▼▼▼ [แก้ไขข้อ 1] เปรียบเทียบ ID เป็น string ▼▼▼
-    if (selectedLeadId !== String(job.leadId || null)) {
+    if (selectedLeadId !== String(job.leadId || null)) {
       // (แปลงกลับเป็น number ตอนจะบันทึก)
-      changes.leadId = selectedLeadId ? Number(selectedLeadId) : null;
-    }
+      changes.leadId = selectedLeadId ? Number(selectedLeadId) : null;
+    }
+    if (location !== (job.location || "")) changes.location = location
 
-    if (Object.keys(changes).length === 0) {
-      alert("ไม่มีข้อมูลเปลี่ยนแปลง");
-      onOpenChange(false); // ปิด Dialog
-      return;
-    }
+    if (mapPosition) {
+      if (mapPosition[0] !== job.latitude || mapPosition[1] !== job.longitude) {
+        changes.latitude = mapPosition[0]
+        changes.longitude = mapPosition[1]
+      }
+    }
 
-    setPendingChanges(changes);
-    setIsAlertOpen(true);
-  };
+    if (Object.keys(changes).length === 0) {
+      alert("ไม่มีข้อมูลเปลี่ยนแปลง");
+      onOpenChange(false); // ปิด Dialog
+      return;
+    }
 
-  const handleConfirmSave = () => {
-    if (!job || !user || !editReason) {
-      alert("เกิดข้อผิดพลาด หรือยังไม่ได้กรอกเหตุผล");
-      return;
-    }
-    updateJob(job.id, pendingChanges, editReason, user.fname);
-    setEditReason("");
-    setIsAlertOpen(false);
-    onOpenChange(false);
-  };
+    setPendingChanges(changes);
+    setIsAlertOpen(true);
+  };
 
-  if (!job || !user) return null;
+  const handleConfirmSave = () => {
+    if (!job || !user || !editReason) {
+      alert("เกิดข้อผิดพลาด หรือยังไม่ได้กรอกเหตุผล");
+      return;
+    }
+    updateJob(job.id, pendingChanges, editReason, user.fname);
+    setEditReason("");
+    setIsAlertOpen(false);
+    onOpenChange(false);
+  };
 
-  // --- JSX (ส่วนแสดงผล) ---
-  return (
-    <>
+  if (!job || !user) return null;
+
+  // --- JSX (ส่วนแสดงผล) ---
+  return (
+    <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           className="sm:max-w-4xl max-h-[90vh]"
           onPointerDownOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => event.preventDefault()}
         >
-          <DialogHeader>
-            <DialogTitle>{job.title}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{job.title}</DialogTitle>
+          </DialogHeader>
 
-          {mode === "view" ? (
-            // --- โหมด "ดูรายละเอียด" ---
-            <>
-              <ScrollArea className="h-[70vh] p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* (คอลัมน์ซ้าย: ข้อมูลหลัก) */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">ข้อมูลใบงาน (อ่านอย่างเดียว)</h4>
-                    <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                      <p><strong>หัวข้อ:</strong> {job.title}</p>
-                      <p><strong>ประเภท:</strong> {job.jobType}</p>
-                      <p><strong>รายละเอียด:</strong> {job.description || "ไม่มี"}</p>
-                      <p>
-                        <strong>ผู้สร้าง:</strong> {job.adminCreator} (เมื่อ{" "}
-                        {format(job.createdAt, "P", { locale: th })})
-                      </p>
-                    </div>
-                    <h4 className="font-semibold">ข้อมูลลูกค้า</h4>
-                    <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                      <p><strong>ชื่อ:</strong> {job.customerName}</p>
-                      <p><strong>โทร:</strong> {job.customerPhone || "ไม่มี"}</p>
-                    <p><strong>ติดต่ออื่นๆ:</strong> {job.customerContactOther || "ไม่มี"}</p>
-                      <p><strong>สถานที่:</strong> {job.location}</p>
-                    </div>
-                  </div>
-                  {/* (คอลัมน์ขวา: สถานะ & ประวัติ) */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">สถานะหัวหน้างาน (Leader)</h4>
-                    {job.status === "new" ? (
-                      <div className="p-3 bg-muted rounded-md text-sm text-amber-600">
-                        <p><strong>สถานะ:</strong> ยังอยู่ในระหว่างรอการยืนยันจากหัวหน้างาน</p>
-                      </div>
-                    ) : (
-                      <div className="p-3 bg-muted rounded-md text-sm text-green-600">
-                        <p><strong>สถานะ:</strong> หัวหน้างานรับทราบงานแล้ว (สถานะ: {job.status})</p>
-                      </div>
-                    )}
-                    <Tabs defaultValue="leader" className="w-full">
-                      <TabsList>
-                        <TabsTrigger value="leader">ความคืบหน้า (Leader/Tech)</TabsTrigger>
-                        <TabsTrigger value="admin">ประวัติแก้ไข (Admin)</TabsTrigger>
-                      </TabsList>
+          {mode === "view" ? (
+            // --- โหมด "ดูรายละเอียด" ---
+            <>
+              <ScrollArea className="h-[70vh] p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* (คอลัมน์ซ้าย: ข้อมูลหลัก) */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">ข้อมูลใบงาน (อ่านอย่างเดียว)</h4>
+                    <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
+                      <p><strong>หัวข้อ:</strong> {job.title}</p>
+                      <p><strong>ประเภท:</strong> {job.jobType}</p>
+                      <p><strong>รายละเอียด:</strong> {job.description || "ไม่มี"}</p>
+                      <p>
+                        <strong>ผู้สร้าง:</strong> {job.adminCreator} (เมื่อ{" "}
+                        {format(job.createdAt, "P", { locale: th })})
+                      </p>
+                    </div>
+                    <h4 className="font-semibold">ข้อมูลลูกค้า</h4>
+                    <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
+                      <p><strong>ชื่อ:</strong> {job.customerName}</p>
+                      <p><strong>โทร:</strong> {job.customerPhone || "ไม่มี"}</p>
+                      <p><strong>ติดต่ออื่นๆ:</strong> {job.customerContactOther || "ไม่มี"}</p>
+                    </div>
+                    <h4 className="font-semibold">สถานที่ปฏิบัติงาน</h4>
+                    <div className="p-3 bg-muted rounded-md space-y-3 text-sm">
+                      {mapPosition && (
+                        <div>
+                          <AdminMap initialAddress={location} initialPosition={mapPosition} readOnly={true} />
+                        </div>
+                      )}
+                      {!location && !mapPosition && <p className="text-muted-foreground">ไม่มีข้อมูลสถานที่</p>}
+                    </div>
+                  </div>
+                  {/* (คอลัมน์ขวา: สถานะ & ประวัติ) */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">สถานะหัวหน้างาน (Leader)</h4>
+                    {job.status === "new" ? (
+                      <div className="p-3 bg-muted rounded-md text-sm text-amber-600">
+                        <p><strong>สถานะ:</strong> ยังอยู่ในระหว่างรอการยืนยันจากหัวหน้างาน</p>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-muted rounded-md text-sm text-green-600">
+                        <p><strong>สถานะ:</strong> หัวหน้างานรับทราบงานแล้ว (สถานะ: {job.status})</p>
+                      </div>
+                    )}
+                    <Tabs defaultValue="leader" className="w-full">
+                      <TabsList>
+                        <TabsTrigger value="leader">ความคืบหน้า (Leader/Tech)</TabsTrigger>
+                        <TabsTrigger value="admin">ประวัติแก้ไข (Admin)</TabsTrigger>
+                      </TabsList>
                       <TabsContent value="leader" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
                         {/* แสดง Activity Log */}
                         {(!job.activityLog || job.activityLog.length === 0) && job.tasks.length === 0 && (
@@ -296,28 +318,28 @@ export function EditJobDialog({
                           </div>
                         )}
                       </TabsContent>
-                      <TabsContent value="admin" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
-                        {job.editHistory.length === 0 && (
-                          <p className="text-sm text-muted-foreground p-4 text-center">ยังไม่มีการแก้ไขโดย Admin</p>
-                        )}
-                        {job.editHistory.map((entry, index) => (
-                          <div key={index} className="text-sm p-3 bg-muted rounded-md">
-                            <p><strong>ผู้แก้ไข:</strong> {entry.adminName}</p>
-                            <p><strong>เวลา:</strong> {format(entry.editedAt, "PPpp", { locale: th })}</p>
-                            <p><strong>เหตุผล:</strong> {entry.reason}</p>
-                          </div>
-                        ))}
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-                </div>
-              </ScrollArea>
-              <DialogFooter>
-                <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
-                <Button onClick={() => onModeChange("edit")}>ไปที่โหมดแก้ไข</Button>
-              </DialogFooter>
-            </>
-          ) : (
+                      <TabsContent value="admin" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
+                        {job.editHistory.length === 0 && (
+                          <p className="text-sm text-muted-foreground p-4 text-center">ยังไม่มีการแก้ไขโดย Admin</p>
+                        )}
+                        {job.editHistory.map((entry, index) => (
+                          <div key={index} className="text-sm p-3 bg-muted rounded-md">
+                            <p><strong>ผู้แก้ไข:</strong> {entry.adminName}</p>
+                            <p><strong>เวลา:</strong> {format(entry.editedAt, "PPpp", { locale: th })}</p>
+                            <p><strong>เหตุผล:</strong> {entry.reason}</p>
+                          </div>
+                        ))}
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                </div>
+              </ScrollArea>
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
+                <Button onClick={() => onModeChange("edit")}>ไปที่โหมดแก้ไข</Button>
+              </DialogFooter>
+            </>
+          ) : (
             // --- โหมด "แก้ไข" ---
             <>
               <ScrollArea className="h-[70vh] p-4">
@@ -386,6 +408,21 @@ export function EditJobDialog({
 
                   <Card>
                     <CardHeader>
+                      <CardTitle>สถานที่ปฏิบัติงาน</CardTitle>
+                      <CardDescription>ระบุตำแหน่งและที่อยู่สำหรับปฏิบัติงาน</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <AdminMap
+                        initialAddress={location}
+                        initialPosition={mapPosition}
+                        onAddressChange={setLocation}
+                        onPositionChange={setMapPosition}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
                       <CardTitle>กำหนดการและหัวหน้างาน</CardTitle>
                       <CardDescription>อัปเดตช่วงเวลางาน และเลือกหัวหน้างานใหม่หากจำเป็น</CardDescription>
                     </CardHeader>
@@ -411,7 +448,7 @@ export function EditJobDialog({
                         {(!startDate || !endDate) && (
                           <p className="text-xs text-muted-foreground">
                             กรุณาเลือกวันเริ่มและวันจบก่อน เพื่อกรองหัวหน้างานที่พร้อม
-                          </p>
+                            </p>
                         )}
                       </div>
                     </CardContent>
@@ -428,35 +465,35 @@ export function EditJobDialog({
               </DialogFooter>
             </>
           )}
-        </DialogContent>
-      </Dialog>
+        </DialogContent>
+      </Dialog>
 
-      {/* --- Pop-up ถามเหตุผล --- */}
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>ยืนยันการแก้ไข</AlertDialogTitle>
-            <AlertDialogDescription>
-              กรุณาระบุเหตุผลสำหรับการแก้ไขในครั้งนี้
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-2">
-            <Label htmlFor="reason">เหตุผลการแก้ไข*</Label>
-            <Textarea
-              id="reason"
-              value={editReason}
-              onChange={(e) => setEditReason(e.target.value)}
-              placeholder="เช่น: แก้ไขคำผิด, อัปเดตเบอร์โทรลูกค้า..."
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmSave} disabled={!editReason}>
-              ยืนยัน
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
+      {/* --- Pop-up ถามเหตุผล --- */}
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการแก้ไข</AlertDialogTitle>
+            <AlertDialogDescription>
+              กรุณาระบุเหตุผลสำหรับการแก้ไขในครั้งนี้
+              </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <Label htmlFor="reason">เหตุผลการแก้ไข*</Label>
+            <Textarea
+              id="reason"
+              value={editReason}
+              onChange={(e) => setEditReason(e.target.value)}
+              placeholder="เช่น: แก้ไขคำผิด, อัปเดตเบอร์โทรลูกค้า..."
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSave} disabled={!editReason}>
+              ยืนยัน
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }
