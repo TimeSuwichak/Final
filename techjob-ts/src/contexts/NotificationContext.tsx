@@ -172,16 +172,36 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       })
     );
   };
-
+  // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ user คนนี้ ==================
+  // ตัวอย่าง: getNotificationsForUser("leader", "101")
+  //   → จะหา notification ที่มี recipientRole="leader" AND recipientId="101"
   const getNotificationsForUser: NotificationContextType["getNotificationsForUser"] =
     (role, recipientId) => {
+      // ใช้ filter() เพื่อตรวจสอบแต่ละ notification ว่าตรงกันไหม
       return notifications.filter((notification) => {
+        // ✓ ขั้นตอที่ 1: ตรวจ role (บทบาท)
+        //   notification.recipientRole ต้องเป็น "leader" หรือ "user" หรืออื่น ๆ
+        //   ถ้าไม่ตรง → return false (ไม่ให้ notification นี้อยู่ในผลลัพธ์)
         if (notification.recipientRole !== role) return false;
+        
+        // ✓ ขั้นตอที่ 2: ตรวจ recipientId
+        //   ถ้า notification ไม่ระบุ recipientId (null/undefined)
+        //   → แสดงว่า notification นั้นส่งให้ทุกคน (ทุก role นั้น)
+        //   → ให้ pass (return true)
         if (!notification.recipientId) return true;
+        
+        // ✓ ขั้นตอที่ 3: ถ้า recipientId มีค่า แต่ user.id ไม่มี
+        //   → return false (ไม่ให้แสดง)
         if (!recipientId) return false;
+        
+        // ✓ ขั้นตอที่ 4: ตรวจสอบ recipientId ตรงกันหรือไม่
+        //   แปลงทั้งสองค่าเป็น String เพื่อเปรียบเทียบ
+        //   เพราะว่า recipientId อาจเป็น Number (101) หรือ String ("101")
+        //   แปลงทั้งคู่เป็น String (เช่น "101") แล้วเปรียบเทียบ
         return String(notification.recipientId) === String(recipientId);
       });
     };
+  // ======================================================================
 
   const getUnreadCount: NotificationContextType["getUnreadCount"] = (
     role,
