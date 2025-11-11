@@ -2,12 +2,35 @@
 // (คุณสามารถเพิ่มรายละเอียดอื่นๆ ได้ตามต้องการ)
 
 
-// พิมพ์เขียวสำหรับ "ประวัติการแก้ไข"
+// พิมพ์เขียวสำหรับ "ประวัติการแก้ไข" (โดย Admin เท่านั้น)
 export interface EditHistory {
   adminName: string;
   editedAt: Date;
   reason: string;
   changes: string; // (อาจจะเก็บว่าแก้ field ไหน)
+}
+
+// พิมพ์เขียวสำหรับ "ความคืบหน้างาน" (โดย Leader/Tech)
+export interface ActivityLog {
+  actorName: string; // ชื่อคนทำ (Leader หรือ Tech)
+  actorRole: 'leader' | 'tech'; // บทบาทของคนทำ
+  activityType: 'acknowledge' | 'task_created' | 'task_updated' | 'tech_assigned' | 'status_changed' | 'other';
+  message: string; // ข้อความอธิบายการกระทำ
+  timestamp: Date;
+  metadata?: Record<string, any>; // ข้อมูลเพิ่มเติม (เช่น taskId, techIds, etc.)
+}
+
+// พิมพ์เขียวสำหรับ "การแจ้งเตือน"
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  recipientRole: 'admin' | 'leader' | 'user' | 'executive';
+  recipientId?: string; // สำหรับระบุตัวบุคคล (เช่น ช่างแต่ละคน)
+  relatedJobId?: string;
+  createdAt: Date;
+  read: boolean;
+  metadata?: Record<string, any>;
 }
 
 // พิมพ์เขียวสำหรับ "งานย่อย" (Task)
@@ -55,5 +78,6 @@ export interface Job {
   // ข้อมูล Meta
   adminCreator: string; // ชื่อ Admin ที่สร้าง
   createdAt: Date;
-  editHistory: EditHistory[];
+  editHistory: EditHistory[]; // ประวัติการแก้ไขโดย Admin เท่านั้น
+  activityLog: ActivityLog[]; // ความคืบหน้างานโดย Leader/Tech
 }

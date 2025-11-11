@@ -7,10 +7,14 @@ import { CgFileDocument } from "react-icons/cg";
 import { BsBoxes } from "react-icons/bs";
 import { TbAlertHexagon } from "react-icons/tb";
 import { HiMenu, HiX } from "react-icons/hi";
+import { FiBell } from "react-icons/fi";
 import { ModeToggle } from "../common/mode-toggle";
 import LogoutButton from "../auth/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
+import techJobLogo from "@/assets/techjob-logo.png"; // ตัวอย่าง path
 import { JobProvider } from "@/contexts/JobContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -21,12 +25,12 @@ export default function Sidebar() {
   const activeLinkClass = "border-l-4 border-purple-500";
   const inactiveLinkClass = "border-l-4 border-transparent";
 
-  // 🧭 Config เมนูแต่ละ role
   const menuConfig = {
     user: [
       { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     admin: [
@@ -35,27 +39,29 @@ export default function Sidebar() {
       { path: "/admin/workoders", icon: <CgFileDocument />, label: "ระบบใบงาน" },
       { path: "/admin/material", icon: <BsBoxes />, label: "คลังอุปกรณ์/วัสดุ" },
       { path: "/admin/report", icon: <TbAlertHexagon />, label: "การแจ้งปัญหา" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
-
     leader: [
-      { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
     ],
 
     executive: [
       { path: "/executive/exdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
     ],
 
   };
 
-  // 🧩 ดึง role ปัจจุบันจาก user (default เป็น user)
   const role = user?.role?.toLowerCase() || "user";
   const menuItems = menuConfig[role] || menuConfig.user;
 
   return (
-    <JobProvider>
-      <div className="flex h-screen">
+    <NotificationProvider>
+      <JobProvider>
+        <div className="flex h-screen">
         {/* ปุ่มเปิด/ปิด sidebar สำหรับ mobile */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -72,25 +78,33 @@ export default function Sidebar() {
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 md:static
         `}
-        >
-          {/* Header */}
-          <div>
-            <div className="p-5 pl-8 text-white text-xl font-bold">TECH JOB</div>
-            <nav className="flex flex-col gap-2 px-4">
-              {menuItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass
-                    }`
-                  }
-                >
-                  <span className="mr-2">{item.icon}</span> {item.label}
-                </NavLink>
-              ))}
-            </nav>
+      >
+        {/* Header */}
+        <div>
+          <div className="p-5 pl-8 text-white text-xl font-bold flex items-center gap-3">
+            <img
+              src={techJobLogo}
+              alt="TechJob Logo"
+              className="h-10 w-auto object-contain"
+            />
           </div>
+
+          <nav className="flex flex-col gap-2 px-4">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `${baseLinkClass} ${
+                    isActive ? activeLinkClass : inactiveLinkClass
+                  }`
+                }
+              >
+                <span className="mr-2">{item.icon}</span> {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
           {/* Footer */}
           <div className="p-4 border-t border-[#222] space-y-4">
@@ -116,8 +130,14 @@ export default function Sidebar() {
         </div>
 
         {/* เนื้อหาหลัก */}
-        <div className="flex-1 p-6 overflow-auto md:ml-0">
-          <Outlet />
+        <div className="relative flex-1 md:ml-0">
+          {/* Floating notification bell (kept off layout flow to avoid header artifacts) */}
+          <div className="absolute right-6 top-6 z-30">
+            <NotificationBell />
+          </div>
+          <main className="h-full overflow-auto p-6 pt-20">
+            <Outlet />
+          </main>
         </div>
 
         {/* Overlay (mobile) */}
@@ -128,6 +148,8 @@ export default function Sidebar() {
           ></div>
         )}
       </div>
-    </JobProvider>
+      </JobProvider>
+    </NotificationProvider>
   );
 }
+

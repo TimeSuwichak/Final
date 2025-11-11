@@ -29,7 +29,11 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh]">
+      <DialogContent
+        className="sm:max-w-3xl max-h-[90vh]"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>ใบงาน: {job.title}</DialogTitle>
         </DialogHeader>

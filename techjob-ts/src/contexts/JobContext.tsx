@@ -1,8 +1,10 @@
 // src/contexts/JobContext.tsx (ฉบับอัปเกรดให้ "จำเก่ง")
 "use client";
 
-import type { EditHistory, Job } from '@/types/index';
+import type { EditHistory, ActivityLog, Job } from '@/types/index';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'; // 1. Import useEffect
+import { useNotifications } from '@/contexts/NotificationContext';
+import { leader as LEADER_DIRECTORY } from '@/data/leader';
 
 
 // --- ชื่อกุญแจสำหรับเก็บข้อมูล ---
@@ -16,13 +18,17 @@ const reviveDates = (job: any): Job => {
     startDate: new Date(job.startDate),
     endDate: new Date(job.endDate),
     createdAt: new Date(job.createdAt),
-    editHistory: job.editHistory.map((entry: any) => ({
+    editHistory: (job.editHistory || []).map((entry: any) => ({
       ...entry,
       editedAt: new Date(entry.editedAt),
     })),
-    tasks: job.tasks.map((task: any) => ({
+    activityLog: (job.activityLog || []).map((entry: any) => ({
+      ...entry,
+      timestamp: new Date(entry.timestamp),
+    })),
+    tasks: (job.tasks || []).map((task: any) => ({
       ...task,
-      updates: task.updates.map((update: any) => ({
+      updates: (task.updates || []).map((update: any) => ({
         ...update,
         updatedAt: new Date(update.updatedAt),
       })),
@@ -45,11 +51,36 @@ const loadJobsFromStorage = (): Job[] => {
   return []; // คืนค่าว่างถ้าไม่มีข้อมูล
 };
 
+const findLeaderName = (leaderId?: string | number | null) => {
+  if (leaderId === null || leaderId === undefined) return null;
+  const leader = LEADER_DIRECTORY.find(
+    (item) => String(item.id) === String(leaderId)
+  );
+  return leader ? `${leader.fname} ${leader.lname}` : null;
+};
+
 // --- สร้าง Context (เหมือนเดิม) ---
 interface JobContextType {
   jobs: Job[];
-  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator'>, adminName: string) => void;
+  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator' | 'editHistory' | 'activityLog'>, adminName: string) => void;
   updateJob: (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => void;
+  addActivityLog: (
+    jobId: string, 
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => void;
+  updateJobWithActivity: (
+    jobId: string,
+    updatedData: Partial<Job>,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => void;
 }
 
 const JobContext = createContext<JobContextType | undefined>(undefined);
@@ -60,6 +91,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   // ▼▼▼ 2. (แก้ไข!) เปลี่ยน useState ให้ "โหลด" ข้อมูลตอนเริ่ม ▼▼▼
   // (นี่คือการอ่าน "แผ่นหิน" ตอนเปิดออฟฟิศ)
   const [jobs, setJobs] = useState<Job[]>(loadJobsFromStorage);
+  const { addNotification } = useNotifications();
 
   // ▼▼▼ 3. (ใหม่!) เพิ่ม "สมอง" ให้ "บันทึก" ข้อมูลทุกครั้งที่ 'jobs' เปลี่ยน ▼▼▼
   // (นี่คือการ "สลักหิน" ทุกครั้งที่มีคนเขียนกระดาน)
@@ -87,6 +119,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       createdAt: date,
       status: 'new',
       editHistory: [],
+      activityLog: [],
       tasks: [],
       assignedTechs: [],
     };
@@ -94,31 +127,157 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     setJobs(prevJobs => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
   };
 
-  // --- ฟังก์ชัน "อัปเดตใบงาน" (เหมือนเดิม) ---
+  // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---
   const updateJob = (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => {
+    const targetJob = jobs.find(job => job.id === jobId);
+    if (!targetJob) {
+      console.warn(`updateJob: ไม่พบใบงานรหัส ${jobId}`);
+      return;
+    }
+
+    const newHistory: EditHistory = {
+      adminName,
+      editedAt: new Date(),
+      reason: editReason,
+      changes: Object.keys(updatedData).join(', ')
+    };
+
+    const nextAssignedTechs = updatedData.assignedTechs ?? targetJob.assignedTechs;
+    const updatedJob: Job = {
+      ...targetJob,
+      ...updatedData,
+      editHistory: [...(targetJob.editHistory || []), newHistory],
+    };
+
+    const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
+
+    if (Object.prototype.hasOwnProperty.call(updatedData, 'leadId')) {
+      const previousLeaderId = targetJob.leadId;
+      const nextLeaderId = updatedData.leadId ?? null;
+
+      if (previousLeaderId !== nextLeaderId) {
+        const newLeaderName = findLeaderName(nextLeaderId) ?? "หัวหน้างานใหม่";
+        const oldLeaderName = findLeaderName(previousLeaderId) ?? "หัวหน้างานเดิม";
+        const reasonMessage = editReason || "ไม่ระบุเหตุผล";
+
+        nextAssignedTechs.forEach((techId) => {
+          notificationsToSend.push({
+            title: "หัวหน้างานถูกเปลี่ยน",
+            message: `งาน ${targetJob.title} เปลี่ยนหัวหน้างานเป็น ${newLeaderName} โดย ${adminName}. เหตุผล: ${reasonMessage}`,
+            recipientRole: "user",
+            recipientId: techId,
+            relatedJobId: targetJob.id,
+            metadata: {
+              type: "leader_change",
+              newLeaderId: nextLeaderId,
+              previousLeaderId,
+            },
+          });
+        });
+
+        if (previousLeaderId && previousLeaderId !== nextLeaderId) {
+          notificationsToSend.push({
+            title: "มีการเปลี่ยนหัวหน้างาน",
+            message: `งาน ${targetJob.title} ถูกเปลี่ยนให้ ${newLeaderName} ดูแลแทนคุณ เหตุผล: ${reasonMessage}`,
+            recipientRole: "leader",
+            recipientId: String(previousLeaderId),
+            relatedJobId: targetJob.id,
+            metadata: {
+              type: "leader_reassignment",
+              newLeaderId: nextLeaderId,
+            },
+          });
+        }
+
+        if (nextLeaderId !== null && nextLeaderId !== undefined) {
+          notificationsToSend.push({
+            title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
+            message: `คุณได้รับมอบหมายให้ดูแลงาน ${targetJob.title} จาก ${oldLeaderName}. เหตุผล: ${reasonMessage}`,
+            recipientRole: "leader",
+            recipientId: String(nextLeaderId),
+            relatedJobId: targetJob.id,
+            metadata: {
+              type: "leader_assignment",
+              previousLeaderId,
+            },
+          });
+        }
+      }
+    }
+
+    setJobs(prevJobs =>
+      prevJobs.map(job => (job.id === jobId ? updatedJob : job))
+    );
+
+    notificationsToSend.forEach(addNotification);
+  };
+
+  // --- ฟังก์ชัน "เพิ่ม Activity Log" (สำหรับ Leader/Tech เท่านั้น) ---
+  const addActivityLog = (
+    jobId: string,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => {
     setJobs(prevJobs =>
       prevJobs.map(job => {
         if (job.id === jobId) {
-          const newHistory: EditHistory = {
-            adminName: adminName,
-            editedAt: new Date(),
-            reason: editReason,
-            changes: Object.keys(updatedData).join(', ')
+          const newActivity: ActivityLog = {
+            actorName,
+            actorRole,
+            activityType,
+            message,
+            timestamp: new Date(),
+            metadata,
+          };
+
+          return {
+            ...job,
+            activityLog: [...(job.activityLog || []), newActivity]
+          };
+        }
+        return job;
+      })
+    );
+  };
+
+  // --- ฟังก์ชัน "อัปเดตงานพร้อม Activity Log" (สำหรับ Leader/Tech) ---
+  const updateJobWithActivity = (
+    jobId: string,
+    updatedData: Partial<Job>,
+    activityType: ActivityLog['activityType'],
+    message: string,
+    actorName: string,
+    actorRole: 'leader' | 'tech',
+    metadata?: Record<string, any>
+  ) => {
+    setJobs(prevJobs =>
+      prevJobs.map(job => {
+        if (job.id === jobId) {
+          const newActivity: ActivityLog = {
+            actorName,
+            actorRole,
+            activityType,
+            message,
+            timestamp: new Date(),
+            metadata,
           };
 
           return {
             ...job,
             ...updatedData,
-            editHistory: [...job.editHistory, newHistory]
+            activityLog: [...(job.activityLog || []), newActivity]
           };
         }
         return job;
       })
-    ); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
+    );
   };
 
   return (
-    <JobContext.Provider value={{ jobs, addJob, updateJob }}>
+    <JobContext.Provider value={{ jobs, addJob, updateJob, addActivityLog, updateJobWithActivity }}>
       {children}
     </JobContext.Provider>
   );
