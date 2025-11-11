@@ -25,11 +25,23 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 // (Import เครื่องมือ 2 ชิ้น)
 import { TechSelectMultiDept } from './TechSelectMultiDept';
 import { TaskManagement } from './TaskManagement';
 import type { Job } from '@/types/index';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 interface LeaderJobDetailDialogProps {
     job: Job | null;
@@ -40,8 +52,13 @@ interface LeaderJobDetailDialogProps {
 export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDetailDialogProps) {
     const { updateJobWithActivity } = useJobs();
     const { user } = useAuth(); 
+    const { addNotification } = useNotifications();
 
     const [draftTechs, setDraftTechs] = useState<string[]>([]);
+    const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
+    const [teamChangeReason, setTeamChangeReason] = useState("");
+    const [pendingTeamChanges, setPendingTeamChanges] = useState<{ added: string[]; removed: string[] } | null>(null);
+
     useEffect(() => {
         if (job) {
             setDraftTechs(job.assignedTechs);
@@ -66,28 +83,92 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
 
     // --- ฟังก์ชัน "บันทึกทีมช่าง" ---
     const handleSaveTeam = () => {
-        if (JSON.stringify(draftTechs) === JSON.stringify(job.assignedTechs)) {
+        const normalizedDraft = [...draftTechs].sort();
+        const normalizedCurrent = [...job.assignedTechs].sort();
+
+        if (JSON.stringify(normalizedDraft) === JSON.stringify(normalizedCurrent)) {
             alert("ไม่ได้เปลี่ยนแปลงทีมช่าง");
             return;
         }
+        const added = draftTechs.filter((techId) => !job.assignedTechs.includes(techId));
+        const removed = job.assignedTechs.filter((techId) => !draftTechs.includes(techId));
+
+        setPendingTeamChanges({ added, removed });
+        setTeamChangeReason("");
+        setIsReasonDialogOpen(true);
+    };
+
+    const handleConfirmTeamChanges = () => {
+        if (!pendingTeamChanges) return;
+        if (!teamChangeReason.trim()) {
+            alert("กรุณาระบุเหตุผลในการเปลี่ยนแปลงทีมช่าง");
+            return;
+        }
+
+        const reasonText = teamChangeReason.trim();
+
         updateJobWithActivity(
             job.id,
             { assignedTechs: draftTechs },
             'tech_assigned',
-            `อัปเดต/มอบหมายทีมช่างเทคนิค (${draftTechs.length} คน)`,
+            `อัปเดตทีมช่าง (${draftTechs.length} คน) - เหตุผล: ${reasonText}`,
             user.fname,
             'leader',
-            { techIds: draftTechs }
+            {
+                techIds: draftTechs,
+                added: pendingTeamChanges.added,
+                removed: pendingTeamChanges.removed,
+                reason: reasonText,
+            }
         );
+
+        pendingTeamChanges.added.forEach((techId) => {
+            addNotification({
+                title: "ได้รับมอบหมายงานใหม่",
+                message: `คุณถูกเพิ่มเข้าทีมงาน "${job.title}" โดย ${user.fname}. เหตุผล: ${reasonText}`,
+                recipientRole: "user",
+                recipientId: techId,
+                relatedJobId: job.id,
+                metadata: {
+                    type: "team_assignment_added",
+                    jobId: job.id,
+                    leaderId: user?.id ? String(user.id) : undefined,
+                },
+            });
+        });
+
+        pendingTeamChanges.removed.forEach((techId) => {
+            addNotification({
+                title: "มีการถอดคุณออกจากงาน",
+                message: `คุณถูกถอดออกจากทีมงาน "${job.title}" โดย ${user.fname}. เหตุผล: ${reasonText}`,
+                recipientRole: "user",
+                recipientId: techId,
+                relatedJobId: job.id,
+                metadata: {
+                    type: "team_assignment_removed",
+                    jobId: job.id,
+                    leaderId: user?.id ? String(user.id) : undefined,
+                },
+            });
+        });
+
+        setIsReasonDialogOpen(false);
+        setPendingTeamChanges(null);
+        setTeamChangeReason("");
         alert("บันทึกทีมช่างเรียบร้อย!");
     };
 
     const isAcknowledged = job.status !== 'new';
 
     return (
+        <>
         <Dialog open={open} onOpenChange={onOpenChange}>
             {/* ▼▼▼ (แก้ไข!) ขยาย Pop-up ให้กว้างขึ้น ▼▼▼ */}
-            <DialogContent className="sm:max-w-4xl max-h-[90vh]"> 
+            <DialogContent
+                className="sm:max-w-4xl max-h-[90vh]"
+                onPointerDownOutside={(event) => event.preventDefault()}
+                onEscapeKeyDown={(event) => event.preventDefault()}
+            > 
                 <DialogHeader>
                     <DialogTitle>รายละเอียดใบงาน: {job.id}</DialogTitle>
                 </DialogHeader>
@@ -208,5 +289,39 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        <AlertDialog
+            open={isReasonDialogOpen}
+            onOpenChange={(nextOpen) => {
+                setIsReasonDialogOpen(nextOpen);
+                if (!nextOpen) {
+                    setPendingTeamChanges(null);
+                    setTeamChangeReason("");
+                }
+            }}
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>ระบุเหตุผลในการปรับทีมช่าง</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        กรุณาแจ้งเหตุผลสำหรับการเพิ่ม/ลบช่างออกจากงานนี้ ข้อมูลนี้จะถูกส่งเป็นการแจ้งเตือนไปยังช่างที่เกี่ยวข้อง
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-3 py-2">
+                    <Textarea
+                        value={teamChangeReason}
+                        onChange={(event) => setTeamChangeReason(event.target.value)}
+                        placeholder="ระบุรายละเอียด เช่น ปรับตามความเหมาะสม หรือมีการเปลี่ยนแปลงตารางงาน"
+                        rows={4}
+                    />
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmTeamChanges}>
+                        ยืนยันและแจ้งเตือน
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        </>
     );
 }

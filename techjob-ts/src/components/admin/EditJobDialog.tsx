@@ -193,8 +193,12 @@ export function EditJobDialog({
   // --- JSX (ส่วนแสดงผล) ---
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="sm:max-w-4xl max-h-[90vh]"
+          onPointerDownOutside={(event) => event.preventDefault()}
+          onEscapeKeyDown={(event) => event.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{job.title}</DialogTitle>
           </DialogHeader>

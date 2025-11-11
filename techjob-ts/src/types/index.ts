@@ -20,6 +20,19 @@ export interface ActivityLog {
   metadata?: Record<string, any>; // ข้อมูลเพิ่มเติม (เช่น taskId, techIds, etc.)
 }
 
+// พิมพ์เขียวสำหรับ "การแจ้งเตือน"
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  recipientRole: 'admin' | 'leader' | 'user' | 'executive';
+  recipientId?: string; // สำหรับระบุตัวบุคคล (เช่น ช่างแต่ละคน)
+  relatedJobId?: string;
+  createdAt: Date;
+  read: boolean;
+  metadata?: Record<string, any>;
+}
+
 // พิมพ์เขียวสำหรับ "งานย่อย" (Task)
 export interface Task {
   id: string;

@@ -206,7 +206,11 @@ export default function MaterialPage() {
 
       {/* Withdraw Dialog */}
       <Dialog open={openWithdraw} onOpenChange={setOpenWithdraw}>
-        <DialogContent className="sm:max-w-[500px] space-y-5">
+        <DialogContent
+          className="sm:max-w-[500px] space-y-5"
+          onPointerDownOutside={(event) => event.preventDefault()}
+          onEscapeKeyDown={(event) => event.preventDefault()}
+        >
           <DialogHeader className="space-y-2">
             <DialogTitle>เบิกวัสดุ</DialogTitle>
             {withdrawTarget && (

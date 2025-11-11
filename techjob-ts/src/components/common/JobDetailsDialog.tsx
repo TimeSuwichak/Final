@@ -16,7 +16,11 @@ export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, o
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent
+        className="sm:max-w-2xl"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl">{job.title}</DialogTitle>
           <DialogDescription>{job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</DialogDescription>
