@@ -38,7 +38,10 @@ export default function Sidebar() {
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     leader: [
-      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
+      { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
+      { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
     ],
 
     executive: [
