@@ -211,7 +211,7 @@ export function EditJobDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="sm:max-w-4xl max-h-[90vh]"
+          className="sm:max-w-4xl max-h-[90vh] flex flex-col"
           onPointerDownOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => event.preventDefault()}
         >
@@ -222,7 +222,7 @@ export function EditJobDialog({
           {mode === "view" ? (
             // --- โหมด "ดูรายละเอียด" ---
             <>
-              <ScrollArea className="h-[70vh] p-4">
+              <ScrollArea className="flex-1 p-4 overflow-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* (คอลัมน์ซ้าย: ข้อมูลหลัก) */}
                   <div className="space-y-4">
@@ -342,7 +342,7 @@ export function EditJobDialog({
           ) : (
             // --- โหมด "แก้ไข" ---
             <>
-              <ScrollArea className="h-[70vh] p-4">
+              <ScrollArea className="flex-1 p-4 overflow-auto">
                 <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-2">
                   <Card>
                     <CardHeader>

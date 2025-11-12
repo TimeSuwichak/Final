@@ -122,9 +122,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex h-full flex-col">
-      <ScrollArea className="h-[70vh] p-4">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6">
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+  <ScrollArea className="flex-1 h-full p-4 overflow-auto">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6 ">
           <Card>
             <CardHeader>
               <CardTitle>ข้อมูลพื้นฐาน</CardTitle>

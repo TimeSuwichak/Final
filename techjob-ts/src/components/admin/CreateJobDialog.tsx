@@ -20,12 +20,12 @@ interface CreateJobDialogProps {
 
 export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} >
       <DialogTrigger asChild>
         <Button>+ สร้างใบงานใหม่</Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-4xl max-h-[90vh]"
+        className="sm:max-w-4xl max-h-[90vh]  flex flex-col"
         onPointerDownOutside={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}
       >

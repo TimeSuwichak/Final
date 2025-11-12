@@ -165,7 +165,7 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
         <Dialog open={open} onOpenChange={onOpenChange}>
             {/* ▼▼▼ (แก้ไข!) ขยาย Pop-up ให้กว้างขึ้น ▼▼▼ */}
             <DialogContent
-                className="sm:max-w-4xl max-h-[90vh]"
+                className="sm:max-w-4xl max-h-[90vh] flex flex-col"
                 onPointerDownOutside={(event) => event.preventDefault()}
                 onEscapeKeyDown={(event) => event.preventDefault()}
             > 
@@ -174,8 +174,8 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                 </DialogHeader>
 
                 {/* ▼▼▼ (แก้ไข!) นี่คือ Layout ที่ถูกต้อง ▼▼▼ */}
-                <ScrollArea className="h-[70vh] p-4">
-                    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-4">
+                <ScrollArea className="flex-1 p-4 overflow-auto">
+                    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-4 min-h-0">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
@@ -273,7 +273,7 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                         </Card>
                     </div>
                 </ScrollArea>
-                <DialogFooter className="mt-4 border-t pt-4">
+                <DialogFooter className="border-t bg-background p-4">
                     <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
 
                     {/* (ปุ่มรับทราบงาน จะอยู่ที่นี่ที่เดียว) */}
