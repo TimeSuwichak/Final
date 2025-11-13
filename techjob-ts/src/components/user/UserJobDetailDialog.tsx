@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UserTaskUpdate } from './UserTaskUpdate'; // 1. Import เครื่องมือส่งงาน
+import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
 
 interface UserJobDetailDialogProps {
@@ -53,10 +54,20 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 <p><strong>ชื่อ:</strong> {job.customerName}</p>
                 <p><strong>โทร:</strong> {job.customerPhone}</p>
               </div>
-              
-              <h4 className="font-semibold">สถานที่ (รอ Map)</h4>
+              <h4 className="font-semibold">สถานที่</h4> {/*สถานที่ทำงาน */}
+             <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
+               <h4 className="font-semibold"></h4> {/*สถานที่ทำงาน */}
+              {job.latitude && job.longitude ? (
+                <AdminMap
+                  initialAddress={job.location}
+                  initialPosition={[job.latitude, job.longitude]}
+                  readOnly={true}
+                />
+              ) : (
               <div className="p-3 bg-muted rounded-md text-sm">
                 <p>{job.location}</p>
+                </div>
+              )}
               </div>
             </div>
 
