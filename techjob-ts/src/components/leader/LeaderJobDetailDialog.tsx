@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 // (Import เครื่องมือ 2 ชิ้น)
 import { TechSelectMultiDept } from './TechSelectMultiDept';
 import { TaskManagement } from './TaskManagement';
+import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
 import { useNotifications } from '@/contexts/NotificationContext';
 
@@ -221,11 +222,21 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                                     <p><strong>โทร:</strong> {job.customerPhone || "-"}</p>
                                     <p><strong>ติดต่ออื่น:</strong> {job.customerContactOther || "-"}</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <p className="font-semibold">สถานที่</p>
+                                
+                                <div className="md:col-span-2 space-y-2">
+                                     <p className="font-semibold"></p>
+                                        {job.latitude && job.longitude ? (
+                                        <AdminMap
+                                            initialAddress={job.location}
+                                            initialPosition={[job.latitude, job.longitude]}
+                                            readOnly={true}
+                                        />
+                                        ) : (
+                                    
                                     <div className="rounded-md border border-dashed p-3 text-muted-foreground">
                                         {job.location}
                                     </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

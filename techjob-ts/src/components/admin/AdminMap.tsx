@@ -58,6 +58,11 @@ function LocationMarker({
               <p className="font-semibold">{locationName || "ตำแหน่งที่เลือก"}</p>
               {locationName && (
                 <p className="text-xs text-muted-foreground mt-1">
+                  พิกัด: {position[0].toFixed(6)}, {position[1].toFixed(6)}
+                </p>
+              )}
+              {!locationName && (
+                <p className="text-xs text-muted-foreground mt-1">
                   {position[0].toFixed(6)}, {position[1].toFixed(6)}
                 </p>
               )}
