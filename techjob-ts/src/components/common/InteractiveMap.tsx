@@ -3,7 +3,7 @@
 // InteractiveMap.tsx
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // นำเข้าคอมโพเนนต์หลักจาก react-leaflet สำหรับแสดงแผนที่
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
 // นำเข้า L (ตัวหลักของ Leaflet) และ Type LatLngExpression
@@ -134,6 +134,8 @@ const InteractiveMap: React.FC<MapProps> = ({
   const [position, setPosition] = useState<[number, number] | null>(markerPosition as [number, number] | null);
   // State ภายในสำหรับเก็บจุดศูนย์กลางแผนที่
   const [mapCenter, setMapCenter] = useState<LatLngExpression>(center);
+  // เก็บ instance ของ leaflet map เพื่อเรียก API (setView, panTo) โดยไม่ต้อง remount
+  const mapRef = useRef<any | null>(null);
 
   // --- 5. Geocoding Effect ---
   // useEffect นี้จะทำงาน "ทุกครั้ง" ที่ props `addressToGeocode` เปลี่ยนแปลง
@@ -168,6 +170,19 @@ const InteractiveMap: React.FC<MapProps> = ({
   };
 
   // --- 6. Render ---
+  // เมื่อ position / mapCenter / zoom เปลี่ยน ให้อัปเดตมุมมองของแผนที่ผ่าน API
+  useEffect(() => {
+    if (!mapRef.current) return;
+    try {
+      const target = (position as L.LatLngExpression) || (mapCenter as L.LatLngExpression);
+      mapRef.current.setView(target, zoom);
+    } catch (e) {
+      // ป้องกัน error ถ้า instance ยังไม่พร้อม
+      // eslint-disable-next-line no-console
+      console.warn("InteractiveMap: failed to setView", e);
+    }
+  }, [position, mapCenter, zoom]);
+
   return (
     <div className="h-full w-full min-h-[300px]">
       <MapContainer
@@ -176,10 +191,9 @@ const InteractiveMap: React.FC<MapProps> = ({
         zoom={zoom}
         style={{ height: "100%", width: "100%", cursor: interactive ? "crosshair" : "default" }}
         scrollWheelZoom={true}
-        // [เทคนิค] ใส่ key เพื่อบังคับให้ MapContainer "Re-render"
-        // เมื่อ position เปลี่ยน ไม่งั้นแผนที่อาจไม่ขยับตาม
-        key={`${position?.[0]}-${position?.[1]}`}
       >
+        {/* ตั้งค่า mapRef ผ่าน child component ที่ใช้ useMapEvents() */}
+        <MapRefSetter mapRef={mapRef} />
         {/* เลเยอร์แผนที่ (ใช้ของ OpenStreetMap) */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -207,5 +221,17 @@ const InteractiveMap: React.FC<MapProps> = ({
     </div>
   );
 };
+
+// Child component to set mapRef using react-leaflet's useMapEvents()
+function MapRefSetter({ mapRef }: { mapRef: React.MutableRefObject<any | null> }) {
+  const map = useMapEvents({}) as any
+  useEffect(() => {
+    mapRef.current = map
+    return () => {
+      if (mapRef.current === map) mapRef.current = null
+    }
+  }, [map, mapRef])
+  return null
+}
 
 export default InteractiveMap;

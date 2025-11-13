@@ -10,6 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 
 interface TaskManagementProps {
   job: Job; // รับ Job ทั้ง Object มาเลย
@@ -60,50 +69,94 @@ export function TaskManagement({ job }: TaskManagementProps) {
   };
 
   return (
-    <div className="space-y-4">
-      {/* --- ส่วนที่ 1: แสดง Task ที่มีอยู่ --- */}
-      <h4 className="font-semibold">งานย่อย (Tasks)</h4>
-      <div className="space-y-3 max-h-[200px] overflow-auto pr-2">
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h4 className="text-base font-semibold">งานย่อย (Tasks)</h4>
         {job.tasks.length > 0 ? (
-          job.tasks.map(task => (
-            <div key={task.id} className="p-3 bg-muted rounded-md">
-              <p className="font-semibold">{task.title}</p>
-              <p className="text-sm text-muted-foreground">{task.description}</p>
-              {/* (ในอนาคต: จะแสดง updates จากช่างที่นี่) */}
-            </div>
-          ))
+          <div className="space-y-3">
+            {job.tasks.map(task => (
+              <Card key={task.id} className="border-muted/60">
+                <CardHeader className="space-y-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <CardTitle className="text-lg font-semibold">{task.title}</CardTitle>
+                    <Badge variant={task.status === 'completed' ? 'secondary' : task.status === 'in-progress' ? 'outline' : 'default'}>
+                      {task.status === 'pending' && 'รอดำเนินการ'}
+                      {task.status === 'in-progress' && 'กำลังทำงาน'}
+                      {task.status === 'completed' && 'เสร็จสิ้น'}
+                    </Badge>
+                  </div>
+                  {task.description && (
+                    <p className="text-sm text-muted-foreground">{task.description}</p>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {task.updates && task.updates.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold">ความคืบหน้าจากทีมช่าง</p>
+                      <div className="space-y-2">
+                        {task.updates.map((update, idx) => (
+                          <div key={idx} className="rounded-md border bg-background p-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">{update.updatedBy}</span>
+                              <span>{format(update.updatedAt, 'dd/MM/yyyy HH:mm', { locale: th })}</span>
+                            </div>
+                            <p className="mt-2 leading-relaxed">{update.message}</p>
+                            {update.imageUrl && (
+                              <div className="mt-3 overflow-hidden rounded-md border">
+                                <img
+                                  src={update.imageUrl}
+                                  alt={`หลักฐานงานจาก ${update.updatedBy}`}
+                                  className="h-48 w-full rounded-md object-cover"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">ยังไม่มีการอัปเดตจากทีมช่าง</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         ) : (
-          <p className="text-sm text-muted-foreground text-center">ยังไม่มี Task งานย่อย</p>
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            ยังไม่มี Task งานย่อย
+          </div>
         )}
       </div>
 
       <Separator />
 
-      {/* --- ส่วนที่ 2: ฟอร์มสร้าง Task ใหม่ --- */}
-      <div className="space-y-3">
-        <h4 className="font-semibold">เพิ่ม Task ใหม่</h4>
-        <div>
-          <Label>หัวข้อ Task*</Label>
-          <Input 
-            value={newTitle}
-            onChange={e => setNewTitle(e.target.value)}
-            placeholder="เช่น: 1. เบิกวัสดุ"
-          />
-        </div>
-        <div>
-          <Label>รายละเอียด Task</Label>
-          <Textarea 
-            value={newDesc}
-            onChange={e => setNewDesc(e.target.value)}
-            placeholder="เช่น: เบิกสาย LAN Cat6 100 เมตร..."
-            rows={3}
-          />
-        </div>
-        {/* (ในอนาคต: สามารถเพิ่ม Input type="file" สำหรับแนบรูปได้ที่นี่) */}
-        <Button type="button" size="sm" onClick={handleAddTask}>
-          เพิ่ม Task
-        </Button>
-      </div>
+      <Card className="border-muted/60">
+        <CardHeader>
+          <CardTitle className="text-lg">เพิ่ม Task ใหม่</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="mb-1 block text-sm font-medium">หัวข้อ Task*</Label>
+            <Input 
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              placeholder="เช่น: ตรวจสอบอุปกรณ์"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-sm font-medium">รายละเอียด Task</Label>
+            <Textarea 
+              value={newDesc}
+              onChange={e => setNewDesc(e.target.value)}
+              placeholder="อธิบายขั้นตอน หรือสิ่งที่ต้องเตรียมให้ทีม"
+              rows={3}
+            />
+          </div>
+          <Button type="button" size="sm" onClick={handleAddTask} className="w-full md:w-auto">
+            เพิ่ม Task
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

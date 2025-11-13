@@ -7,11 +7,14 @@ import { CgFileDocument } from "react-icons/cg";
 import { BsBoxes } from "react-icons/bs";
 import { TbAlertHexagon } from "react-icons/tb";
 import { HiMenu, HiX } from "react-icons/hi";
+import { FiBell } from "react-icons/fi";
 import { ModeToggle } from "../common/mode-toggle";
 import LogoutButton from "../auth/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import techJobLogo from "@/assets/techjob-logo.png"; // ตัวอย่าง path
 import { JobProvider } from "@/contexts/JobContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +30,7 @@ export default function Sidebar() {
       { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     admin: [
@@ -35,17 +39,25 @@ export default function Sidebar() {
       { path: "/admin/workoders", icon: <CgFileDocument />, label: "ระบบใบงาน" },
       { path: "/admin/material", icon: <BsBoxes />, label: "คลังอุปกรณ์/วัสดุ" },
       { path: "/admin/report", icon: <TbAlertHexagon />, label: "การแจ้งปัญหา" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     leader: [
+<<<<<<< HEAD
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
+=======
+      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
+>>>>>>> 78d4bc40b50571ab5b6b72194b46e2ec9db218a8
     ],
 
     executive: [
       { path: "/executive/exdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
     ],
 
   };
@@ -54,8 +66,9 @@ export default function Sidebar() {
   const menuItems = menuConfig[role] || menuConfig.user;
 
   return (
-    <JobProvider>
-      <div className="flex h-screen">
+    <NotificationProvider>
+      <JobProvider>
+        <div className="flex h-screen">
         {/* ปุ่มเปิด/ปิด sidebar สำหรับ mobile */}
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -124,8 +137,15 @@ export default function Sidebar() {
         </div>
 
         {/* เนื้อหาหลัก */}
-        <div className="flex-1 p-6 overflow-auto md:ml-0">
-          <Outlet />
+        <div className="relative flex-1 md:ml-0">
+          {/* Floating notification bell (kept off layout flow to avoid header artifacts) */}
+          <div className="absolute right-6 top-6 z-30">
+            <NotificationBell />
+          </div>
+          {/* pt มันลากข้อความเรามานะข้ะ */}
+          <main className="h-full overflow-auto p-6 pt-20">
+            <Outlet />
+          </main>
         </div>
 
         {/* Overlay (mobile) */}
@@ -136,7 +156,8 @@ export default function Sidebar() {
           ></div>
         )}
       </div>
-    </JobProvider>
+      </JobProvider>
+    </NotificationProvider>
   );
 }
 

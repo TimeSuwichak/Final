@@ -10,6 +10,10 @@ export const executive = [
     role: "executive",
     phone: "090-112-3344",
     address: "101/5 ถ.สุขุมวิท ต.บางนา อ.เมือง จ.กรุงเทพฯ 10260",
+    religion: "พุทธ",
+    nationality: "ไทย",
+    idCard: "1101700203101",
+    startDate: "2010-01-10",
     status: "available",
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=visai"
   },
@@ -24,6 +28,10 @@ export const executive = [
     role: "executive",
     phone: "091-223-4455",
     address: "55/12 หมู่บ้านสวนหลวง ถ.ราชพฤกษ์ ต.บางกรวย อ.บางกรวย จ.นนทบุรี 11130",
+    religion: "พุทธ",
+    nationality: "ไทย",
+    idCard: "1101700203202",
+    startDate: "2011-04-11",
     status: "available",
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kalayut"
   },
@@ -38,6 +46,10 @@ export const executive = [
     role: "executive",
     phone: "092-334-5566",
     address: "88/7 ซ.รามอินทรา 14 ถ.รามอินทรา ต.คลองกุ่ม อ.บึงกุ่ม จ.กรุงเทพฯ 10240",
+    religion: "พุทธ",
+    nationality: "ไทย",
+    idCard: "1101700203303",
+    startDate: "2012-08-21",
     status: "available",
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=patibat"
   },
@@ -52,6 +64,10 @@ export const executive = [
     role: "executive",
     phone: "093-445-6677",
     address: "22/18 ถ.แจ้งวัฒนะ ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120",
+    religion: "พุทธ",
+    nationality: "ไทย",
+    idCard: "1101700203404",
+    startDate: "2013-02-14",
     status: "available",
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nawattakam"
   },
@@ -66,6 +82,10 @@ export const executive = [
     role: "executive",
     phone: "094-556-7788",
     address: "30/5 หมู่บ้านเมืองทอง ถ.วิภาวดีรังสิต ต.หลักสี่ อ.หลักสี่ จ.กรุงเทพฯ 10210",
+    religion: "พุทธ",
+    nationality: "ไทย",
+    idCard: "1101700203505",
+    startDate: "2014-11-04",
     status: "available",
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanngern"
   }

@@ -14,12 +14,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useJobs } from "@/contexts/JobContext";
 import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/data/leader";
+import { AdminMap } from "./AdminMap"
 
 // "ประเภทงาน" ที่ Admin จะเลือก
 const JOB_TYPES = [
@@ -43,6 +51,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // --- "สมอง" กรองหัวหน้างาน ---
+    const [location, setLocation] = useState("")
+  const [mapPosition, setMapPosition] = useState<[number, number] | undefined>()
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -93,7 +103,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         customerName,
         customerPhone: customerPhone || "ไม่มีข้อมูล",
         customerContactOther: customerContactOther || "ไม่มีข้อมูล",
-        location: "(ข้อมูลจาก Map)",
+        location: location || "ไม่ได้ระบุสถานที่", // ใช้ค่า location จาก state
+        latitude: mapPosition?.[0], // บันทึก latitude
+        longitude: mapPosition?.[1], // บันทึก longitude
         startDate,
         endDate,
         leadId: Number(selectedLeadId), // (แปลง ID กลับเป็น Number ตอนส่ง)
@@ -110,139 +122,151 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-           {" "}
-      <ScrollArea className="h-[70vh] p-4">
-               {" "}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* --- คอลัมน์ซ้าย: รายละเอียดงาน --- */}       
-           {" "}
-          <div className="space-y-4">
-                        <h4 className="font-semibold">1. รายละเอียดงาน</h4>     
-                 {" "}
-            <div>
-              <Label>หัวข้องาน*</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-                                   {" "}
-            <div>
-              <Label>ประเภทงาน*</Label>             {" "}
-              <Select onValueChange={setJobType} value={jobType}>
-                               {" "}
-                <SelectTrigger>
-                  <SelectValue placeholder="เลือกประเภทงาน..." />
-                </SelectTrigger>
-                               {" "}
-                <SelectContent>
-                                   {" "}
-                  {JOB_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                                            {type}                   {" "}
-                    </SelectItem>
-                  ))}
-                                 {" "}
-                </SelectContent>
-                             {" "}
-              </Select>
-                         {" "}
-            </div>
-                       {" "}
-            <div>
-              <Label>รายละเอียดงาน</Label>
+    <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+  <ScrollArea className="flex-1 h-full p-4 overflow-auto">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6 ">
+          <Card>
+            <CardHeader>
+              <CardTitle>ข้อมูลพื้นฐาน</CardTitle>
+              <CardDescription>กรอกหัวข้องานและประเภทงานที่ต้องการ</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Label className="mb-1 block text-sm font-medium">หัวข้องาน*</Label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="เช่น ติดตั้งระบบ Network"
+                />
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">ประเภทงาน*</Label>
+                <Select onValueChange={setJobType} value={jobType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="เลือกประเภทงาน..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {JOB_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">
+                  รูปภาพหน้างาน <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
+                </Label>
+                <Input type="file" accept="image/*" />
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">
+                  ไฟล์แนบ (PDF, DOC) <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
+                </Label>
+                <Input type="file" accept=".pdf,.doc,.docx" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>กำหนดการและการมอบหมาย</CardTitle>
+              <CardDescription>ระบุช่วงเวลางานและเลือกหัวหน้างานที่พร้อมดูแล</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label className="mb-1 block text-sm font-medium">วันเริ่มงาน*</Label>
+                <DatePicker date={startDate} setDate={setStartDate} />
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">วันจบงาน*</Label>
+                <DatePicker date={endDate} setDate={setEndDate} />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label className="text-sm font-medium">
+                  หัวหน้างาน* <span className="text-xs text-muted-foreground">(จะแสดงเฉพาะคนที่ว่าง)</span>
+                </Label>
+                <LeaderSelect
+                  leaders={availableLeads}
+                  selectedValue={selectedLeadId}
+                  onValueChange={setSelectedLeadId}
+                  disabled={!startDate || !endDate}
+                />
+                {(!startDate || !endDate) && (
+                  <p className="text-xs text-muted-foreground">
+                    กรุณาเลือกช่วงเวลางานก่อนเพื่อดูหัวหน้างานที่ว่าง
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>ข้อมูลลูกค้า</CardTitle>
+              <CardDescription>ระบุรายละเอียดการติดต่อของลูกค้า</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <Label className="mb-1 block text-sm font-medium">ชื่อลูกค้า*</Label>
+                <Input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="เช่น บริษัท ABC จำกัด"
+                />
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">เบอร์โทร</Label>
+                <Input
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="081-234-5678"
+                />
+              </div>
+              <div>
+                <Label className="mb-1 block text-sm font-medium">ช่องทางติดต่ออื่น (Line, Email)</Label>
+                <Input
+                  value={customerContactOther}
+                  onChange={(e) => setCustomerContactOther(e.target.value)}
+                  placeholder="line: example หรือ email@example.com"
+                />
+              </div>
+              <div className="md:col-span-2">
+               <AdminMap
+                  initialAddress={location}
+                  initialPosition={mapPosition}
+                  onAddressChange={setLocation}
+                  onPositionChange={setMapPosition}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>รายละเอียดงาน</CardTitle>
+              <CardDescription>ใส่รายละเอียดงานเพิ่มเติมเพื่อให้ทีมเข้าใจตรงกัน</CardDescription>
+            </CardHeader>
+            <CardContent>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="รายละเอียด, เงื่อนไข, หมายเหตุ หรือสิ่งที่ต้องเตรียม..."
+                className="min-h-[160px]"
               />
-            </div>
-                       {" "}
-            <div>
-              <Label>รูปภาพหน้างาน</Label>
-              <Input type="file" />
-            </div>
-                       {" "}
-            <div>
-              <Label>ไฟล์แนบ (PDF, .doc)</Label>
-              <Input type="file" />
-            </div>
-                     {" "}
-          </div>
-                    {/* --- คอลัมน์ขวา: ลูกค้าและทีม --- */}         {" "}
-          <div className="space-y-4">
-                        <h4 className="font-semibold">2. ข้อมูลลูกค้า</h4>     
-                 {" "}
-            <div>
-              <Label>ชื่อลูกค้า*</Label>
-              <Input
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-              />
-            </div>
-            {/* ▼▼▼ [แก้ไขข้อ 2] ลบ * ออกจาก "เบอร์โทร" เพราะไม่บังคับ ▼▼▼ */} 
-                     {" "}
-            <div>
-              <Label>เบอร์โทร</Label>
-              <Input
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-              />
-            </div>
-                       
-            <div>
-              <Label>ติดต่ออื่นๆ (Line, Email)</Label>
-              <Input
-                value={customerContactOther}
-                onChange={(e) => setCustomerContactOther(e.target.value)}
-              />
-            </div>
-                       {" "}
-            <div className="h-40 bg-gray-100 rounded-md flex items-center justify-center">
-                            (พื้นที่สำหรับ Map ปักหมุด)            {" "}
-            </div>
-                        <h4 className="font-semibold pt-4">3. มอบหมายงาน</h4>   
-                   {" "}
-            <div className="grid grid-cols-2 gap-4">
-                           {" "}
-              <div>
-                <Label>วันเริ่มงาน*</Label>
-                <DatePicker date={startDate} setDate={setStartDate} />
-              </div>
-                           {" "}
-              <div>
-                <Label>วันจบงาน*</Label>
-                <DatePicker date={endDate} setDate={setEndDate} />
-              </div>
-                         {" "}
-            </div>
-                                   {" "}
-            <div>
-                            <Label>หัวหน้างาน* (จะแสดงเฉพาะคนที่ว่าง)</Label>   
-                       
-              {/* ▼▼▼ [แก้ไขข้อ 1] เปลี่ยน props จาก onSelect เป็น selectedValue และ onValueChange ▼▼▼ */}
-              <LeaderSelect
-                leaders={availableLeads}
-                selectedValue={selectedLeadId}
-                onValueChange={setSelectedLeadId}
-                disabled={!startDate || !endDate}
-              />
-                           {" "}
-              {(!startDate || !endDate) && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  กรุณาเลือกวันเริ่ม-จบงานก่อน
-                </p>
-              )}
-                         {" "}
-            </div>
-                     {" "}
-          </div>
-                 {" "}
+            </CardContent>
+          </Card>
         </div>
-             {" "}
       </ScrollArea>
-           {" "}
-      <div className="flex justify-end pt-6 border-t mt-4">
-                <Button type="submit">สร้างใบงาน</Button>     {" "}
+
+      <div className="border-t bg-background p-4">
+        <div className="mx-auto flex w-full max-w-4xl justify-end">
+          <Button type="submit" size="lg">
+            สร้างใบงาน
+          </Button>
+        </div>
       </div>
-         {" "}
     </form>
   );
 }

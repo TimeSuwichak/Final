@@ -76,6 +76,7 @@ const initialFormattedPersonnel = allPersonnel.map((person, index) => {
     position: person.position,
     department: person.department,
     urlImage: iconProflie,
+    role: (person as any).role || "user",
   };
 });
 
@@ -342,246 +343,251 @@ export default function Datauser() {
   };
 
   return (
-    <div className="w-full space-y-4 p-4 md:p-6 m-5">
-      <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
-        <div className="relative w-full md:w-auto md:flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="ค้นหาชื่อ หรือ อีเมล..."
-            className="pl-8 w-full"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(1);
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-          <Select
-            value={filterDepartment}
-            onValueChange={(v) => {
-              setFilterDepartment(v);
-              setFilterPosition("ทั้งหมด");
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full `sm:w-[240px]`">
-              <SelectValue placeholder="เลือกแผนก" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ทั้งหมด">แผนก (ทั้งหมด)</SelectItem>
-              {Object.keys(departmentMap).map((key) => (
-                // `value` คือ key ภาษาอังกฤษ (เช่น 'network_security')
-                // ข้อความที่แสดง คือ value ภาษาไทย (เช่น 'แผนกระบบเครือข่าย...')
-                <SelectItem key={key} value={key}>
-                  {departmentMap[key]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={filterPosition}
-            onValueChange={(v) => {
-              setFilterPosition(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full `sm:w-[240px]`">
-              <SelectValue placeholder="เลือกตำแหน่ง" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ทั้งหมด">ตำแหน่ง (ทั้งหมด)</SelectItem>
-              {availablePositionsForFilter.map((pos) => (
-                <SelectItem key={pos} value={pos}>
-                  {pos}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={() => {
-              setEditingUser(null);
-              setIsDialogOpen(true);
-            }}
-            className="w-full sm:w-auto"
-          >
-            เพิ่มผู้ใช้
-          </Button>
-        </div>
+  <div className="w-full `max-w-screen-xl` mx-auto space-y-4 p-4 md:p-6 overflow-x-hidden">
+    {/* ✅ ส่วนค้นหา / ฟิลเตอร์ */}
+    <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
+      <div className="relative w-full md:w-auto md:flex-1">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="ค้นหาชื่อ หรือ อีเมล..."
+          className="pl-8 w-full"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
+        />
       </div>
 
-      <div className="rounded-xl border shadow-sm overflow-hidden ">
-        {/* Mobile View */}
-        <div className="flex flex-col gap-3 md:hidden p-2 ">
-          {pagedData.length > 0 ? (
-            pagedData.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between gap-3 rounded-lg p-3 shadow-sm border"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <img
-                    src={item.urlImage}
-                    className="w-8 h-8 rounded-full object-cover bg-muted"
-                    alt={item.name}
-                  />
-                  <div className="overflow-hidden">
-                    <div className="font-medium truncate">{item.name}</div>
-                    <div className="text-sm text-muted-foreground truncate">
-                      {item.email}
-                    </div>
-                    <div className="text-xs mt-1 text-muted-foreground truncate">
-                      {item.position}
-                    </div>
-                    <div className="text-xs mt-1 text-muted-foreground truncate">
-                      {departmentMap[item.department] || item.department}
-                    </div>
+      <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+        <Select
+          value={filterDepartment}
+          onValueChange={(v) => {
+            setFilterDepartment(v);
+            setFilterPosition("ทั้งหมด");
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-60">
+            <SelectValue placeholder="เลือกแผนก" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ทั้งหมด">แผนก (ทั้งหมด)</SelectItem>
+            {Object.keys(departmentMap).map((key) => (
+              <SelectItem key={key} value={key}>
+                {departmentMap[key]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filterPosition}
+          onValueChange={(v) => {
+            setFilterPosition(v);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-60">
+            <SelectValue placeholder="เลือกตำแหน่ง" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ทั้งหมด">
+              {filterDepartment === "ทั้งหมด"
+                ? "ตำแหน่ง (ทั้งหมด)"
+                : `ตำแหน่ง (${departmentMap[filterDepartment]})`}
+            </SelectItem>
+            {availablePositionsForFilter.map((pos) => (
+              <SelectItem key={pos} value={pos}>
+                {pos}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          onClick={() => {
+            setEditingUser(null);
+            setIsDialogOpen(true);
+          }}
+          className="w-full sm:w-auto"
+        >
+          เพิ่มผู้ใช้
+        </Button>
+      </div>
+    </div>
+
+    {/* ✅ ตาราง / รายการ */}
+    <div className="rounded-xl border shadow-sm w-full overflow-hidden">
+      {/* 📱 Mobile View */}
+  <div className="flex flex-col gap-3 md:hidden p-2">
+        {pagedData.length > 0 ? (
+          pagedData.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-3 rounded-lg p-3 shadow-sm border"
+            >
+              <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                <img
+                  src={item.urlImage}
+                  className="w-8 h-8 rounded-full object-cover bg-muted"
+                  alt={item.name}
+                />
+                <div className="overflow-hidden min-w-0">
+                  <div className="font-medium truncate">{item.name}</div>
+                  <div className="text-sm text-muted-foreground truncate">
+                    {item.email}
+                  </div>
+                  <div className="text-xs mt-1 text-muted-foreground truncate">
+                    {item.position}
+                  </div>
+                  <div className="text-xs mt-1 text-muted-foreground truncate">
+                    {departmentMap[item.department] || item.department}
                   </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-1 `flex-shrink-0`"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                            key={item.id}
-                            onClick={() =>
-                              navigate(`/admin/user-detail/${item.originalId}`)
-                            }
-                          >
-                      ดูรายละเอียด
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setEditingUser(item);
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      แก้ไข
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={() => handleDeleteUser(item.id)}
-                    >
-                      ลบ
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
-            ))
-          ) : (
-            <div className="text-center text-muted-foreground py-6">
-              ไม่พบข้อมูล
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="p-1 shrink-0">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      navigate(`/admin/user-detail/${item.originalId}`)
+                    }
+                  >
+                    ดูรายละเอียด
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditingUser(item);
+                      setIsDialogOpen(true);
+                    }}
+                  >
+                    แก้ไข
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => handleDeleteUser(item.id)}
+                  >
+                    ลบ
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          )}
-        </div>
-
-        {/* Desktop View */}
-        <div className="hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[280px]">ชื่อ</TableHead>
-                <TableHead>อีเมล</TableHead>
-                <TableHead className="w-[280px]">ตำแหน่ง</TableHead>
-                <TableHead className="w-[280px]">แผนก</TableHead>
-                <TableHead className="text-right `w-[80px]`">จัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pagedData.length > 0 ? (
-                pagedData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={item.urlImage}
-                          className="w-8 h-8 rounded-full object-cover bg-muted"
-                          alt={item.name}
-                        />
-                        <span className="font-medium">{item.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.email}</TableCell>
-                    <TableCell>{item.position}</TableCell>
-                    <TableCell>
-                      {departmentMap[item.department] || item.department}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {/* แก้ม้ายอ้าาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาาา */}
-                          <DropdownMenuItem
-                            key={item.id}
-                            onClick={() =>
-                              navigate(`/admin/user-detail/${item.originalId}`)
-                            }
-                          >
-                            ดูรายละเอียด
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditingUser(item);
-                              setIsDialogOpen(true);
-                            }}
-                          >
-                            แก้ไข
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteUser(item.id)}
-                          >
-                            ลบ
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24">
-                    ไม่พบข้อมูล
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground py-6">
+            ไม่พบข้อมูล
+          </div>
+        )}
       </div>
 
-      {pagedData.length > 0 && (
-        <PaginationDemo page={page} setPage={setPage} totalPages={totalPages} />
-      )}
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingUser ? "แก้ไขข้อมูลผู้ใช้" : "เพิ่มผู้ใช้ใหม่"}
-            </DialogTitle>
-          </DialogHeader>
-          <UserForm
-            initialData={editingUser}
-            onSubmit={editingUser ? handleUpdateUser : handleAddUser}
-            onClose={() => setIsDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* 💻 Desktop View */}
+      <div className="hidden md:block overflow-x-auto">
+        <Table className="w-full min-w-full table-auto border-collapse">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[280px]">ชื่อ</TableHead>
+              <TableHead>อีเมล</TableHead>
+              <TableHead className="w-[280px]">แผนก</TableHead>
+              <TableHead className="w-[280px]">บทบาท</TableHead>
+              <TableHead className="text-right w-20">จัดการ</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pagedData.length > 0 ? (
+              pagedData.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={item.urlImage}
+                        className="w-8 h-8 rounded-full object-cover bg-muted"
+                        alt={item.name}
+                      />
+                      <span className="font-medium truncate">{item.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-0 truncate">{item.email}</TableCell>
+                  <TableCell className="min-w-0 truncate">
+                    {departmentMap[item.department] || item.department}
+                  </TableCell>
+                  <TableCell className="min-w-0 truncate">{item.role}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            navigate(`/admin/user-detail/${item.originalId}`)
+                          }
+                        >
+                          ดูรายละเอียด
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditingUser(item);
+                            setIsDialogOpen(true);
+                          }}
+                        >
+                          แก้ไข
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDeleteUser(item.id)}
+                        >
+                          ลบ
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24">
+                  ไม่พบข้อมูล
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
-  );
+
+    {pagedData.length > 0 && (
+      <PaginationDemo page={page} setPage={setPage} totalPages={totalPages} />
+    )}
+
+    {/* Dialog */}
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogContent
+        className="sm:max-w-[500px]"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {editingUser ? "แก้ไขข้อมูลผู้ใช้" : "เพิ่มผู้ใช้ใหม่"}
+          </DialogTitle>
+        </DialogHeader>
+        <UserForm
+          initialData={editingUser}
+          onSubmit={editingUser ? handleUpdateUser : handleAddUser}
+          onClose={() => setIsDialogOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  </div>
+);
+
 }
 
 function PaginationDemo({
