@@ -43,16 +43,9 @@ export default function Sidebar() {
       { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     leader: [
-<<<<<<< HEAD
-      { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
-      { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
-      { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
-=======
       { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
->>>>>>> 78d4bc40b50571ab5b6b72194b46e2ec9db218a8
     ],
 
     executive: [
@@ -143,7 +136,7 @@ export default function Sidebar() {
             <NotificationBell />
           </div>
           {/* pt มันลากข้อความเรามานะข้ะ */}
-          <main className="h-full overflow-auto p-6 pt-20">
+          <main className="h-full overflow-auto p-6 pt-10">
             <Outlet />
           </main>
         </div>

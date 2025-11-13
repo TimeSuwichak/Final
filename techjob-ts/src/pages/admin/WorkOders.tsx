@@ -33,6 +33,7 @@ export default function WorkOders() {
   const [filterType, setFilterType] = useState("all");
   const [viewMode, setViewMode] = useState("all");
   const [dialogMode, setDialogMode] = useState<"view" | "edit" | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
 
   if (!user) {
     return <div>Loading user data...</div>;
@@ -43,11 +44,12 @@ export default function WorkOders() {
     return jobs.filter((job) => {
       if (viewMode === "my-jobs" && job.adminCreator !== adminName) return false;
       if (filterType !== "all" && job.jobType !== filterType) return false;
+      if (statusFilter !== 'all' && job.status !== statusFilter) return false;
       const term = searchTerm.toLowerCase();
       if (term && !job.id.toLowerCase().includes(term) && !job.title.toLowerCase().includes(term)) return false;
       return true;
     });
-  }, [jobs, searchTerm, filterType, viewMode, adminName]);
+  }, [jobs, searchTerm, filterType, viewMode, adminName, statusFilter]);
 
   const handleViewDetails = (job: Job) => {
     setSelectedJob(job);
@@ -64,7 +66,7 @@ export default function WorkOders() {
     setDialogMode(null);
   };
 
-  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
+  
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
