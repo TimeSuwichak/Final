@@ -83,12 +83,14 @@ export function EditJobDialog({
   onModeChange,
 }: EditJobDialogProps) {
   // --- CONTEXT & STATES ---
-  const { jobs, updateJob } = useJobs();
+  const { jobs, updateJob, deleteJob } = useJobs();
   const { user } = useAuth();
 
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [editReason, setEditReason] = useState("");
   const [pendingChanges, setPendingChanges] = useState<Partial<Job>>({});
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
 
   // State ของฟอร์มแก้ไข
   const [title, setTitle] = useState("");
@@ -457,9 +459,16 @@ export function EditJobDialog({
               </ScrollArea>
               <DialogFooter className="border-t bg-background">
                 <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <Button variant="outline" onClick={() => onModeChange("view")}>
-                    กลับไปโหมดดู
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => onModeChange("view")}>
+                      กลับไปโหมดดู
+                    </Button>
+                    {user.role === 'admin' && (
+                      <Button variant="destructive" onClick={() => setIsDeleteOpen(true)}>
+                        ลบงาน
+                      </Button>
+                    )}
+                  </div>
                   <Button onClick={handleSave}>บันทึกการแก้ไข</Button>
                 </div>
               </DialogFooter>
@@ -490,6 +499,38 @@ export function EditJobDialog({
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmSave} disabled={!editReason}>
               ยืนยัน
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {/* --- AlertDialog ลบงาน (Admin) --- */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={(next) => { setIsDeleteOpen(next); if (!next) setDeleteReason(""); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบใบงาน</AlertDialogTitle>
+            <AlertDialogDescription>
+              การลบใบงานจะเป็นการลบถาวรและแจ้งเตือนไปยังหัวหน้าและช่างที่เกี่ยวข้อง
+              กรุณาระบุเหตุผลสั้น ๆ
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <Label htmlFor="delete-reason">เหตุผลการลบ*</Label>
+            <Textarea id="delete-reason" value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} rows={4} />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (!deleteReason.trim()) {
+                alert('กรุณาระบุเหตุผลการลบ');
+                return;
+              }
+              if (!job || !user) return;
+              deleteJob(job.id, deleteReason.trim(), user.fname);
+              setIsDeleteOpen(false);
+              setDeleteReason("");
+              onOpenChange(false);
+            }}>
+              ยืนยันลบ
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

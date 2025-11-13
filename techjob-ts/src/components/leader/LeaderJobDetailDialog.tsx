@@ -50,7 +50,7 @@ interface LeaderJobDetailDialogProps {
 }
 
 export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDetailDialogProps) {
-    const { updateJobWithActivity } = useJobs();
+    const { updateJobWithActivity, deleteJob } = useJobs();
     const { user } = useAuth(); 
     const { addNotification } = useNotifications();
 
@@ -58,6 +58,8 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
     const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
     const [teamChangeReason, setTeamChangeReason] = useState("");
     const [pendingTeamChanges, setPendingTeamChanges] = useState<{ added: string[]; removed: string[] } | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteReason, setDeleteReason] = useState("");
 
     useEffect(() => {
         if (job) {
@@ -286,9 +288,53 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                             ยืนยันรับทราบงาน
                         </Button>
                     )}
+                    {/* ปุ่มลบงาน (เฉพาะสำหรับหัวหน้า/ผู้ที่มีสิทธิ) */}
+                    {user.role === 'admin' && (
+                        <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                            ลบงาน
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+        {/* --- AlertDialog ลบงาน --- */}
+        <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={(next) => {
+                setIsDeleteDialogOpen(next);
+                if (!next) setDeleteReason("");
+            }}
+        >
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>ยืนยันการลบใบงาน</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        การลบใบงานจะเป็นการลบถาวรและแจ้งเตือนไปยังหัวหน้าและช่างที่เกี่ยวข้อง
+                        กรุณาระบุเหตุผลสั้น ๆ
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="py-2">
+                    <Textarea value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} rows={4} placeholder="เหตุผลการลบ เช่น งานยกเลิก ลูกค้าขอเลื่อน" />
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={() => {
+                            if (!deleteReason.trim()) {
+                                alert('กรุณาระบุเหตุผลการลบ');
+                                return;
+                            }
+                            deleteJob(job.id, deleteReason.trim(), user.fname);
+                            setIsDeleteDialogOpen(false);
+                            setDeleteReason("");
+                            onOpenChange(false);
+                        }}
+                    >
+                        ยืนยันลบ
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
         <AlertDialog
             open={isReasonDialogOpen}
             onOpenChange={(nextOpen) => {

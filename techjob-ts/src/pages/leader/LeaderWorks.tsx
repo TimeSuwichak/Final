@@ -19,6 +19,7 @@ import { JobCalendar } from "@/components/leader/JobCalendar";
 import { LeaderJobTable } from "@/components/leader/LeaderJobTable";
 import { LeaderJobDetailDialog } from "@/components/leader/LeaderJobDetailDialog";
 import type { Job } from "@/types/index";
+import { Input } from '@/components/ui/input';
 
 // (ใช้ชื่อฟังก์ชันใหม่ตาม Error Log)
 export default function LeaderWorks() {
@@ -30,7 +31,8 @@ export default function LeaderWorks() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-
+  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
+  const [searchTerm, setSearchTerm] = useState<string>("");
   // ("สมอง" กรองงาน ... เหมือนเดิม)
   const myJobs = useMemo(() => {
     if (!user) return [];
@@ -40,17 +42,26 @@ export default function LeaderWorks() {
   }, [jobs, user]);
 
   const filteredJobs = useMemo(() => {
-    if (!selectedDate) return myJobs;
-    const start = startOfDay(selectedDate);
-    const end = endOfDay(selectedDate);
-    return myJobs.filter(
-      (job) =>
-        isWithinInterval(start, { start: job.startDate, end: job.endDate }) ||
-        isWithinInterval(end, { start: job.startDate, end: job.endDate }) ||
-        isWithinInterval(job.startDate, { start, end }) ||
-        isWithinInterval(job.endDate, { start, end })
-    );
-  }, [myJobs, selectedDate]);
+    return myJobs.filter((job) => {
+      // status filter
+      if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+
+      // date filter (if selectedDate is set)
+      if (selectedDate) {
+        const start = startOfDay(job.startDate);
+        const end = endOfDay(job.endDate);
+        if (!isWithinInterval(selectedDate, { start, end })) return false;
+      }
+
+      // text search
+      const term = (searchTerm || "").trim().toLowerCase();
+      if (term) {
+        if (!job.id.toLowerCase().includes(term) && !(job.title || "").toLowerCase().includes(term)) return false;
+      }
+
+      return true;
+    });
+  }, [myJobs, searchTerm, statusFilter, selectedDate]);
 
   // ▼▼▼ (นี่คือ "สมอง" ที่เราลืมใส่!) ▼▼▼
   // (มันจะทำงานทุกครั้งที่ 'jobs' ในสมองเปลี่ยน)
@@ -103,8 +114,8 @@ export default function LeaderWorks() {
             <h3 className="text-xl font-semibold">
               {selectedDate
                 ? `ใบงานในวันที่ ${format(selectedDate, "dd MMM yyyy", {
-                    locale: th,
-                  })}`
+                  locale: th,
+                })}`
                 : "ใบงานทั้งหมดของคุณ"}
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -113,6 +124,30 @@ export default function LeaderWorks() {
                 : "คลิกวันที่ในปฏิทินเพื่อกรองใบงาน"}
             </p>
           </div>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Input
+                placeholder="ค้นหาโดยรหัสหรือหัวข้อ"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                className="w-full sm:w-72"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">สถานะ:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="rounded-md border px-2 py-1"
+              >
+                <option value="all">ทั้งหมด</option>
+                <option value="new">รอรับทราบ</option>
+                <option value="in-progress">กำลังดำเนินการ</option>
+                <option value="done">เสร็จสิ้น</option>
+              </select>
+            </div>
+          </div>
+
           <LeaderJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
         </div>
       </div>

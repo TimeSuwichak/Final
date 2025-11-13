@@ -62,8 +62,9 @@ const findLeaderName = (leaderId?: string | number | null) => {
 // --- สร้าง Context (เหมือนเดิม) ---
 interface JobContextType {
   jobs: Job[];
-  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator' | 'editHistory' | 'activityLog'>, adminName: string) => void;
+  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator'>, adminName: string) => void;
   updateJob: (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => void;
+  deleteJob: (jobId: string, reason: string, deletedByName: string) => void;
   addActivityLog: (
     jobId: string, 
     activityType: ActivityLog['activityType'],
@@ -279,6 +280,54 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  // --- ฟังก์ชัน "ลบใบงาน" (สามารถเรียกโดย Admin/Leader) ---
+  const deleteJob = (jobId: string, reason: string, deletedByName: string) => {
+    const targetJob = jobs.find((j) => j.id === jobId);
+    if (!targetJob) {
+      console.warn(`deleteJob: ไม่พบใบงานรหัส ${jobId}`);
+      return;
+    }
+
+    // สร้าง notification สำหรับหัวหน้างาน (ถ้ามี) และช่างที่ถูกมอบหมาย
+    const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
+
+    // แจ้งหัวหน้างาน
+    if (targetJob.leadId) {
+      notificationsToSend.push({
+        title: "งานถูกลบหรือยกเลิก",
+        message: `งาน \"${targetJob.title}\" ถูกลบโดย ${deletedByName}. เหตุผล: ${reason}`,
+        recipientRole: "leader",
+        recipientId: String(targetJob.leadId),
+        relatedJobId: targetJob.id,
+        metadata: {
+          type: "job_deleted",
+          reason,
+        },
+      });
+    }
+
+    // แจ้งช่างทุกคนที่ถูกมอบหมาย
+    (targetJob.assignedTechs || []).forEach((techId) => {
+      notificationsToSend.push({
+        title: "งานถูกยกเลิก",
+        message: `งาน \"${targetJob.title}\" ที่คุณได้รับมอบหมายถูกยกเลิกโดย ${deletedByName}. เหตุผล: ${reason}`,
+        recipientRole: "user",
+        recipientId: techId,
+        relatedJobId: targetJob.id,
+        metadata: {
+          type: "job_deleted",
+          reason,
+        },
+      });
+    });
+
+    // เอาใบงานออกจากรายการ
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+
+    // ส่งแจ้งเตือนทั้งหมด
+    notificationsToSend.forEach(addNotification);
+  };
+
   // --- ฟังก์ชัน "อัปเดตงานพร้อม Activity Log" (สำหรับ Leader/Tech) ---
   const updateJobWithActivity = (
     jobId: string,
@@ -313,7 +362,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <JobContext.Provider value={{ jobs, addJob, updateJob, addActivityLog, updateJobWithActivity }}>
+    <JobContext.Provider value={{ jobs, addJob, updateJob, deleteJob, addActivityLog, updateJobWithActivity }}>
       {children}
     </JobContext.Provider>
   );
