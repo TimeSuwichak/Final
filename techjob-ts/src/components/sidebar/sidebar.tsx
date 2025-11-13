@@ -47,8 +47,6 @@ export default function Sidebar() {
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
-      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
     ],
 

@@ -57,83 +57,12 @@ export default function MaterialDashboard() {
         ))}
       </div>
 
-<<<<<<< HEAD
       <div className="grid md:grid-cols-3 gap-6">
         {/* Left Section (Table Placeholder) */}
         <div className="md:col-span-2">
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-3">
-=======
-      {/* Table */}
-      <Card>
-        <CardHeader><CardTitle>รายการวัสดุทั้งหมด</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>รหัส</TableHead>
-                <TableHead>ชื่อวัสดุ</TableHead>
-                <TableHead>หมวดหลัก</TableHead>
-                <TableHead>หมวดย่อย</TableHead>
-                <TableHead>คงเหลือ</TableHead>
-                <TableHead>หน่วย</TableHead>
-                <TableHead>จัดการ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">ไม่พบวัสดุ</TableCell></TableRow>
-              ) : filtered.map(m => (
-                <TableRow key={m.id}>
-                  <TableCell>{m.id}</TableCell>
-                  <TableCell>{m.name}</TableCell>
-                  <TableCell>{m.mainCategory}</TableCell>
-                  <TableCell>{m.subCategory}</TableCell>
-                  <TableCell className={m.stock < m.minStock ? "text-red-500 font-semibold" : ""}>{m.stock}</TableCell>
-                  <TableCell>{m.unit}</TableCell>
-                  <TableCell><Button size="sm" variant="outline" onClick={() => openWithdrawDialog(m)}>เบิก</Button></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Withdraw Dialog */}
-      <Dialog open={openWithdraw} onOpenChange={setOpenWithdraw}>
-        <DialogContent
-          className="sm:max-w-[500px] space-y-5"
-          onPointerDownOutside={(event) => event.preventDefault()}
-          onEscapeKeyDown={(event) => event.preventDefault()}
-        >
-          <DialogHeader className="space-y-2">
-            <DialogTitle>เบิกวัสดุ</DialogTitle>
-            {withdrawTarget && (
-              <div className="text-sm text-muted-foreground mt-1">
-                {withdrawTarget.name}
-              </div>
-            )}
-          </DialogHeader>
-
-          {isSimulating ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="animate-spin w-8 h-8 mb-3" />
-              <p>กำลังดำเนินการ...</p>
-            </div>
-          ) : simulationResult ? (
-            <div className="text-center space-y-3 py-6">
-              <Truck className="mx-auto text-green-500 w-10 h-10" />
-              <p className="font-medium text-green-600">เบิกสำเร็จ</p>
-              <p>จะมาถึงใน {simulationResult.days} วัน {simulationResult.hours} ชั่วโมง</p>
-              <p className="text-xs text-gray-400">({formatDateTime(simulationResult.arrivalAt)})</p>
-              <Button onClick={() => setOpenWithdraw(false)}>ปิด</Button>
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <Label>จำนวนที่ต้องการเบิก</Label>
->>>>>>> 78d4bc40b50571ab5b6b72194b46e2ec9db218a8
                 <Input
                   placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
                   className="max-w-sm bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
