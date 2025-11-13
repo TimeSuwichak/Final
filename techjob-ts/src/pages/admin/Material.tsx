@@ -1,235 +1,175 @@
 "use client"
-import React, { useState, useMemo } from "react"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import React, { useState } from "react"
+import { Package, Layers, AlertTriangle, Box, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Search, Package, TriangleAlert } from "lucide-react"
-
-type MainCategory =
-  | "ไฟฟ้า"
-  | "ประปา"
-  | "เครื่องมือ"
-  | "สี/เคมีภัณฑ์"
-  | "โครงสร้าง"
-  | "ทั่วไป"
-  | "เครื่องปรับอากาศ"
-
-interface Material {
-  id: string
-  name: string
-  mainCategory: MainCategory
-  unit: string
-  stock: number
-  minStock: number
-  date: string
-}
-
-const CATEGORY_COLORS: Record<MainCategory, string> = {
-  "ไฟฟ้า": "bg-blue-500",
-  "ประปา": "bg-green-500",
-  "เครื่องมือ": "bg-purple-600",
-  "สี/เคมีภัณฑ์": "bg-yellow-500",
-  "โครงสร้าง": "bg-pink-500",
-  "ทั่วไป": "bg-gray-400",
-  "เครื่องปรับอากาศ": "bg-indigo-500",
-}
+import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 
 export default function MaterialDashboard() {
-  const [materials, setMaterials] = useState<Material[]>([
-    { id: "A001", name: "สายเคเบิล VAF 2x2.5", mainCategory: "ไฟฟ้า", unit: "เมตร", stock: 80, minStock: 10, date: "01/10/68" },
-    { id: "A002", name: "หลอดไฟ LED 12W", mainCategory: "ไฟฟ้า", unit: "หลอด", stock: 150, minStock: 20, date: "03/10/68" },
-    { id: "B001", name: "ท่อ PVC 1/2”", mainCategory: "ประปา", unit: "เส้น", stock: 45, minStock: 10, date: "05/10/68" },
-    { id: "B002", name: "ก๊อกน้ำ", mainCategory: "ประปา", unit: "อัน", stock: 15, minStock: 5, date: "05/10/68" },
-    { id: "C001", name: "ไขควงชุด", mainCategory: "เครื่องมือ", unit: "ชุด", stock: 20, minStock: 10, date: "07/10/68" },
-    { id: "C002", name: "สว่านไฟฟ้า", mainCategory: "เครื่องมือ", unit: "เครื่อง", stock: 5, minStock: 5, date: "08/10/68" },
-    { id: "D001", name: "สีกำแพงใน (ขาว)", mainCategory: "สี/เคมีภัณฑ์", unit: "แกลลอน", stock: 30, minStock: 5, date: "10/10/68" },
-  ])
-
-  const [search, setSearch] = useState("")
-  const [filter, setFilter] = useState<MainCategory | "ทั้งหมด">("ทั้งหมด")
   const [openAdd, setOpenAdd] = useState(false)
-  const [newMat, setNewMat] = useState<Partial<Material>>({})
+  const [newMat, setNewMat] = useState({ name: "", type: "", stock: 0, unit: "" })
 
-  const filtered = useMemo(() => {
-    return materials.filter(m =>
-      (filter === "ทั้งหมด" || m.mainCategory === filter) &&
-      (m.name.includes(search) || m.id.includes(search))
-    )
-  }, [materials, search, filter])
+  const summary = [
+    { title: "รายการทั้งหมด", value: 13, icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" /> },
+    { title: "สต็อกรวม", value: 1060, icon: <Package className="w-6 h-6 text-green-500 dark:text-green-400" /> },
+    { title: "หมวดหมู่", value: 7, icon: <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" /> },
+    { title: "ใกล้หมด", value: 2, icon: <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" /> },
+  ]
+
+  const categories = [
+    { name: "ไฟฟ้า", percent: 24.5, color: "#4F46E5" },
+    { name: "ประปา", percent: 15.1, color: "#22C55E" },
+    { name: "เครื่องมือ", percent: 3.8, color: "#9333EA" },
+    { name: "สี/เคมีภัณฑ์", percent: 2.8, color: "#F59E0B" },
+    { name: "โครงสร้าง", percent: 0.9, color: "#EF4444" },
+    { name: "เครื่องปรับอากาศ", percent: 5.7, color: "#06B6D4" },
+    { name: "ทั่วไป", percent: 47.2, color: "#9CA3AF" },
+  ]
 
   const addMaterial = () => {
-    if (!newMat.name || !newMat.mainCategory) return
-    setMaterials([
-      ...materials,
-      {
-        id: "X" + (materials.length + 1).toString().padStart(3, "0"),
-        name: newMat.name!,
-        mainCategory: newMat.mainCategory!,
-        stock: newMat.stock ?? 0,
-        minStock: newMat.minStock ?? 0,
-        unit: newMat.unit ?? "",
-        date: new Date().toLocaleDateString("th-TH"),
-      },
-    ])
     setOpenAdd(false)
-    setNewMat({})
+    setNewMat({ name: "", type: "", stock: 0, unit: "" })
   }
 
-  const totalStock = materials.reduce((sum, m) => sum + m.stock, 0)
-  const nearOut = materials.filter(m => m.stock <= m.minStock).length
-  const categoryCount = new Set(materials.map(m => m.mainCategory)).size
-
-  const totalByCategory = useMemo(() => {
-    const grouped = materials.reduce((acc, m) => {
-      acc[m.mainCategory] = (acc[m.mainCategory] || 0) + m.stock
-      return acc
-    }, {} as Record<MainCategory, number>)
-    const total = Object.values(grouped).reduce((s, v) => s + v, 0)
-    return Object.entries(grouped).map(([cat, val]) => ({
-      cat,
-      val,
-      percent: (val / total) * 100,
-    }))
-  }, [materials])
-
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* ซ้าย */}
-      <div className="flex-1 space-y-6">
-        <div>
-          <h1 className="text-2xl font-extrabold">คลังวัสดุและอุปกรณ์</h1>
-          <p className="text-sm text-muted-foreground">ภาพรวมและจัดการสต็อกวัสดุทั้งหมด</p>
-        </div>
+    <div className="min-h-screen bg-background dark:bg-[#0B0B16] p-6 transition-colors duration-300">
+      <h1 className="text-2xl font-semibold text-foreground">คลังวัสดุและอุปกรณ์</h1>
+      <p className="text-muted-foreground mb-6">ภาพรวมและจัดการสต็อกวัสดุที่มีอยู่</p>
 
-        {/* Summary */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-sm text-muted-foreground flex items-center gap-2"><Package size={16}/> รายการทั้งหมด</p><h2 className="text-2xl font-bold">{materials.length}</h2></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-sm text-muted-foreground flex items-center gap-2"><Package size={16}/> สต็อกรวม</p><h2 className="text-2xl font-bold">{totalStock}</h2></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-sm text-muted-foreground flex items-center gap-2"><Package size={16}/> หมวดหมู่</p><h2 className="text-2xl font-bold">{categoryCount}</h2></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-sm text-muted-foreground flex items-center gap-2"><TriangleAlert size={16}/> ใกล้หมด</p><h2 className="text-2xl font-bold text-yellow-500">{nearOut}</h2></CardContent></Card>
-        </div>
-
-        {/* ค้นหา + Filter */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 text-gray-400" size={18}/>
-            <Input placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)" className="pl-8" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {(["ทั้งหมด", ...Object.keys(CATEGORY_COLORS)] as (MainCategory | "ทั้งหมด")[]).map((cat) => (
-            <Button key={cat} variant={filter === cat ? "default" : "outline"} onClick={() => setFilter(cat)}>
-              {cat}
-            </Button>
-          ))}
-        </div>
-
-        {/* Table */}
-        <Card>
-          <CardHeader><CardTitle>รายการวัสดุทั้งหมด</CardTitle></CardHeader>
-          <CardContent>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-muted-foreground border-b">
-                  <th>วัสดุ / รหัส</th>
-                  <th>หมวดหมู่</th>
-                  <th>คงคลัง</th>
-                  <th>หน่วย</th>
-                  <th>อัปเดตล่าสุด</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((m) => (
-                  <tr key={m.id} className="border-b">
-                    <td className="py-2">
-                      <div>{m.name}</div>
-                      <div className="text-xs text-muted-foreground">ID: {m.id}</div>
-                    </td>
-                    <td><span className={`text-white text-xs px-2 py-1 rounded-full ${CATEGORY_COLORS[m.mainCategory]}`}>{m.mainCategory}</span></td>
-                    <td>{m.stock}</td>
-                    <td>{m.unit}</td>
-                    <td>{m.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {summary.map((item, i) => (
+          <Card
+            key={i}
+            className="rounded-2xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-colors duration-300"
+          >
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">{item.title}</p>
+                <h2 className="text-xl font-semibold">{item.value}</h2>
+              </div>
+              <div className="bg-muted p-3 rounded-xl">{item.icon}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* ขวา */}
-      <div className="w-full lg:w-[320px] space-y-4">
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-base font-semibold" onClick={() => setOpenAdd(true)}>
-          + เพิ่มวัสดุใหม่
-        </Button>
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Left Section (Table Placeholder) */}
+        <div className="md:col-span-2">
+          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center mb-3">
+                <Input
+                  placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
+                  className="max-w-sm bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
+              </div>
+              <div className="text-center text-muted-foreground py-12 border rounded-lg bg-muted">
+                (ตารางแสดงรายการวัสดุจะอยู่ตรงนี้)
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader><CardTitle>ภาพรวมสัดส่วนสต็อก</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-sm mb-2">{categoryCount} หมวดหมู่</p>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
-              {totalByCategory.map(({ cat, percent }) => (
-                <div key={cat} className={`${CATEGORY_COLORS[cat as MainCategory]} h-full`} style={{ width: `${percent}%` }}></div>
-              ))}
-            </div>
+        {/* Right Sidebar */}
+        <div className="space-y-4">
+          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
+            <CardContent className="p-4">
+              <Button
+                className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400 text-white rounded-xl py-6 text-base font-medium flex items-center justify-center gap-2 transition-all"
+                onClick={() => setOpenAdd(true)}
+              >
+                <PlusCircle className="w-5 h-5" /> เพิ่มวัสดุใหม่
+              </Button>
+            </CardContent>
+          </Card>
 
-            <div className="mt-3 space-y-1 text-xs">
-              {totalByCategory.map(({ cat, percent }) => (
-                <div key={cat} className="flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${CATEGORY_COLORS[cat as MainCategory]}`} />
-                  {cat} <span className="text-muted-foreground">{percent.toFixed(1)}%</span>
+          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-foreground mb-2">ภาพรวมสัดส่วนสต็อก</h3>
+              <p className="text-sm text-muted-foreground mb-3">{categories.length} หมวดหมู่</p>
+              <div className="w-full h-4 bg-muted rounded-full overflow-hidden mb-4">
+                <div className="flex h-full">
+                  {categories.map((c, i) => (
+                    <div key={i} style={{ width: `${c.percent}%`, backgroundColor: c.color }}></div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+              <ul className="space-y-1 text-sm">
+                {categories.map((c, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full" style={{ background: c.color }}></span>
+                    <span>{c.name}</span>
+                    <span className="ml-auto text-muted-foreground">{c.percent}%</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Dialog เพิ่มวัสดุ */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>เพิ่มวัสดุใหม่</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Label>ชื่อวัสดุ</Label>
-            <Input value={newMat.name || ""} onChange={e => setNewMat({ ...newMat, name: e.target.value })}/>
-            <Label>หมวดหมู่</Label>
-            <Select value={newMat.mainCategory} onValueChange={(v: MainCategory) => setNewMat({ ...newMat, mainCategory: v })}>
-              <SelectTrigger><SelectValue placeholder="เลือกหมวดหมู่"/></SelectTrigger>
-              <SelectContent>
-                {Object.keys(CATEGORY_COLORS).map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Label>หน่วย</Label>
-            <Input value={newMat.unit || ""} onChange={e => setNewMat({ ...newMat, unit: e.target.value })}/>
-            <Label>คงเหลือ</Label>
-            <Input type="number" value={newMat.stock ?? 0} onChange={e => setNewMat({ ...newMat, stock: Number(e.target.value) })}/>
-            <Label>ขั้นต่ำ</Label>
-            <Input type="number" value={newMat.minStock ?? 0} onChange={e => setNewMat({ ...newMat, minStock: Number(e.target.value) })}/>
+        <DialogContent className="max-w-md bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle>เพิ่มวัสดุใหม่</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>ชื่อวัสดุ</Label>
+              <Input
+                value={newMat.name}
+                onChange={e => setNewMat({ ...newMat, name: e.target.value })}
+                className="bg-muted border-none focus-visible:ring-blue-500"
+              />
+            </div>
+            <div>
+              <Label>หมวดหมู่</Label>
+              <Select onValueChange={v => setNewMat({ ...newMat, type: v })}>
+                <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
+                  <SelectValue placeholder="เลือกหมวดหมู่" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c, i) => (
+                    <SelectItem key={i} value={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>คงเหลือ</Label>
+                <Input
+                  type="number"
+                  value={newMat.stock}
+                  onChange={e => setNewMat({ ...newMat, stock: Number(e.target.value) })}
+                  className="bg-muted border-none focus-visible:ring-blue-500"
+                />
+              </div>
+              <div>
+                <Label>หน่วย</Label>
+                <Input
+                  value={newMat.unit}
+                  onChange={e => setNewMat({ ...newMat, unit: e.target.value })}
+                  className="bg-muted border-none focus-visible:ring-blue-500"
+                />
+              </div>
+            </div>
           </div>
-          <DialogFooter className="pt-4">
-            <Button variant="outline" onClick={() => setOpenAdd(false)}>ยกเลิก</Button>
-            <Button className="bg-blue-600" onClick={addMaterial}>บันทึก</Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenAdd(false)}>
+              ยกเลิก
+            </Button>
+            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={addMaterial}>
+              บันทึก
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
