@@ -118,16 +118,22 @@ export default function WorkOders() {
 >
   <ToggleGroupItem 
     value="all" 
-    // ✨ เพิ่ม bg-background เข้าไป ✨
-    className="bg-background rounded-l-md rounded-r-none border border-r-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-l-md rounded-r-none border border-r-0 
+             hover:bg-gray-50 dark:hover:bg-[#2d2d2d] 
+             data-[state=on]:bg-primary data-[state=on]:text-white
+             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+             transition-colors"
   >
     งานทั้งหมด
   </ToggleGroupItem>
   
   <ToggleGroupItem 
     value="my-jobs" 
-    // ✨ และเพิ่มที่นี่ด้วย ✨
-    className="bg-background rounded-r-md rounded-l-none border data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-r-md rounded-l-none border 
+             hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
+             data-[state=on]:bg-primary data-[state=on]:text-white
+             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+             transition-colors"
   >
     งานของฉัน
   </ToggleGroupItem>
