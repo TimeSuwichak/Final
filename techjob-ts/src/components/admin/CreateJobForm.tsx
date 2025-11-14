@@ -27,7 +27,7 @@ import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/data/leader";
-import { AdminMap } from "./AdminMap"
+import { AdminMap } from "./AdminMap";
 
 // "ประเภทงาน" ที่ Admin จะเลือก
 const JOB_TYPES = [
@@ -51,8 +51,10 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // --- "สมอง" กรองหัวหน้างาน ---
-    const [location, setLocation] = useState("")
-  const [mapPosition, setMapPosition] = useState<[number, number] | undefined>()
+  const [location, setLocation] = useState("");
+  const [mapPosition, setMapPosition] = useState<
+    [number, number] | undefined
+  >();
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -122,17 +124,24 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-  <ScrollArea className="flex-1 h-full p-4 overflow-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col flex-1 overflow-hidden"
+    >
+      <ScrollArea className="flex-1 h-full p-4 overflow-auto">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6 ">
           <Card>
             <CardHeader>
               <CardTitle>ข้อมูลพื้นฐาน</CardTitle>
-              <CardDescription>กรอกหัวข้องานและประเภทงานที่ต้องการ</CardDescription>
+              <CardDescription>
+                กรอกหัวข้องานและประเภทงานที่ต้องการ
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <Label className="mb-1 block text-sm font-medium">หัวข้องาน*</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  หัวข้องาน*
+                </Label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -140,7 +149,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                 />
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">ประเภทงาน*</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  ประเภทงาน*
+                </Label>
                 <Select onValueChange={setJobType} value={jobType}>
                   <SelectTrigger>
                     <SelectValue placeholder="เลือกประเภทงาน..." />
@@ -156,13 +167,15 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
               </div>
               <div>
                 <Label className="mb-1 block text-sm font-medium">
-                  รูปภาพหน้างาน <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
+                  รูปภาพหน้างาน{" "}
+                  <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
                 </Label>
                 <Input type="file" accept="image/*" />
               </div>
               <div>
                 <Label className="mb-1 block text-sm font-medium">
-                  ไฟล์แนบ (PDF, DOC) <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
+                  ไฟล์แนบ (PDF, DOC){" "}
+                  <span className="text-xs text-muted-foreground">(ถ้ามี)</span>
                 </Label>
                 <Input type="file" accept=".pdf,.doc,.docx" />
               </div>
@@ -172,20 +185,29 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
           <Card>
             <CardHeader>
               <CardTitle>กำหนดการและการมอบหมาย</CardTitle>
-              <CardDescription>ระบุช่วงเวลางานและเลือกหัวหน้างานที่พร้อมดูแล</CardDescription>
+              <CardDescription>
+                ระบุช่วงเวลางานและเลือกหัวหน้างานที่พร้อมดูแล
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label className="mb-1 block text-sm font-medium">วันเริ่มงาน*</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  วันเริ่มงาน*
+                </Label>
                 <DatePicker date={startDate} setDate={setStartDate} />
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">วันจบงาน*</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  วันจบงาน*
+                </Label>
                 <DatePicker date={endDate} setDate={setEndDate} />
               </div>
               <div className="md:col-span-2 space-y-2">
                 <Label className="text-sm font-medium">
-                  หัวหน้างาน* <span className="text-xs text-muted-foreground">(จะแสดงเฉพาะคนที่ว่าง)</span>
+                  หัวหน้างาน*{" "}
+                  <span className="text-xs text-muted-foreground">
+                    (จะแสดงเฉพาะคนที่ว่าง)
+                  </span>
                 </Label>
                 <LeaderSelect
                   leaders={availableLeads}
@@ -205,11 +227,15 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
           <Card>
             <CardHeader>
               <CardTitle>ข้อมูลลูกค้า</CardTitle>
-              <CardDescription>ระบุรายละเอียดการติดต่อของลูกค้า</CardDescription>
+              <CardDescription>
+                ระบุรายละเอียดการติดต่อของลูกค้า
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <Label className="mb-1 block text-sm font-medium">ชื่อลูกค้า*</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  ชื่อลูกค้า*
+                </Label>
                 <Input
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
@@ -217,7 +243,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                 />
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">เบอร์โทร</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  เบอร์โทร
+                </Label>
                 <Input
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
@@ -225,7 +253,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                 />
               </div>
               <div>
-                <Label className="mb-1 block text-sm font-medium">ช่องทางติดต่ออื่น (Line, Email)</Label>
+                <Label className="mb-1 block text-sm font-medium">
+                  ช่องทางติดต่ออื่น (Line, Email)
+                </Label>
                 <Input
                   value={customerContactOther}
                   onChange={(e) => setCustomerContactOther(e.target.value)}
@@ -233,7 +263,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                 />
               </div>
               <div className="md:col-span-2">
-               <AdminMap
+                <AdminMap
                   initialAddress={location}
                   initialPosition={mapPosition}
                   onAddressChange={setLocation}
@@ -246,7 +276,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
           <Card>
             <CardHeader>
               <CardTitle>รายละเอียดงาน</CardTitle>
-              <CardDescription>ใส่รายละเอียดงานเพิ่มเติมเพื่อให้ทีมเข้าใจตรงกัน</CardDescription>
+              <CardDescription>
+                ใส่รายละเอียดงานเพิ่มเติมเพื่อให้ทีมเข้าใจตรงกัน
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
