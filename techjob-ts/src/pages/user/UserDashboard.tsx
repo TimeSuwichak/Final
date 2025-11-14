@@ -4,11 +4,14 @@ import React, { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJobs } from "@/contexts/JobContext";
 import { Card, CardContent } from "@/components/ui/card";
-// [!!] 1. เพิ่ม CheckCheck เข้ามาใน import
-import { TrendingUp, Wrench, CheckCircle2, CheckCheck } from "lucide-react";
+import {
+  Wrench,
+  CheckCircle2,
+  Hourglass, // ไอคอนสำหรับ Pending
+  BadgeCheck, // [!!] ไอคอนใหม่สำหรับ Approved
+} from "lucide-react";
 import { JobTypePieChart } from "@/components/user/charts/JobTypePieChart";
 import { MonthlyPerformanceChart } from "@/components/user/charts/MonthlyPerformanceChart";
-import CompletedJobsLineChart from "@/components/user/charts/CompletedJobsLineChart";
 import UserWorkStatus from "@/components/user/UserWorkStatus";
 
 // ==========================================================
@@ -16,12 +19,11 @@ import UserWorkStatus from "@/components/user/UserWorkStatus";
 // ==========================================================
 export default function UserDashboard() {
   const { user, loading: userLoading } = useAuth();
-  // JobContext ไม่มี loading state; ใช้งานแค่ jobs
   const { jobs } = useJobs();
 
-  // --- 1. LOGIC การเตรียมข้อมูลจริง (ฉบับแก้ไขให้ปลอดภัย) ---
+  // --- 1. LOGIC การเตรียมข้อมูลจริง ---
   const myJobs = useMemo(() => {
-    if (!user || !jobs) return []; // <-- ป้องกัน Error
+    if (!user || !jobs) return [];
     return jobs.filter(
       (job) => job.assignedTechs && job.assignedTechs.includes(user.id)
     );
@@ -33,6 +35,15 @@ export default function UserDashboard() {
   );
   const inProgressJobsCount = useMemo(
     () => myJobs.filter((j) => j.status === "in-progress").length,
+    [myJobs]
+  );
+  const pendingJobsCount = useMemo(
+    () => myJobs.filter((j) => j.status === "pending").length,
+    [myJobs]
+  );
+  // [!!] เพิ่ม Logic สำหรับงาน Approved (สมมติว่ามี status 'approved')
+  const approvedJobsCount = useMemo(
+    () => myJobs.filter((j) => j.status === "approved").length,
     [myJobs]
   );
 
@@ -85,14 +96,12 @@ export default function UserDashboard() {
   ];
 
   // --- 3. LOGIC การ "เลือกใช้" ข้อมูล ---
-  // [!!] หมายเหตุ: คุณจะต้องสร้าง Logic สำหรับการ์ดที่ 4 (Approved Tasks) ด้วยนะครับ
-  // ผมจะใช้ตัวแปรเดิม (finalSuccessRate) ไปก่อน
   const finalCompletedCount = completedJobsCount > 0 ? completedJobsCount : 15;
   const finalInProgressCount = inProgressJobsCount > 0 ? inProgressJobsCount : 2;
-  const finalSuccessRate =
-    myJobs.length > 0
-      ? Math.round((completedJobsCount / myJobs.length) * 100)
-      : 16;
+  const finalPendingCount = pendingJobsCount > 0 ? pendingJobsCount : 5;
+  // [!!] เพิ่ม Logic Mock สำหรับ Approved
+  const finalApprovedCount = approvedJobsCount > 0 ? approvedJobsCount : 3;
+
   const finalJobTypeData =
     jobTypeData.length > 0 ? jobTypeData : mockJobTypeData;
   const finalMonthlyPerformanceData = monthlyPerformanceData.some(
@@ -100,12 +109,6 @@ export default function UserDashboard() {
   )
     ? monthlyPerformanceData
     : mockMonthlyPerformanceData;
-
-  // Map monthly performance to the shape expected by CompletedJobsLineChart: { name, value }
-  const completedLineData = finalMonthlyPerformanceData.map((m) => ({
-    name: m.name,
-    value: m["งานที่เสร็จ"],
-  }));
 
   // --- หน้า Loading ---
   if (userLoading) {
@@ -116,14 +119,16 @@ export default function UserDashboard() {
     return <div className="p-8">Please log in to view your dashboard.</div>;
   }
 
-  // --- 4. JSX (ส่วนแสดงผล) ---
+  // --- 4. JSX (ส่วนแสดงผลที่ปรับ Font แล้ว) ---
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          ผลงานของคุณ, {user.fname}
-        </h2>
-      </div>
+  <div className="flex items-center justify-between">
+    <div className="border-l-4 border-primary pl-4">
+      <h2 className="text-4xl font-bold tracking-tight">
+        ผลงานของคุณ , {user.fname}
+      </h2>
+    </div>
+  </div>
 
       {/* User Work Status (new) */}
       <div>
@@ -131,19 +136,19 @@ export default function UserDashboard() {
       </div>
 
       {/* ================================================== */}
-      {/* ✨ ส่วนของ Card ที่อัปเดตดีไซน์แล้ว ✨ */}
+      {/* ✨ ส่วนของ Card ที่อัปเดตดีไซน์และ Font แล้ว ✨ */}
       {/* ================================================== */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Card 1: งานที่ทำเสร็จ */}
+        {/* Card 1: งานที่ทำเสร็จ (คงเดิม) */}
         <Card>
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-base font-medium text-muted-foreground">
                 งานทั้งหมด (Total Tasks)
               </p>
               <div className="text-3xl font-bold">{finalCompletedCount} งาน</div>
-              <p className="text-xs text-muted-foreground">
-                คือจำนวนความสำเร็จของคุณ
+              <p className="text-sm text-muted-foreground">
+                จำนวนงานที่คุณทำสำเร็จ
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
@@ -152,15 +157,15 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
 
-        {/* Card 2: งานที่กำลังทำ */}
+        {/* Card 2: งานที่กำลังทำ (คงเดิม) */}
         <Card>
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
-              <p className="text-sm font-medium text-muted-foreground">
-                งานกำลังดำเนินการ (Working)
+              <p className="text-base font-medium text-muted-foreground">
+                งานที่กำลังดำเนินการ (Working)
               </p>
               <div className="text-3xl font-bold">{finalInProgressCount} งาน</div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 จำนวนงานที่คุณกำลังดำเนินการอยู่
               </p>
             </div>
@@ -170,43 +175,45 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
 
-        {/* Card 3: งานค้าง (หรืออัตราสำเร็จ) */}
+        {/* [!!] Card 3: (แก้ไขเป็น Pending) */}
         <Card>
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-base font-medium text-muted-foreground">
                 งานค้าง (Pending Tasks)
               </p>
-              <div className="text-3xl font-bold">{finalSuccessRate}</div>
-              <p className="text-xs text-muted-foreground">
-                จากงานทั้งหมดที่ได้รับ
+              {/* [!!] 1. ใช้ตัวแปรที่ถูกต้อง */}
+              <div className="text-3xl font-bold">{finalPendingCount} งาน</div>
+              <p className="text-sm text-muted-foreground">
+                งานค้างที่ยังไม่ได้เริ่มทำ
               </p>
             </div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-              <TrendingUp className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* [!!] 2. CARD ที่ 4 (แก้ไขแล้ว) */}
-        <Card>
-          <CardContent className="flex flex-row items-center justify-between p-6">
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-muted-foreground">
-                งานหัวน้าตรวจเรียบร้อย (Approved Tasks)
-              </p>
-              <div className="text-3xl font-bold">{finalSuccessRate}</div>
-              <p className="text-xs text-muted-foreground">
-                งานที่ผ่านการตรวจสอบจากหัวหน้าแล้ว
-              </p>
-            </div>
-            {/* เปลี่ยนเป็นสี indigo และไอคอน CheckCheck */}
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-              <CheckCheck className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            {/* [!!] 2. เปลี่ยนไอคอนและสี */}
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
+              <Hourglass className="h-8 w-8 text-orange-600 dark:text-orange-400" />
             </div>
           </CardContent>
         </Card>
 
+        {/* [!!] CARD ที่ 4 (แก้ไขเป็น Approved) */}
+        <Card>
+          <CardContent className="flex flex-row items-center justify-between p-6">
+            <div className="space-y-1.5">
+              <p className="text-base font-medium text-muted-foreground">
+                งานที่หัวหน้าตรวจสอบแล้ว (Approved Tasks)
+              </p>
+              {/* [!!] 3. ใช้ตัวแปรที่ถูกต้อง */}
+              <div className="text-3xl font-bold">{finalApprovedCount} งาน</div>
+              <p className="text-sm text-muted-foreground">
+                งานที่ตรวจสอบแล้ว
+              </p>
+            </div>
+            {/* [!!] 4. เปลี่ยนไอคอนและสี */}
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+              <BadgeCheck className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
       {/* ================================================== */}
       {/* ✨ จบส่วนที่อัปเดต ✨ */}
@@ -221,10 +228,7 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Completed Jobs Line Chart (full width) */}
-      <div className="pt-6">
-        <CompletedJobsLineChart data={completedLineData} height={320} />
-      </div>
+      {/* CompletedJobsLineChart removed from this page */}
     </div>
   );
 }
