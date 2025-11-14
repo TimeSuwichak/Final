@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { MoreHorizontal } from "lucide-react";
 import type { Job } from "@/types/index";
 
@@ -36,11 +37,11 @@ const truncateText = (text: string, length: number) => {
 const getStatusBadge = (status: "new" | "in-progress" | "done") => {
   switch (status) {
     case "new":
-      return <Badge variant="default">งานใหม่</Badge>;
+      return <Badge className="bg-blue-500 hover:bg-blue-600 text-white">งานใหม่</Badge>;
     case "in-progress":
-      return <Badge variant="secondary">กำลังทำ</Badge>;
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">กำลังทำ</Badge>;
     case "done":
-      return <Badge variant="outline">เสร็จสิ้น</Badge>;
+      return <Badge className="bg-green-500 hover:bg-green-600 text-white">เสร็จแล้ว</Badge>;
     default:
       return <Badge variant="destructive">ไม่ทราบสถานะ</Badge>;
   }
@@ -75,7 +76,9 @@ export function JobTable({ jobs, onViewDetails, onEditJob }: JobTableProps) {
                   {format(job.startDate, "dd/MM/yy")} -{" "}
                   {format(job.endDate, "dd/MM/yy")}
                 </TableCell>
-                <TableCell>{getStatusBadge(job.status)}</TableCell>
+                <TableCell>
+                  {getStatusBadge(job.status)}
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
