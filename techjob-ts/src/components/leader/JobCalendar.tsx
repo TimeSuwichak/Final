@@ -54,7 +54,7 @@ export function JobCalendar({ jobs, selectedDate, onDateSelect }: JobCalendarPro
   };
 
   return (
-    <div className="rounded-md border bg-card">
+    <div className="rounded-md border bg-white dark:bg-card overflow-hidden">
       <Calendar
         mode="single"
         selected={selectedDate}
