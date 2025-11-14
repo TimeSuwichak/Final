@@ -52,12 +52,6 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // --- "สมอง" กรองหัวหน้างาน ---
-<<<<<<< HEAD
-  const [location, setLocation] = useState("");
-  const [mapPosition, setMapPosition] = useState<
-    [number, number] | undefined
-  >();
-=======
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerContactOther, setCustomerContactOther] = useState("");
@@ -65,7 +59,6 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [mapPosition, setMapPosition] = useState<[number, number] | undefined>();
   const [description, setDescription] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
->>>>>>> 14f1f92248e9d4b6498f0b7ddea573547b96f1cf
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
