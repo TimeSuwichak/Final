@@ -45,7 +45,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
             <TableHead>ชื่องาน</TableHead>
             <TableHead>วันที่</TableHead>
             <TableHead>สถานะ</TableHead>
-            <TableHead className="w-[50px]">ดู</TableHead>
+            <TableHead className="w-[56px] text-center">ดู</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,10 +58,12 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                   {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
                 </TableCell>
                 <TableCell>{getStatusBadge(job.status)}</TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center">
+                    <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

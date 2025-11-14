@@ -20,6 +20,7 @@ import { LeaderJobTable } from "@/components/leader/LeaderJobTable";
 import { LeaderJobDetailDialog } from "@/components/leader/LeaderJobDetailDialog";
 import type { Job } from "@/types/index";
 import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 // (ใช้ชื่อฟังก์ชันใหม่ตาม Error Log)
 export default function LeaderWorks() {
@@ -130,21 +131,22 @@ export default function LeaderWorks() {
                 placeholder="ค้นหาโดยรหัสหรือหัวข้อ"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-                className="w-full sm:w-72"
+                className="w-full sm:w-72 bg-white border"
               />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground">สถานะ:</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="rounded-md border px-2 py-1"
-              >
-                <option value="all">ทั้งหมด</option>
-                <option value="new">รอรับทราบ</option>
-                <option value="in-progress">กำลังดำเนินการ</option>
-                <option value="done">เสร็จสิ้น</option>
-              </select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'new' | 'in-progress' | 'done')}>
+                <SelectTrigger className="w-40 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value="new">รอรับทราบ</SelectItem>
+                  <SelectItem value="in-progress">กำลังดำเนินการ</SelectItem>
+                  <SelectItem value="done">เสร็จสิ้น</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
