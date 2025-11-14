@@ -96,7 +96,7 @@ export default function LeaderWorks() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <h2 className="text-3xl font-bold tracking-tight">
-        Leader Dashboard: {user.fname}
+        ตารางงานของคุณ : {user.fname}
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

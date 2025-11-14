@@ -79,9 +79,10 @@ export default function WorkOders() {
           placeholder="ค้นหาชื่องาน, รหัสงาน..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-white"
         />
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <SelectValue placeholder="เลือกประเภทงาน" />
           </SelectTrigger>
           <SelectContent>
@@ -96,13 +97,12 @@ export default function WorkOders() {
 
         {/* Status filter */}
         <div className="">
-          <Label>กรองตามสถานะ</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="สถานะทั้งหมด" />
+            <SelectTrigger className="w-44 bg-white ">
+              <SelectValue placeholder="สถานะทั้งหมด"  />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทั้งหมด</SelectItem>
+              <SelectItem value="all">สถานะงานทั้งหมด</SelectItem>
               <SelectItem value="new">งานใหม่</SelectItem>
               <SelectItem value="in-progress">กำลังทำ</SelectItem>
               <SelectItem value="done">เสร็จแล้ว</SelectItem>
@@ -110,18 +110,28 @@ export default function WorkOders() {
           </Select>
         </div>
 
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(val) => val && setViewMode(val)}
-          className="justify-start"
-        >
-          <ToggleGroupItem value="all">งานทั้งหมด</ToggleGroupItem>
-          <ToggleGroupItem value="my-jobs">งานของฉัน</ToggleGroupItem>
-        </ToggleGroup>
-
-
-
+<ToggleGroup
+  type="single"
+  value={viewMode}
+  onValueChange={(val) => val && setViewMode(val)}
+  className="justify-start"
+>
+  <ToggleGroupItem 
+    value="all" 
+    // ✨ เพิ่ม bg-background เข้าไป ✨
+    className="bg-background rounded-l-md rounded-r-none border border-r-0 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+  >
+    งานทั้งหมด
+  </ToggleGroupItem>
+  
+  <ToggleGroupItem 
+    value="my-jobs" 
+    // ✨ และเพิ่มที่นี่ด้วย ✨
+    className="bg-background rounded-r-md rounded-l-none border data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+  >
+    งานของฉัน
+  </ToggleGroupItem>
+</ToggleGroup>
       </div>
 
 
