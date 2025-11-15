@@ -52,13 +52,10 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null); // --- "สมอง" กรองหัวหน้างาน ---
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerContactOther, setCustomerContactOther] = useState("");
   const [location, setLocation] = useState("");
-  const [mapPosition, setMapPosition] = useState<[number, number] | undefined>();
-  const [description, setDescription] = useState("");
-  const [currentStep, setCurrentStep] = useState(1);
+  const [mapPosition, setMapPosition] = useState<
+    [number, number] | undefined
+  >();
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -116,12 +113,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         e.stopPropagation();
       }
     }
-    
+
     if (!validateStep(currentStep)) {
       alert(`กรุณากรอกข้อมูล * ให้ครบถ้วนในขั้นตอนที่ ${currentStep}`);
       return;
     }
-    
+
     if (currentStep < 4) {
       setCurrentStep((prev) => prev + 1);
     }
@@ -141,13 +138,13 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     if (currentStep !== 4) {
       // ถ้ายัง (เช่น อยู่ที่ 1, 2, หรือ 3)
       // ให้ไปเรียกฟังก์ชัน 'ถัดไป' แทน
-      handleNextStep(e); 
+      handleNextStep(e);
       // แล้ว "หยุด" การทำงานของ handleSubmit ทันที
-      return; 
+      return;
     }
     // --- สิ้นสุดส่วนที่เพิ่มเข้ามา ---
 
-    
+
     // ถ้าโค้ดวิ่งมาถึงตรงนี้ได้... 
     // แปลว่า currentStep === 4 จริง (อยู่หน้าสุดท้าย)
     // ให้ทำงานตามปกติ (ส่งข้อมูล)
@@ -195,13 +192,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       {STEPS.map((step, index) => (
         <div key={step.id} className="flex items-center gap-2">
           <Badge
-            className={`px-3 py-1.5 cursor-pointer transition-all ${
-              currentStep === step.id
+            className={`px-3 py-1.5 cursor-pointer transition-all ${currentStep === step.id
                 ? "bg-purple-500 text-white"
                 : currentStep > step.id
                   ? "bg-green-500/20 text-green-700"
                   : "bg-slate-700 text-slate-300"
-            }`}
+              }`}
           >
             {step.id}.{step.label}
           </Badge>

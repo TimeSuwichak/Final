@@ -59,6 +59,7 @@ import { admin } from "@/Data/admin";
 // แปลพจนานุกรมแผนก (department mapping)
 // ==========================================================
 import { departmentMap } from "@/Data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -138,6 +139,14 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
   const [department, setDepartment] = useState("");
   const [position, setPosition] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [religion, setReligion] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [idCard, setIdCard] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // สร้าง allDepartments และ positionsByDepartment จากข้อมูลจริง (รวมข้อมูลที่แก้ไขแล้ว)
   const allDepartmentsForForm = useMemo(() => {
@@ -179,12 +188,28 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
       setDepartment(initialData.department);
       setPosition(initialData.position);
       setImagePreview(initialData.urlImage);
+      setPhone(initialData.phone || "");
+      setAddress(initialData.address || "");
+      setReligion(initialData.religion || "");
+      setNationality(initialData.nationality || "");
+      setIdCard(initialData.idCard || "");
+      setStartDate(initialData.startDate || "");
+      setEmail(initialData.email || "");
+      setPassword(""); // ไม่แสดงรหัสผ่านเดิมเพื่อความปลอดภัย
     } else {
       setFname("");
       setLname("");
       setDepartment("");
       setPosition("");
       setImagePreview(null);
+      setPhone("");
+      setAddress("");
+      setReligion("");
+      setNationality("");
+      setIdCard("");
+      setStartDate("");
+      setEmail("");
+      setPassword("");
     }
   }, [initialData]);
 
@@ -220,23 +245,25 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
       return;
     }
 
-    // สร้าง email จากชื่อและนามสกุล
-    let email = "";
-
-    if (initialData?.id) {
-      // ถ้าเป็นการแก้ไข ใช้ email เดิม หรือสร้างใหม่ถ้าไม่มี
-      email = initialData.email || `${fname.toLowerCase()}.${lname.toLowerCase()}@techjob.com`;
-    } else {
-      // ถ้าเป็นการเพิ่มใหม่ สร้าง email ใหม่
-      const timestamp = Date.now();
-      email = `${fname.toLowerCase()}.${lname.toLowerCase()}.${timestamp}@techjob.com`;
+    // ใช้ email จาก state หรือสร้างอัตโนมัติถ้าไม่มี
+    let finalEmail = email;
+    if (!finalEmail) {
+      if (initialData?.id) {
+        // ถ้าเป็นการแก้ไข ใช้ email เดิม หรือสร้างใหม่ถ้าไม่มี
+        finalEmail = initialData.email || `${fname.toLowerCase()}.${lname.toLowerCase()}@techjob.com`;
+      } else {
+        // ถ้าเป็นการเพิ่มใหม่ สร้าง email ใหม่
+        const timestamp = Date.now();
+        finalEmail = `${fname.toLowerCase()}.${lname.toLowerCase()}.${timestamp}@techjob.com`;
+      }
     }
 
     const finalUserData = {
       id: initialData?.id,
       originalId: initialData?.originalId,
       name: `${fname} ${lname}`,
-      email: email,
+      email: finalEmail,
+      password: password || initialData?.password || "user1234", // ถ้าไม่กรอกรหัสผ่าน ใช้ default หรือรหัสเดิม
       department,
       position,
       urlImage: imagePreview || initialData?.urlImage || `https://api.dicebear.com/7.x/initials/svg?seed=${fname} ${lname}`,
@@ -244,10 +271,12 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
       // เก็บข้อมูลเพิ่มเติม
       fname: fname,
       lname: lname,
-      phone: initialData?.phone || "",
-      address: initialData?.address || "",
-      idCard: initialData?.idCard || "",
-      startDate: initialData?.startDate || "",
+      phone: phone,
+      address: address,
+      religion: religion,
+      nationality: nationality,
+      idCard: idCard,
+      startDate: startDate,
       status: initialData?.status || "available",
     };
     onSubmit(finalUserData);
@@ -256,83 +285,7 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="fname" className="text-right">
-            ชื่อจริง
-          </Label>
-          <Input
-            id="fname"
-            value={fname}
-            onChange={(e) => setFname(e.target.value)}
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="lname" className="text-right">
-            นามสกุล
-          </Label>
-          <Input
-            id="lname"
-            value={lname}
-            onChange={(e) => setLname(e.target.value)}
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">แผนก</Label>
-          <Select
-            key={`dept-${initialData?.id || 'new'}-${department}`}
-            value={department || undefined}
-            onValueChange={(value) => {
-              setDepartment(value);
-              // ถ้าเปลี่ยนแผนก ให้ตรวจสอบว่า position เดิมยังอยู่ในแผนกใหม่หรือไม่
-              if (value !== department) {
-                const newPositions = positionsByDepartmentForForm[value] || [];
-                // ถ้า position เดิมไม่อยู่ในแผนกใหม่ หรือไม่มี position ให้ reset
-                if (!position || !newPositions.includes(position)) {
-                  setPosition("");
-                }
-              }
-            }}
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="เลือกแผนก..." />
-            </SelectTrigger>
-            <SelectContent>
-              {allDepartmentsForForm.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {departmentMap[dept] || dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">ตำแหน่ง</Label>
-          <Select
-            key={`pos-${initialData?.id || 'new'}-${department}-${position}`}
-            value={position || undefined}
-            onValueChange={setPosition}
-            disabled={!department}
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="เลือกตำแหน่ง..." />
-            </SelectTrigger>
-            <SelectContent>
-              {availablePositions.length > 0 ? (
-                availablePositions.map((pos: any) => (
-                  <SelectItem key={pos} value={pos}>
-                    {pos}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                  ไม่มีตำแหน่งในแผนกนี้
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* 1. รูปโปรไฟล์ */}
         <div className="grid grid-cols-4 items-start gap-4">
           <Label htmlFor="picture" className="text-right pt-2">
             รูปโปรไฟล์
@@ -363,6 +316,197 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
               เลือกรูปภาพ
             </Label>
           </div>
+        </div>
+
+        {/* 2. เลขบัตรประชาชน */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="idCard" className="text-right">
+            บัตรประชาชน
+          </Label>
+          <Input
+            id="idCard"
+            value={idCard}
+            onChange={(e) => setIdCard(e.target.value)}
+            className="col-span-3"
+            placeholder="เช่น 1101700202001"
+          />
+        </div>
+
+        {/* 3. ชื่อจริง, นามสกุล (อยู่ในแนวเดียวกัน) */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label className="text-right">ชื่อ-นามสกุล</Label>
+          <div className="col-span-3 grid grid-cols-2 gap-4">
+            <div>
+              <Input
+                id="fname"
+                value={fname}
+                onChange={(e) => setFname(e.target.value)}
+                placeholder="ชื่อจริง"
+              />
+            </div>
+            <div>
+              <Input
+                id="lname"
+                value={lname}
+                onChange={(e) => setLname(e.target.value)}
+                placeholder="นามสกุล"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 4. สัญชาติ, ศาสนา (อยู่ในแนวเดียวกัน) */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label className="text-right">สัญชาติ-ศาสนา</Label>
+          <div className="col-span-3 grid grid-cols-2 gap-4">
+            <div>
+              <Input
+                id="nationality"
+                value={nationality}
+                onChange={(e) => setNationality(e.target.value)}
+                placeholder="เช่น ไทย"
+              />
+            </div>
+            <div>
+              <Input
+                id="religion"
+                value={religion}
+                onChange={(e) => setReligion(e.target.value)}
+                placeholder="เช่น พุทธ"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 5. ที่อยู่ */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="address" className="text-right">
+            ที่อยู่
+          </Label>
+          <Input
+            id="address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="col-span-3"
+            placeholder="ที่อยู่"
+          />
+        </div>
+
+        {/* 6. เบอร์โทร */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="phone" className="text-right">
+            เบอร์โทรศัพท์
+          </Label>
+          <Input
+            id="phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="col-span-3"
+            placeholder="เช่น 081-234-5678"
+          />
+        </div>
+
+        {/* 7. วันที่เริ่มงาน */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="startDate" className="text-right">
+            วันที่เริ่มงาน
+          </Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="col-span-3"
+          />
+        </div>
+
+        {/* อีเมล */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="email" className="text-right">
+            อีเมล
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="col-span-3"
+            placeholder="เช่น user@techjob.com"
+          />
+        </div>
+
+        {/* รหัสผ่าน */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="password" className="text-right">
+            รหัสผ่าน
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="col-span-3"
+            placeholder={initialData ? "เว้นว่างไว้เพื่อไม่เปลี่ยนรหัสผ่าน" : "เช่น user1234"}
+          />
+        </div>
+
+        {/* แผนก */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label className="text-right">แผนก</Label>
+          <Select
+            key={`dept-${initialData?.id || 'new'}-${department}`}
+            value={department || undefined}
+            onValueChange={(value) => {
+              setDepartment(value);
+              // ถ้าเปลี่ยนแผนก ให้ตรวจสอบว่า position เดิมยังอยู่ในแผนกใหม่หรือไม่
+              if (value !== department) {
+                const newPositions = positionsByDepartmentForForm[value] || [];
+                // ถ้า position เดิมไม่อยู่ในแผนกใหม่ หรือไม่มี position ให้ reset
+                if (!position || !newPositions.includes(position)) {
+                  setPosition("");
+                }
+              }
+            }}
+          >
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="เลือกแผนก..." />
+            </SelectTrigger>
+            <SelectContent>
+              {allDepartmentsForForm.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {departmentMap[dept] || dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* ตำแหน่ง */}
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label className="text-right">ตำแหน่ง</Label>
+          <Select
+            key={`pos-${initialData?.id || 'new'}-${department}-${position}`}
+            value={position || undefined}
+            onValueChange={setPosition}
+            disabled={!department}
+          >
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="เลือกตำแหน่ง..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availablePositions.length > 0 ? (
+                availablePositions.map((pos: any) => (
+                  <SelectItem key={pos} value={pos}>
+                    {pos}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                  ไม่มีตำแหน่งในแผนกนี้
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <DialogFooter>
@@ -431,14 +575,17 @@ export default function Datauser() {
       ...newUserData,
       id: `NEW-${Date.now()}`,
       originalId: Date.now(), // สร้าง originalId สำหรับ user ใหม่
-      // เก็บข้อมูลเพิ่มเติมจาก initialData ถ้ามี
+      // เก็บข้อมูลเพิ่มเติมตาม mock data
       fname: newUserData.fname || newUserData.name?.split(" ")[0] || "",
       lname: newUserData.lname || newUserData.name?.split(" ").slice(1).join(" ") || "",
       phone: newUserData.phone || "",
       address: newUserData.address || "",
+      religion: newUserData.religion || "",
+      nationality: newUserData.nationality || "",
       idCard: newUserData.idCard || "",
       startDate: newUserData.startDate || "",
-      status: newUserData.status || "available",
+      status: "available", // ตั้งเป็น default "available" เสมอ
+      role: newUserData.role || "user",
     };
     setPersonnelData((prev) => {
       const updated = [...prev, newUser];
@@ -460,6 +607,18 @@ export default function Datauser() {
             // เก็บข้อมูลเพิ่มเติม
             fname: updatedUserData.fname || user.fname || updatedUserData.name?.split(" ")[0] || "",
             lname: updatedUserData.lname || user.lname || updatedUserData.name?.split(" ").slice(1).join(" ") || "",
+            phone: updatedUserData.phone !== undefined ? updatedUserData.phone : user.phone,
+            address: updatedUserData.address !== undefined ? updatedUserData.address : user.address,
+            religion: updatedUserData.religion !== undefined ? updatedUserData.religion : user.religion,
+            nationality: updatedUserData.nationality !== undefined ? updatedUserData.nationality : user.nationality,
+            idCard: updatedUserData.idCard !== undefined ? updatedUserData.idCard : user.idCard,
+            startDate: updatedUserData.startDate !== undefined ? updatedUserData.startDate : user.startDate,
+            // อัปเดต email ถ้ามีการเปลี่ยนแปลง
+            email: updatedUserData.email !== undefined ? updatedUserData.email : user.email,
+            // อัปเดต password เฉพาะเมื่อมีการกรอกใหม่ (ถ้าไม่กรอกจะเก็บรหัสเดิม)
+            password: updatedUserData.password && updatedUserData.password !== "" ? updatedUserData.password : user.password,
+            // เก็บ status เดิมไว้ ไม่ให้เปลี่ยน
+            status: user.status,
           }
           : user
       );
@@ -724,23 +883,23 @@ export default function Datauser() {
           }
         }}
       >
-        <DialogContent
-          className="sm:max-w-[500px]"
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {editingUser ? "แก้ไขข้อมูลผู้ใช้" : "เพิ่มผู้ใช้ใหม่"}
-            </DialogTitle>
-          </DialogHeader>
-          <UserForm
-            initialData={editingUser}
-            onSubmit={editingUser ? handleUpdateUser : handleAddUser}
-            onClose={() => {
-              setIsDialogOpen(false);
-              setEditingUser(null);
-            }}
-            allPersonnelData={personnelData}
-          />
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
+            <DialogHeader>
+              <DialogTitle>
+                {editingUser ? "แก้ไขข้อมูลผู้ใช้" : "เพิ่มผู้ใช้ใหม่"}
+              </DialogTitle>
+            </DialogHeader>
+            <UserForm
+              initialData={editingUser}
+              onSubmit={editingUser ? handleUpdateUser : handleAddUser}
+              onClose={() => {
+                setIsDialogOpen(false);
+                setEditingUser(null);
+              }}
+              allPersonnelData={personnelData}
+            />
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
