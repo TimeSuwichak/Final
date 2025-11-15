@@ -2,7 +2,6 @@
 "use client";
 
 import React from 'react';
-
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,9 +13,30 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { UserTaskUpdate } from './UserTaskUpdate'; // 1. Import เครื่องมือส่งงาน
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { UserTaskUpdate } from './UserTaskUpdate';
 import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
+import { 
+  Calendar, 
+  MapPin, 
+  User, 
+  Phone, 
+  FileText, 
+  Briefcase,
+  Clock,
+  X,
+  ClipboardList,
+  Building2
+} from 'lucide-react';
 
 interface UserJobDetailDialogProps {
   job: Job | null;
@@ -31,66 +51,226 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-3xl max-h-[90vh]"
+        className="sm:max-w-[95vw] lg:max-w-7xl h-[95vh] flex flex-col p-0 gap-0"
         onPointerDownOutside={(event) => event.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>ใบงาน: {job.title}</DialogTitle>
+        {/* Compact Header */}
+        <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-gradient-to-r from-blue-50 to-blue-100 shrink-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <DialogTitle className="text-lg sm:text-xl font-bold truncate">{job.title}</DialogTitle>
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  <ClipboardList className="h-3 w-3 mr-1" />
+                  งานของฉัน
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.id}</span>
+                <Separator orientation="vertical" className="h-3" />
+                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(job.createdAt, "dd/MM/yy")}</span>
+                <Separator orientation="vertical" className="h-3" />
+                <span className="flex items-center gap-1"><User className="h-3 w-3" />{job.adminCreator}</span>
+              </div>
+            </div>
+          </div>
         </DialogHeader>
-        <ScrollArea className="h-[70vh] p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* --- คอลัมน์ซ้าย: ข้อมูลงาน (อ่านอย่างเดียว) --- */}
-            <div className="space-y-4">
-              <h4 className="font-semibold">ข้อมูลงาน</h4>
-              <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                <p><strong>ประเภท:</strong> {job.jobType}</p>
-                <p><strong>รายละเอียด:</strong> {job.description || "ไม่มี"}</p>
-              </div>
 
-              <h4 className="font-semibold">ข้อมูลลูกค้า</h4>
-              <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                <p><strong>ชื่อ:</strong> {job.customerName}</p>
-                <p><strong>โทร:</strong> {job.customerPhone}</p>
-              </div>
-              <h4 className="font-semibold">สถานที่</h4> {/*สถานที่ทำงาน */}
-             <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-               <h4 className="font-semibold"></h4> {/*สถานที่ทำงาน */}
-              {job.latitude && job.longitude ? (
-                <AdminMap
-                  initialAddress={job.location}
-                  initialPosition={[job.latitude, job.longitude]}
-                  readOnly={true}
-                />
-              ) : (
-              <div className="p-3 bg-muted rounded-md text-sm">
-                <p>{job.location}</p>
-                </div>
-              )}
-              </div>
-            </div>
-
-            {/* --- คอลัมน์ขวา: Task งานย่อย (จุดที่ช่างทำงาน) --- */}
-            <div className="space-y-4">
-              <h4 className="font-semibold">Task งานย่อยที่ต้องทำ</h4>
+        {/* Main Content with 2 Column Layout */}
+        <ScrollArea className="flex-1 overflow-auto">
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
               
-              {/* 2. วนลูปแสดง "เครื่องมือส่งงาน" สำหรับทุก Task */}
-              {job.tasks.length > 0 ? (
-                job.tasks.map(task => (
-                  <UserTaskUpdate key={task.id} job={job} task={task} />
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center p-4">
-                  หัวหน้ายังไม่ได้สร้าง Task (โปรดติดต่อหัวหน้า)
-                </p>
-              )}
-            </div>
+              {/* Left Column - Job Information */}
+              <div className="space-y-4">
+                
+                {/* Job Info Card */}
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      ข้อมูลงาน
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-0.5">ประเภท</p>
+                        <Badge variant="outline" className="text-xs">{job.jobType}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-0.5">ระยะเวลา</p>
+                        <p className="text-xs font-medium flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(job.startDate, "dd/MM")} - {format(job.endDate, "dd/MM")}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
+                {/* Customer & Location Combined */}
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <User className="h-4 w-4 text-blue-600" />
+                      ข้อมูลลูกค้าและสถานที่
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-0.5">ชื่อลูกค้า</p>
+                        <p className="font-medium">{job.customerName}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-0.5">เบอร์โทร</p>
+                        <p className="flex items-center gap-1 text-sm">
+                          <Phone className="h-3 w-3" />
+                          {job.customerPhone || "-"}
+                        </p>
+                      </div>
+                    </div>
+                    {job.customerContactOther && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-0.5">ช่องทางอื่น</p>
+                        <p className="text-xs">{job.customerContactOther}</p>
+                      </div>
+                    )}
+                    <Separator />
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        สถานที่ปฏิบัติงาน
+                      </p>
+                      <p className="text-xs leading-relaxed mb-2">{job.location}</p>
+                      {job.latitude && job.longitude && (
+                        <div className="rounded-md overflow-hidden border aspect-video">
+                          <AdminMap 
+                            initialAddress={job.location}
+                            initialPosition={[job.latitude, job.longitude]} 
+                            readOnly={true} 
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Description */}
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      รายละเอียดงาน
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md bg-muted/50 p-3 text-xs leading-relaxed">
+                      <p>{job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div>
+
+              {/* Right Column - Tasks */}
+              <div className="space-y-4">
+                
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <ClipboardList className="h-4 w-4 text-blue-600" />
+                          งานย่อยที่ต้องทำ
+                        </CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          อัพเดทความคืบหน้า แจ้งปัญหา และขอเบิกวัสดุ
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {job.tasks.length} งาน
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {job.tasks.length > 0 ? (
+                      <div className="space-y-3">
+                        {job.tasks.map(task => (
+                          <UserTaskUpdate key={task.id} job={job} task={task} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="p-4 bg-muted rounded-full mb-4">
+                          <ClipboardList className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          ยังไม่มีงานย่อย
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          หัวหน้างานจะสร้างงานย่อยให้ในภายหลัง
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Quick Action Tips */}
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      คำแนะนำ
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex items-start gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                        <p className="text-muted-foreground leading-relaxed">
+                          <strong className="text-foreground">อัพเดทความคืบหน้า:</strong> แจ้งสถานะงานให้หัวหน้าทราบอย่างสม่ำเสมอ
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                        <p className="text-muted-foreground leading-relaxed">
+                          <strong className="text-foreground">แจ้งปัญหา:</strong> พบอุปสรรคหรือปัญหา? แจ้งทันทีเพื่อหาทางแก้ไข
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                        <p className="text-muted-foreground leading-relaxed">
+                          <strong className="text-foreground">ขอเบิกวัสดุ:</strong> ต้องการอุปกรณ์เพิ่ม? ส่งคำขอผ่านระบบ
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                        <p className="text-muted-foreground leading-relaxed">
+                          <strong className="text-foreground">อัพโหลดรูปภาพ:</strong> ถ่ายรูปความคืบหน้างานเพื่อบันทึก
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div>
+            </div>
           </div>
         </ScrollArea>
-        <DialogFooter>
-          <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
+
+        {/* Compact Footer */}
+        <DialogFooter className="border-t bg-muted/30 px-4 sm:px-6 py-2.5 shrink-0">
+          <div className="flex items-center justify-end w-full">
+            <DialogClose asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1">
+                <X className="h-3 w-3" />
+                ปิด
+              </Button>
+            </DialogClose>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
