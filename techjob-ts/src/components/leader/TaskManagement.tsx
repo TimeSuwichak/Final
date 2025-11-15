@@ -40,82 +40,66 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  User
+  User,
+  Maximize2
 } from 'lucide-react';
 
 interface TaskManagementProps {
-  job: Job; // รับ Job ทั้ง Object มาเลย
+  job: Job;
 }
 
 export function TaskManagement({ job }: TaskManagementProps) {
   const { updateJobWithActivity } = useJobs();
-  const { user } = useAuth(); // Leader ที่ Login อยู่
+  const { user } = useAuth();
 
-  // State สำหรับฟอร์ม "สร้าง Task ใหม่"
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-
-  // State สำหรับการแสดงรูปภาพเต็มจอ
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
-
-  // State สำหรับการแสดง task detail
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
-
-  // State สำหรับการอัปเดต task (สำหรับช่าง)
-  const [updateMessage, setUpdateMessage] = useState("");
-  const [updateImage, setUpdateImage] = useState<File | null>(null);
-  const [updateFile, setUpdateFile] = useState<File | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
   if (!user) return null;
 
   const handleAddTask = () => {
-    if (!newTitle) {
+    if (!newTitle.trim()) {
       alert("กรุณาใส่หัวข้อ Task");
       return;
     }
 
-    // 1. สร้าง "Task" object ใหม่
     const newTask: Task = {
       id: `T-${Date.now()}`,
-      title: newTitle,
-      description: newDesc,
-      status: 'pending', // สถานะเริ่มต้น
-      updates: [], // ยังไม่มีการอัปเดตจากช่าง
+      title: newTitle.trim(),
+      description: newDesc.trim(),
+      status: 'pending',
+      updates: [],
     };
 
-    // 2. สร้าง Array "Tasks" ชุดใหม่ (ของเก่า + ของใหม่)
     const updatedTasks = [...job.tasks, newTask];
 
-    // 3. เรียก "สมอง" ให้อัปเดตใบงานพร้อม Activity Log
     updateJobWithActivity(
       job.id, 
-      { tasks: updatedTasks }, // สิ่งที่อัปเดต
-      'task_created', // activity type
-      `เพิ่ม Task ใหม่: ${newTitle}`, // ข้อความ
-      user.fname, // ชื่อคนทำ
-      'leader', // บทบาท
-      { taskId: newTask.id, taskTitle: newTitle } // metadata
+      { tasks: updatedTasks },
+      'task_created',
+      `เพิ่ม Task ใหม่: ${newTitle}`,
+      user.fname,
+      'leader',
+      { taskId: newTask.id, taskTitle: newTitle }
     );
 
-    // 4. เคลียร์ฟอร์ม
     setNewTitle("");
     setNewDesc("");
   };
 
-  // Helper functions
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+        return <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />;
       case 'in-progress':
-        return <Clock className="h-4 w-4 text-blue-600" />;
+        return <Clock className="h-3.5 w-3.5 text-blue-600" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-orange-600" />;
+        return <AlertCircle className="h-3.5 w-3.5 text-orange-600" />;
     }
   };
 
@@ -130,9 +114,28 @@ export function TaskManagement({ job }: TaskManagementProps) {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed': return 'เสร็จสิ้น';
+      case 'in-progress': return 'กำลังทำ';
+      default: return 'รอดำเนินการ';
+    }
+  };
+
   const handleImageClick = (imageUrl: string) => {
     setSelectedImage(imageUrl);
     setImageDialogOpen(true);
+  };
+
+  const handleDownloadImage = () => {
+    if (!selectedImage) return;
+    
+    const link = document.createElement('a');
+    link.href = selectedImage;
+    link.download = `task-image-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleTaskClick = (task: Task) => {
@@ -148,10 +151,6 @@ export function TaskManagement({ job }: TaskManagementProps) {
           <MessageSquare className="h-5 w-5 text-primary" />
           <h4 className="text-lg font-semibold">งานย่อย ({job.tasks.length})</h4>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          เพิ่ม Task
-        </Button>
       </div>
 
       {/* Task List */}
@@ -160,64 +159,69 @@ export function TaskManagement({ job }: TaskManagementProps) {
           {job.tasks.map(task => (
             <Card
               key={task.id}
-              className="cursor-pointer  border-l-primary/20"
+              className="cursor-pointer hover:shadow-md transition-shadow  border-l-primary/20"
               onClick={() => handleTaskClick(task)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h5 className="font-semibold text-base truncate">{task.title}</h5>
-                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <h5 className="font-semibold text-base">{task.title}</h5>
+                      <Badge className={`text-[10px] h-5 px-1.5 gap-1 shrink-0 ${getStatusColor(task.status)}`}>
                         {getStatusIcon(task.status)}
-                        {task.status === 'pending' && 'รอดำเนินการ'}
-                        {task.status === 'in-progress' && 'กำลังทำงาน'}
-                        {task.status === 'completed' && 'เสร็จสิ้น'}
-                      </div>
+                        {getStatusText(task.status)}
+                      </Badge>
                     </div>
 
                     {task.description && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
                     )}
 
-                    {/* Latest Update Preview */}
+                    {/* All Updates Preview */}
                     {task.updates && task.updates.length > 0 ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <MessageSquare className="h-3 w-3" />
-                          <span>{task.updates.length} การอัปเดตล่าสุด</span>
+                          <span>{task.updates.length} การอัปเดต</span>
                         </div>
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-xs">
-                                {task.updates[task.updates.length - 1].updatedBy[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium">{task.updates[task.updates.length - 1].updatedBy}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {format(task.updates[task.updates.length - 1].updatedAt, 'dd/MM HH:mm', { locale: th })}
-                            </span>
-                          </div>
-                          <p className="text-sm line-clamp-2">{task.updates[task.updates.length - 1].message}</p>
-                          {task.updates[task.updates.length - 1].imageUrl && (
-                            <div className="mt-2 flex gap-2">
-                              <div className="relative w-16 h-16 rounded-md overflow-hidden border bg-muted">
-                                <img
-                                  src={task.updates[task.updates.length - 1].imageUrl}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleImageClick(task.updates[task.updates.length - 1].imageUrl!);
-                                  }}
-                                />
+                        <div className="space-y-2">
+                          {task.updates.slice(-2).map((update, idx) => (
+                            <div key={idx} className="bg-muted/50 rounded-lg p-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Avatar className="h-5 w-5">
+                                  <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
+                                    {update.updatedBy[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs font-medium">{update.updatedBy}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {format(update.updatedAt, 'dd/MM HH:mm', { locale: th })}
+                                </span>
                               </div>
-                              {task.updates.length > 1 && (
-                                <div className="flex items-center text-xs text-muted-foreground">
-                                  +{task.updates.length - 1} รูป
+                              <p className="text-xs line-clamp-1">{update.message}</p>
+                              {update.imageUrl && (
+                                <div className="mt-1">
+                                  <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted shrink-0 group">
+                                    <img
+                                      src={update.imageUrl}
+                                      alt="Preview"
+                                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleImageClick(update.imageUrl!);
+                                      }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                      <Maximize2 className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                                    </div>
+                                  </div>
                                 </div>
                               )}
+                            </div>
+                          ))}
+                          {task.updates.length > 2 && (
+                            <div className="text-center text-xs text-muted-foreground">
+                              และอีก {task.updates.length - 2} การอัปเดต ก่อนหน้า
                             </div>
                           )}
                         </div>
@@ -289,23 +293,34 @@ export function TaskManagement({ job }: TaskManagementProps) {
         </CardContent>
       </Card>
 
-      {/* Image Preview Dialog */}
+      {/* Image Preview Dialog - Full Screen */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 z-10 bg-black/20 hover:bg-black/40 text-white"
-              onClick={() => setImageDialogOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-0">
+          <div className="relative flex items-center justify-center min-h-[400px]">
+            <div className="absolute top-3 right-3 z-10 flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-black/50 hover:bg-black/70 text-white h-8 px-3 rounded-full gap-1.5"
+                onClick={handleDownloadImage}
+              >
+                <Download className="h-4 w-4" />
+                <span className="text-xs">ดาวน์โหลด</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-black/50 hover:bg-black/70 text-white h-8 w-8 p-0 rounded-full"
+                onClick={() => setImageDialogOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             {selectedImage && (
               <img
                 src={selectedImage}
-                alt="Full size"
-                className="w-full h-auto max-h-[85vh] object-contain"
+                alt="Preview"
+                className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
               />
             )}
           </div>
@@ -316,36 +331,35 @@ export function TaskManagement({ job }: TaskManagementProps) {
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {selectedTask?.title}
-            </DialogTitle>
+            <div className="flex items-start justify-between gap-4 pr-6">
+              <DialogTitle className="flex items-center gap-2 flex-1">
+                <MessageSquare className="h-5 w-5 shrink-0" />
+                <span className="break-words">{selectedTask?.title}</span>
+              </DialogTitle>
+              {selectedTask && (
+                <Badge className={`text-[10px] h-5 px-1.5 gap-1 shrink-0 ${getStatusColor(selectedTask.status)}`}>
+                  {getStatusIcon(selectedTask.status)}
+                  {getStatusText(selectedTask.status)}
+                </Badge>
+              )}
+            </div>
           </DialogHeader>
 
           {selectedTask && (
             <ScrollArea className="max-h-[70vh] pr-4">
               <div className="space-y-6">
-                {/* Task Info */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedTask.status)}`}>
-                      {getStatusIcon(selectedTask.status)}
-                      {selectedTask.status === 'pending' && 'รอดำเนินการ'}
-                      {selectedTask.status === 'in-progress' && 'กำลังทำงาน'}
-                      {selectedTask.status === 'completed' && 'เสร็จสิ้น'}
-                    </div>
+                {/* Task Description */}
+                {selectedTask.description && (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedTask.description}</p>
                   </div>
+                )}
 
-                  {selectedTask.description && (
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm leading-relaxed">{selectedTask.description}</p>
-                    </div>
-                  )}
-                </div>
+                <Separator />
 
                 {/* Updates Timeline */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold flex items-center gap-2">
+                  <h4 className="font-semibold flex items-center gap-2 text-sm">
                     <MessageSquare className="h-4 w-4" />
                     ความคืบหน้า ({selectedTask.updates.length})
                   </h4>
@@ -355,7 +369,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
                       {selectedTask.updates.map((update, idx) => (
                         <div key={idx} className="flex gap-3">
                           <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
                               {update.updatedBy[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -366,16 +380,19 @@ export function TaskManagement({ job }: TaskManagementProps) {
                                 {format(update.updatedAt, 'dd/MM/yyyy HH:mm', { locale: th })}
                               </span>
                             </div>
-                            <div className="bg-muted/30 rounded-lg p-3">
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{update.message}</p>
+                            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
                               {update.imageUrl && (
-                                <div className="mt-3">
+                                <div className="relative w-32 h-32 group overflow-hidden rounded-md border bg-muted shrink-0">
                                   <img
                                     src={update.imageUrl}
                                     alt={`จาก ${update.updatedBy}`}
-                                    className="max-w-full h-auto rounded-lg border cursor-pointer"
+                                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => handleImageClick(update.imageUrl!)}
                                   />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                    <Maximize2 className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -385,7 +402,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-40" />
                       <p className="text-sm">ยังไม่มีการอัปเดตจากทีมช่าง</p>
                     </div>
                   )}
