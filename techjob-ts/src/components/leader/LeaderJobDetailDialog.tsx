@@ -41,13 +41,13 @@ import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { user as ALL_USERS } from '@/data/user';
-import { 
-    Calendar, 
-    MapPin, 
-    User, 
-    Phone, 
-    FileText, 
-    Users, 
+import {
+    Calendar,
+    MapPin,
+    User,
+    Phone,
+    FileText,
+    Users,
     CheckCircle2,
     AlertCircle,
     Briefcase,
@@ -55,7 +55,8 @@ import {
     Save,
     Trash2,
     X,
-    Building2
+    Building2,
+    MessageSquare
 } from 'lucide-react';
 
 interface LeaderJobDetailDialogProps {
@@ -75,6 +76,8 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
     const [pendingTeamChanges, setPendingTeamChanges] = useState<{ added: string[]; removed: string[] } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteReason, setDeleteReason] = useState("");
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
     useEffect(() => {
         if (job) {
@@ -398,6 +401,70 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                                                 </CardContent>
                                             </Card>
 
+                                            {/* Recent Updates from Team */}
+                                            {job.tasks.some(task => task.updates && task.updates.length > 0) && (
+                                                <Card className="border-primary/20 bg-blue-50/30">
+                                                    <CardHeader className="pb-2">
+                                                        <CardTitle className="text-sm flex items-center gap-2">
+                                                            <MessageSquare className="h-4 w-4 text-blue-600" />
+                                                            ความคืบหน้าล่าสุดจากทีมช่าง
+                                                        </CardTitle>
+                                                        <CardDescription className="text-xs">อัปเดตงานจากช่างในทีม</CardDescription>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <ScrollArea className="max-h-64">
+                                                            <div className="space-y-3">
+                                                                {job.tasks
+                                                                    .filter(task => task.updates && task.updates.length > 0)
+                                                                    .sort((a, b) => {
+                                                                        const aLatest = a.updates[a.updates.length - 1]?.updatedAt;
+                                                                        const bLatest = b.updates[b.updates.length - 1]?.updatedAt;
+                                                                        return new Date(bLatest).getTime() - new Date(aLatest).getTime();
+                                                                    })
+                                                                    .slice(0, 5)
+                                                                    .map(task => {
+                                                                        const latestUpdate = task.updates[task.updates.length - 1];
+                                                                        return (
+                                                                            <div key={task.id} className="bg-white/70 rounded-lg p-3 border">
+                                                                                <div className="flex items-start gap-3">
+                                                                                    <Avatar className="h-8 w-8">
+                                                                                        <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                                                                                            {latestUpdate.updatedBy[0]}
+                                                                                        </AvatarFallback>
+                                                                                    </Avatar>
+                                                                                    <div className="flex-1 min-w-0">
+                                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                                            <span className="font-medium text-sm">{latestUpdate.updatedBy}</span>
+                                                                                            <Badge variant="outline" className="text-xs">{task.title}</Badge>
+                                                                                            <span className="text-xs text-muted-foreground">
+                                                                                                {format(latestUpdate.updatedAt, 'dd/MM HH:mm')}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <p className="text-sm text-muted-foreground line-clamp-2">{latestUpdate.message}</p>
+                                                                                        {latestUpdate.imageUrl && (
+                                                                                            <div className="mt-2">
+                                                                                                <img
+                                                                                                    src={latestUpdate.imageUrl}
+                                                                                                    alt="อัปเดตจากช่าง"
+                                                                                                    className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80"
+                                    onClick={() => {
+                                        setSelectedImage(latestUpdate.imageUrl || null);
+                                        setImageDialogOpen(true);
+                                    }}
+                                                                                                />
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                            </div>
+                                                        </ScrollArea>
+                                                    </CardContent>
+                                                </Card>
+                                            )}
+
                                             {/* Task Management - Full Width on Right */}
                                             <Card className="border-primary/20">
                                                 <CardHeader className="pb-2">
@@ -501,6 +568,29 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Image Dialog */}
+            <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+                    <DialogHeader className="px-4 py-2 border-b">
+                        <DialogTitle className="text-sm">รูปภาพจากอัปเดตงาน</DialogTitle>
+                    </DialogHeader>
+                    <div className="p-4 flex justify-center">
+                        {selectedImage && (
+                            <img
+                                src={selectedImage}
+                                alt="อัปเดตจากช่าง"
+                                className="max-w-full max-h-[70vh] object-contain rounded"
+                            />
+                        )}
+                    </div>
+                    <DialogFooter className="px-4 py-2 border-t">
+                        <DialogClose asChild>
+                            <Button variant="outline" size="sm">ปิด</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

@@ -25,12 +25,14 @@ import { Separator } from "@/components/ui/separator";
 import { UserTaskUpdate } from './UserTaskUpdate';
 import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
-import { 
-  Calendar, 
-  MapPin, 
-  User, 
-  Phone, 
-  FileText, 
+import { leader } from '@/data/leader';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Calendar,
+  MapPin,
+  User,
+  Phone,
+  FileText,
   Briefcase,
   Clock,
   X,
@@ -47,6 +49,8 @@ interface UserJobDetailDialogProps {
 export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDialogProps) {
 
   if (!job) return null;
+
+  const assignedLeader = leader.find(l => l.id === job.leadId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -84,7 +88,36 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
               
               {/* Left Column - Job Information */}
               <div className="space-y-4">
-                
+
+                {/* Leader Information */}
+                {assignedLeader && (
+                  <Card className="border-blue-200 bg-green-50/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <User className="h-4 w-4 text-green-600" />
+                        หัวหน้างาน
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={assignedLeader.avatarUrl} alt={assignedLeader.fname} />
+                          <AvatarFallback className="bg-green-100 text-green-700">
+                            {assignedLeader.fname[0]}{assignedLeader.lname[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{assignedLeader.fname} {assignedLeader.lname}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {assignedLeader.phone}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Job Info Card */}
                 <Card className="border-blue-200">
                   <CardHeader className="pb-2">
@@ -140,17 +173,13 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                     )}
                     <Separator />
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        สถานที่ปฏิบัติงาน
-                      </p>
-                      <p className="text-xs leading-relaxed mb-2">{job.location}</p>
+
                       {job.latitude && job.longitude && (
                         <div className="rounded-md overflow-hidden border aspect-video">
-                          <AdminMap 
+                          <AdminMap
                             initialAddress={job.location}
-                            initialPosition={[job.latitude, job.longitude]} 
-                            readOnly={true} 
+                            initialPosition={[job.latitude, job.longitude]}
+                            readOnly={true}
                           />
                         </div>
                       )}

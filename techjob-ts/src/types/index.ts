@@ -61,6 +61,8 @@ export interface Job {
   customerPhone: string;
   customerContactOther?: string;
   location: string; // (ที่อยู่สำหรับ Map)
+  latitude?: number;
+  longitude?: number;
  
   // ไฟล์แนบ
   imageUrl?: string;
