@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -41,7 +40,23 @@ import { TaskManagement } from './TaskManagement';
 import { AdminMap } from "../admin/AdminMap"
 import type { Job } from '@/types/index';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { user as ALL_USERS } from '@/data/user'; // Import user data for displaying applicants
+import { user as ALL_USERS } from '@/data/user';
+import { 
+    Calendar, 
+    MapPin, 
+    User, 
+    Phone, 
+    FileText, 
+    Users, 
+    CheckCircle2,
+    AlertCircle,
+    Briefcase,
+    Clock,
+    Save,
+    Trash2,
+    X,
+    Building2
+} from 'lucide-react';
 
 interface LeaderJobDetailDialogProps {
     job: Job | null;
@@ -66,7 +81,6 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
             setDraftTechs(job.assignedTechs);
         }
     }, [job]);
-
 
     if (!job || !user) return null;
 
@@ -161,339 +175,332 @@ export function LeaderJobDetailDialog({ job, open, onOpenChange }: LeaderJobDeta
 
     return (
         <>
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent
-                className="sm:max-w-6xl max-h-[90vh] flex flex-col"
-                onPointerDownOutside={(event) => event.preventDefault()}
-                onEscapeKeyDown={(event) => event.preventDefault()}
-            > 
-                <DialogHeader className="border-b pb-4">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <DialogTitle className="text-2xl">{job.id}</DialogTitle>
-                            <div className="flex items-center gap-2">
-                                <Badge variant={isAcknowledged ? "secondary" : "default"}>
-                                    {isAcknowledged ? "กำลังดำเนินการ" : "รอรับทราบ"}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                    สร้างเมื่อ {format(job.createdAt, "dd/MM/yyyy")}
-                                </span>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent
+                    className="sm:max-w-[95vw] lg:max-w-7xl h-[95vh] flex flex-col p-0 gap-0"
+                    onPointerDownOutside={(event) => event.preventDefault()}
+                    onEscapeKeyDown={(event) => event.preventDefault()}
+                >
+                    {/* Compact Header */}
+                    <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-gradient-to-r from-primary/5 to-primary/10 shrink-0">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="space-y-1 min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <DialogTitle className="text-lg sm:text-xl font-bold truncate">{job.title}</DialogTitle>
+                                    <Badge variant={isAcknowledged ? "default" : "secondary"} className="text-xs shrink-0">
+                                        {isAcknowledged ? <><CheckCircle2 className="h-3 w-3 mr-1" /> ดำเนินการ</> : <><AlertCircle className="h-3 w-3 mr-1" /> รอรับทราบ</>}
+                                    </Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{job.id}</span>
+                                    <Separator orientation="vertical" className="h-3" />
+                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{format(job.createdAt, "dd/MM/yy")}</span>
+                                    <Separator orientation="vertical" className="h-3" />
+                                    <span className="flex items-center gap-1"><User className="h-3 w-3" />{job.adminCreator}</span>
+                                </div>
+                            </div>
+                            {!isAcknowledged && (
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 shrink-0" onClick={handleAcknowledge}>
+                                    <CheckCircle2 className="h-3.5 w-3.5 sm:mr-2" />
+                                    <span className="hidden sm:inline">ยืนยันรับทราบ</span>
+                                </Button>
+                            )}
+                        </div>
+                    </DialogHeader>
+
+                    {/* Main Content with 2 Column Layout */}
+                    <ScrollArea className="flex-1 overflow-auto">
+                        <div className="p-4 sm:p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                                
+                                {/* Left Column */}
+                                <div className="space-y-4">
+                                    {/* Job Info Card - Compact */}
+                                    <Card className="border-primary/20">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm flex items-center gap-2">
+                                                <FileText className="h-4 w-4 text-primary" />
+                                                ข้อมูลงาน
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2 text-sm">
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">ประเภท</p>
+                                                    <Badge variant="outline" className="text-xs">{job.jobType}</Badge>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">ระยะเวลา</p>
+                                                    <p className="text-xs font-medium flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        {format(job.startDate, "dd/MM")} - {format(job.endDate, "dd/MM")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Customer & Location Combined */}
+                                    <Card className="border-primary/20">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm flex items-center gap-2">
+                                                <User className="h-4 w-4 text-primary" />
+                                                ข้อมูลลูกค้าและสถานที่
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3 text-sm">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">ชื่อลูกค้า</p>
+                                                    <p className="font-medium">{job.customerName}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">เบอร์โทร</p>
+                                                    <p className="flex items-center gap-1 text-sm">
+                                                        <Phone className="h-3 w-3" />
+                                                        {job.customerPhone || "-"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {job.customerContactOther && (
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground mb-0.5">ช่องทางอื่น</p>
+                                                    <p className="text-xs">{job.customerContactOther}</p>
+                                                </div>
+                                            )}
+                                            <Separator />
+                                            <div>
+                                                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                                                    <MapPin className="h-3 w-3" />
+                                                    สถานที่ปฏิบัติงาน
+                                                </p>
+                                                <p className="text-xs leading-relaxed mb-2">{job.location}</p>
+                                                {job.latitude && job.longitude && (
+                                                    <div className="rounded-md overflow-hidden border aspect-video">
+                                                        <AdminMap initialPosition={[job.latitude, job.longitude]} readOnly={true} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Description */}
+                                    <Card className="border-primary/20">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-sm flex items-center gap-2">
+                                                <FileText className="h-4 w-4 text-primary" />
+                                                รายละเอียดงาน
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="rounded-md bg-muted/50 p-3 text-xs leading-relaxed">
+                                                <p>{job.description || "รวมตรวจอัตราการผลิตการยอมรับงานทั่วไปในด้านต่างๆ และยังได้วิเคราะห์ส่วนเสริม"}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                {/* Right Column */}
+                                <div className="space-y-4">
+                                    {isAcknowledged ? (
+                                        <>
+                                            {/* Team Management - Compact */}
+                                            <Card className="border-primary/20">
+                                                <CardHeader className="pb-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <CardTitle className="text-sm flex items-center gap-2">
+                                                            <Users className="h-4 w-4 text-primary" />
+                                                            จัดการทีมงาน
+                                                        </CardTitle>
+                                                        <Badge variant="secondary" className="text-xs">{draftTechs.length} คน</Badge>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {/* Leader Badge */}
+                                                    <div className="flex items-center gap-2 p-2 rounded-md bg-green-50 border border-green-200">
+                                                        <div className="p-1 bg-green-100 rounded-full">
+                                                            <User className="h-3 w-3 text-green-700" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs text-green-700 font-medium">หัวหน้า: {user.fname}</p>
+                                                        </div>
+                                                        <Badge className="bg-green-600 text-xs h-5">รับทราบแล้ว</Badge>
+                                                    </div>
+
+                                                    <Separator />
+
+                                                    {/* Tech Selection - Inline Button */}
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                                                            <Button size="sm" variant="outline" onClick={handleSaveTeam} className="h-7 text-xs gap-1">
+                                                                <Save className="h-3 w-3" />
+                                                                บันทึก
+                                                            </Button>
+                                                        </div>
+                                                        <TechSelectMultiDept
+                                                            jobStartDate={job.startDate}
+                                                            jobEndDate={job.endDate}
+                                                            selectedTechIds={draftTechs}
+                                                            onTechsChange={setDraftTechs}
+                                                        />
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+
+                                            {/* Assigned Team List - Compact */}
+                                            <Card className="border-primary/20">
+                                                <CardHeader className="pb-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <CardTitle className="text-sm flex items-center gap-2">
+                                                            <Users className="h-4 w-4 text-primary" />
+                                                            ทีมที่มอบหมาย
+                                                        </CardTitle>
+                                                        <div className="flex items-center gap-1 text-xs">
+                                                            <Badge variant="outline" className="h-5">{draftTechs.length}</Badge>
+                                                            <span className="text-muted-foreground">/</span>
+                                                            <Badge variant="outline" className="h-5">{job.tasks.length} งาน</Badge>
+                                                        </div>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    {draftTechs.length > 0 ? (
+                                                        <ScrollArea className="max-h-48">
+                                                            <div className="space-y-1.5">
+                                                                {draftTechs.map(techId => {
+                                                                    const tech = ALL_USERS.find(u => String(u.id) === techId);
+                                                                    if (!tech) return null;
+                                                                    return (
+                                                                        <div key={techId} className="flex items-center gap-2 p-2 rounded-md border bg-card hover:bg-accent/50 transition-colors">
+                                                                            <Avatar className="h-8 w-8 ring-1 ring-primary/10">
+                                                                                <AvatarImage src={tech.avatarUrl || "/placeholder.svg"} />
+                                                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">{tech.fname[0]}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="font-medium text-xs truncate">{tech.fname} {tech.lname}</p>
+                                                                                <p className="text-[10px] text-muted-foreground truncate">{tech.position}</p>
+                                                                            </div>
+                                                                            <Badge variant="secondary" className="text-[10px] h-4 px-1.5 shrink-0">
+                                                                                {tech.department}
+                                                                            </Badge>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </ScrollArea>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                                                            <Users className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                                                            <p className="text-xs font-medium text-muted-foreground">ยังไม่มีช่าง</p>
+                                                            <p className="text-[10px] text-muted-foreground">เลือกจากด้านบน</p>
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+
+                                            {/* Task Management - Full Width on Right */}
+                                            <Card className="border-primary/20">
+                                                <CardHeader className="pb-2">
+                                                    <CardTitle className="text-sm flex items-center gap-2">
+                                                        <FileText className="h-4 w-4 text-primary" />
+                                                        จัดการงาน (Tasks)
+                                                    </CardTitle>
+                                                    <CardDescription className="text-xs">สร้างและมอบหมายงานย่อย</CardDescription>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <TaskManagement job={job} />
+                                                </CardContent>
+                                            </Card>
+                                        </>
+                                    ) : (
+                                        <Card className="border-amber-200 bg-amber-50/50">
+                                            <CardContent className="py-8">
+                                                <div className="flex flex-col items-center text-center space-y-3">
+                                                    <div className="p-3 bg-amber-100 rounded-full">
+                                                        <AlertCircle className="h-8 w-8 text-amber-600" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="font-semibold text-base">กรุณายืนยันรับทราบงานก่อน</p>
+                                                        <p className="text-xs text-muted-foreground max-w-sm">
+                                                            คุณจะสามารถจัดการทีมและมอบหมายงานได้หลังจากยืนยัน
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        {!isAcknowledged && (
-                            <Button 
-                                variant="default"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={handleAcknowledge}
-                            >
-                                ยืนยันรับทราบงาน
-                            </Button>
-                        )}
-                    </div>
-                </DialogHeader>
+                    </ScrollArea>
 
-                <ScrollArea className="flex-1 overflow-auto">
-                    <div className="p-6 space-y-6">
-                        
-                       
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            
-                            <Card className="lg:col-span-1">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center gap-2 text-primary">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <CardTitle className="text-lg">ข้อมูลงาน</CardTitle>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4 text-sm">
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">หัวข้องาน</p>
-                                            <p className="font-medium">{job.title}</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">ประเภทงาน</p>
-                                            <p className="font-medium">{job.jobType}</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">วันที่เริ่มต้น-สิ้นสุด</p>
-                                            <p className="font-medium">{format(job.startDate, "dd/MM/yyyy")} - {format(job.endDate, "dd/MM/yyyy")}</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">ผู้สร้าง</p>
-                                            <p className="font-medium">โดย {job.adminCreator} เมื่อ {format(job.createdAt, "dd/MM/yyyy")}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="lg:col-span-1">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center gap-2 text-primary">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                        <CardTitle className="text-lg">ข้อมูลลูกค้า</CardTitle>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4 text-sm">
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">ชื่อลูกค้า</p>
-                                            <p className="font-medium">{job.customerName}</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">เบอร์โทรศัพท์</p>
-                                            <p className="font-medium">{job.customerPhone || "-"}</p>
-                                        </div>
-                                        <Separator />
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1">ช่องทางติดต่ออื่น</p>
-                                            <p className="font-medium">{job.customerContactOther || "ไม่มีข้อมูล"}</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="lg:col-span-1">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center gap-2 text-primary">
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <CardTitle className="text-lg">สถานที่ปฏิบัติงาน</CardTitle>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground leading-relaxed">{job.location}</p>
-                                    </div>
-                                    {job.latitude && job.longitude && (
-                                        <div className="rounded-lg overflow-hidden border">
-                                            <AdminMap
-                                                
-                                                initialPosition={[job.latitude, job.longitude]}
-                                                readOnly={true}
-                                            />
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                    {/* Compact Footer */}
+                    <DialogFooter className="border-t bg-muted/30 px-4 sm:px-6 py-2.5 shrink-0">
+                        <div className="flex items-center justify-between w-full gap-2">
+                            {user.role === 'admin' ? (
+                                <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)} className="h-8 text-xs gap-1">
+                                    <Trash2 className="h-3 w-3" />
+                                    <span className="hidden sm:inline">ลบงาน</span>
+                                </Button>
+                            ) : <div />}
+                            <DialogClose asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs gap-1">
+                                    <X className="h-3 w-3" />
+                                    ปิด
+                                </Button>
+                            </DialogClose>
                         </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <div className="flex items-center gap-2 text-primary">
-                                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                                    </svg>
-                                    <CardTitle className="text-lg">รายละเอียดงาน</CardTitle>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
-                                    <p>{job.description || "รวมตรวจอัตราการผลิตการยอมรับงานทั่วไปในด้านต่างๆ และยังได้วิเคราะห์ส่วนเสริม"}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {isAcknowledged ? (
-                            <>
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-center gap-2 text-primary">
-                                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            <CardTitle className="text-lg">ทีมงานและการมอบหมาย</CardTitle>
-                                        </div>
-                                        <CardDescription>กำหนดหัวหน้างานและเลือกทีมช่างที่พร้อมทำงาน</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid gap-4 md:grid-cols-2">
-                                            <div>
-                                                <p className="text-xs uppercase text-muted-foreground mb-1">หัวหน้างาน</p>
-                                                <p className="text-base font-semibold">{user.fname}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs uppercase text-muted-foreground mb-1">สถานะหัวหน้างาน</p>
-                                                <p className="text-base font-semibold">รับทราบแล้ว</p>
-                                            </div>
-                                        </div>
-                                        <Separator />
-                                        <div className="space-y-3">
-                                            <p className="text-sm font-semibold">เลือกทีมช่าง</p>
-                                            <TechSelectMultiDept
-                                                jobStartDate={job.startDate}
-                                                jobEndDate={job.endDate}
-                                                selectedTechIds={draftTechs}
-                                                onTechsChange={setDraftTechs}
-                                            />
-                                            <Button size="sm" className="w-full md:w-auto" onClick={handleSaveTeam}>
-                                                บันทึกทีมช่าง
-                                            </Button>
-                                        </div>
-                                        <Separator />
-                                        <TaskManagement job={job} />
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2 text-primary">
-                                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                                </svg>
-                                                <CardTitle className="text-lg">ผู้ที่ได้รับมอบหมาย({draftTechs.length} คน)</CardTitle>
-                                            </div>
-                                            <Badge variant="outline">{draftTechs.length} คน / {job.tasks.length} งาน</Badge>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {draftTechs.length > 0 ? (
-                                            <div className="space-y-2">
-                                                {draftTechs.map(techId => {
-                                                    const tech = ALL_USERS.find(u => String(u.id) === techId);
-                                                    if (!tech) return null;
-                                                    return (
-                                                        <div key={techId} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={tech.avatarUrl || "/placeholder.svg"} />
-                                                                <AvatarFallback>{tech.fname[0]}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-1">
-                                                                <p className="font-medium text-sm">{tech.fname} {tech.lname}</p>
-                                                                <p className="text-xs text-muted-foreground">{tech.position}</p>
-                                                            </div>
-                                                            <Badge variant="secondary" className="text-xs">
-                                                                {tech.department}
-                                                            </Badge>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                                <svg className="h-16 w-16 text-muted-foreground/40 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <p className="text-sm font-medium text-muted-foreground">ยังไม่มีการมอบหมายงาน</p>
-                                                <p className="text-xs text-muted-foreground mt-1">กรุณาเลือกทีมช่างจากด้านบน</p>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </>
-                        ) : (
-                            <Card>
-                                <CardContent className="py-12">
-                                    <div className="flex flex-col items-center justify-center text-center space-y-3">
-                                        <div className="rounded-full bg-amber-100 p-3">
-                                            <svg className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-lg">กรุณายืนยันรับทราบงานก่อน</p>
-                                            <p className="text-sm text-muted-foreground mt-1">คุณจะสามารถจัดการทีมและมอบหมายงานได้หลังจากยืนยัน</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-                    </div>
-                </ScrollArea>
-                
-                <DialogFooter className="border-t bg-background p-4">
-                    <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
-                    {user.role === 'admin' && (
-                        <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-                            ลบงาน
-                        </Button>
-                    )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-        
-        <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={(next) => {
-                setIsDeleteDialogOpen(next);
-                if (!next) setDeleteReason("");
-            }}
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>ยืนยันการลบใบงาน</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        การลบใบงานจะเป็นการลบถาวรและแจ้งเตือนไปยังหัวหน้าและช่างที่เกี่ยวข้อง
-                        กรุณาระบุเหตุผลสั้น ๆ
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="py-2">
-                    <Textarea value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} rows={4} placeholder="เหตุผลการลบ เช่น งานยกเลิก ลูกค้าขอเลื่อน" />
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={() => {
-                            if (!deleteReason.trim()) {
-                                alert('กรุณาระบุเหตุผลการลบ');
-                                return;
-                            }
+            {/* Delete Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={(next) => { setIsDeleteDialogOpen(next); if (!next) setDeleteReason(""); }}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-base flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                            ยืนยันการลบใบงาน
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs space-y-1">
+                            <p>การลบจะเป็นการลบถาวรและแจ้งเตือนผู้เกี่ยวข้อง</p>
+                            <p className="font-medium">กรุณาระบุเหตุผล:</p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Textarea value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} rows={3} placeholder="เหตุผลการลบ" className="text-xs resize-none" />
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="h-8 text-xs">ยกเลิก</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90 h-8 text-xs" onClick={() => {
+                            if (!deleteReason.trim()) { alert('กรุณาระบุเหตุผลการลบ'); return; }
                             deleteJob(job.id, deleteReason.trim(), user.fname);
                             setIsDeleteDialogOpen(false);
                             setDeleteReason("");
                             onOpenChange(false);
-                        }}
-                    >
-                        ยืนยันลบ
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-        <AlertDialog
-            open={isReasonDialogOpen}
-            onOpenChange={(nextOpen) => {
-                setIsReasonDialogOpen(nextOpen);
-                if (!nextOpen) {
-                    setPendingTeamChanges(null);
-                    setTeamChangeReason("");
-                }
-            }}
-        >
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>ระบุเหตุผลในการปรับทีมช่าง</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        กรุณาแจ้งเหตุผลสำหรับการเพิ่ม/ลบช่างออกจากงานนี้ ข้อมูลนี้จะถูกส่งเป็นการแจ้งเตือนไปยังช่างที่เกี่ยวข้อง
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="space-y-3 py-2">
-                    <Textarea
-                        value={teamChangeReason}
-                        onChange={(event) => setTeamChangeReason(event.target.value)}
-                        placeholder="ระบุรายละเอียด เช่น ปรับตามความเหมาะสม หรือมีการเปลี่ยนแปลงตารางงาน"
-                        rows={4}
-                    />
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmTeamChanges}>
-                        ยืนยันและแจ้งเตือน
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                        }}>ยืนยันลบ</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Team Change Dialog */}
+            <AlertDialog open={isReasonDialogOpen} onOpenChange={(nextOpen) => { setIsReasonDialogOpen(nextOpen); if (!nextOpen) { setPendingTeamChanges(null); setTeamChangeReason(""); } }}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-base flex items-center gap-2">
+                            <Users className="h-4 w-4 text-primary" />
+                            ระบุเหตุผลในการปรับทีม
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs space-y-1">
+                            <p>กรุณาแจ้งเหตุผลสำหรับการเพิ่ม/ลบช่าง</p>
+                            <p className="text-[10px]">ข้อมูลจะถูกส่งเป็นการแจ้งเตือนไปยังช่างที่เกี่ยวข้อง</p>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Textarea value={teamChangeReason} onChange={(e) => setTeamChangeReason(e.target.value)} placeholder="ระบุรายละเอียด เช่น ปรับตามความเหมาะสม" rows={3} className="text-xs resize-none" />
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="h-8 text-xs">ยกเลิก</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmTeamChanges} className="h-8 text-xs">ยืนยัน</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
