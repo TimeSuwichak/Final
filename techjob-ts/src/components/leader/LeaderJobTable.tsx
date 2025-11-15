@@ -1,7 +1,7 @@
 // src/components/leader/LeaderJobTable.tsx
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import { format } from 'date-fns';
 import {
@@ -15,6 +15,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import type { Job } from '@/types/index';
 
 interface LeaderJobTableProps {
@@ -35,47 +43,91 @@ const getStatusBadge = (status: 'new' | 'in-progress' | 'done') => {
   }
 };
 
+const ITEMS_PER_PAGE = 10;
+
 export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentJobs = jobs.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
-    <div className="rounded-md border bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>รหัสใบงาน</TableHead>
-            <TableHead>ชื่องาน</TableHead>
-            <TableHead>วันที่</TableHead>
-            <TableHead>สถานะ</TableHead>
-            <TableHead className="w-[56px] text-center">ดู</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {jobs.length > 0 ? (
-            jobs.map((job) => (
-              <TableRow key={job.id}>
-                <TableCell className="font-medium">{job.id}</TableCell>
-                <TableCell>{job.title}</TableCell>
-                <TableCell>
-                  {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
-                </TableCell>
-                <TableCell>{getStatusBadge(job.status)}</TableCell>
-                <TableCell className="text-center">
-                  <div className="flex items-center justify-center">
-                    <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
+    <div className="space-y-4">
+      <div className="rounded-md border bg-white dark:bg-card overflow-hidden min-h-[433px]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>รหัสใบงาน</TableHead>
+              <TableHead>ชื่องาน</TableHead>
+              <TableHead>วันที่</TableHead>
+              <TableHead>สถานะ</TableHead>
+              <TableHead className="w-[56px] text-center">ดู</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {currentJobs.length > 0 ? (
+              currentJobs.map((job, index) => (
+                <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
+                  <TableCell className="font-medium">{job.id}</TableCell>
+                  <TableCell>{job.title}</TableCell>
+                  <TableCell>
+                    {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(job.status)}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center">
+                      <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow className="border-b border-gray-200">
+                <TableCell colSpan={5} className="h-24 text-center">
+                  ไม่พบใบงาน
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={5} className="h-24 text-center">
-                ไม่พบใบงาน
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
