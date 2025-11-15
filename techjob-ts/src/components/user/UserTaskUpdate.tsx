@@ -199,7 +199,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
             {task.updates && task.updates.length > 0 ? (
               isExpanded ? (
-                <ScrollArea className="max-h-64">
+                <ScrollArea>
                   <div className="space-y-2 pr-2">
                     {task.updates.map((update, idx) => (
                       <div key={idx} className="flex gap-2">
