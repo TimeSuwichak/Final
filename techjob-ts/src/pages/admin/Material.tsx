@@ -1,33 +1,108 @@
 "use client"
-import React, { useState } from "react"
-import { Package, Layers, AlertTriangle, Box, PlusCircle } from "lucide-react"
+import React, { useState, useMemo } from "react"
+import { Package, Layers, AlertTriangle, Box, PlusCircle, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { electricalMaterials } from "@/data/materials/electrical"
+import { networkMaterials } from "@/data/materials/network"
+import { toolMaterials } from "@/data/materials/tools"
+import { multimediaMaterials } from "@/data/materials/multimedia"
+import { consumableMaterials } from "@/data/materials/consumables"
+import type { Material } from "@/types"
 
 export default function MaterialDashboard() {
   const [openAdd, setOpenAdd] = useState(false)
   const [newMat, setNewMat] = useState({ name: "", type: "", stock: 0, unit: "" })
+  const [searchTerm, setSearchTerm] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
+  const [usageTypeFilter, setUsageTypeFilter] = useState("")
 
-  const summary = [
-    { title: "รายการทั้งหมด", value: 13, icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" /> },
-    { title: "สต็อกรวม", value: 1060, icon: <Package className="w-6 h-6 text-green-500 dark:text-green-400" /> },
-    { title: "หมวดหมู่", value: 7, icon: <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" /> },
-    { title: "ใกล้หมด", value: 2, icon: <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" /> },
-  ]
+  // รวมข้อมูลวัสดุจากทุกหมวดหมู่
+  const allMaterials = useMemo(() => [
+    ...electricalMaterials,
+    ...networkMaterials,
+    ...toolMaterials,
+    ...multimediaMaterials,
+    ...consumableMaterials,
+  ], [])
 
-  const categories = [
-    { name: "ไฟฟ้า", percent: 24.5, color: "#4F46E5" },
-    { name: "ประปา", percent: 15.1, color: "#22C55E" },
-    { name: "เครื่องมือ", percent: 3.8, color: "#9333EA" },
-    { name: "สี/เคมีภัณฑ์", percent: 2.8, color: "#F59E0B" },
-    { name: "โครงสร้าง", percent: 0.9, color: "#EF4444" },
-    { name: "เครื่องปรับอากาศ", percent: 5.7, color: "#06B6D4" },
-    { name: "ทั่วไป", percent: 47.2, color: "#9CA3AF" },
-  ]
+  // คำนวณข้อมูลสรุปแบบไดนามิก
+  const summary = useMemo(() => {
+    const totalItems = allMaterials.length
+    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0)
+    const categories = [...new Set(allMaterials.map(mat => mat.category))].length
+    const lowStock = allMaterials.filter(mat => mat.stock < 10).length
+
+    return [
+      { title: "รายการทั้งหมด", value: totalItems, icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" /> },
+      { title: "สต็อกรวม", value: totalStock, icon: <Package className="w-6 h-6 text-green-500 dark:text-green-400" /> },
+      { title: "หมวดหมู่", value: categories, icon: <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" /> },
+      { title: "ใกล้หมด", value: lowStock, icon: <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" /> },
+    ]
+  }, [allMaterials])
+
+  // คำนวณสัดส่วนหมวดหมู่แบบไดนามิก
+  const categories = useMemo(() => {
+    const categoryGroups = allMaterials.reduce((acc, mat) => {
+      if (!acc[mat.category]) {
+        acc[mat.category] = { total: 0, count: 0 }
+      }
+      acc[mat.category].total += mat.stock
+      acc[mat.category].count += 1
+      return acc
+    }, {} as Record<string, { total: number; count: number }>)
+
+    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0)
+
+    return Object.entries(categoryGroups).map(([name, data]) => ({
+      name,
+      percent: totalStock > 0 ? Math.round((data.total / totalStock) * 100 * 10) / 10 : 0,
+      color: getCategoryColor(name),
+    }))
+  }, [allMaterials])
+
+  // ฟิลเตอร์วัสดุตามการค้นหาและกรอง
+  const filteredMaterials = useMemo(() => {
+    let filtered = allMaterials
+
+    // กรองตามหมวดหมู่
+    if (categoryFilter && categoryFilter !== "all") {
+      filtered = filtered.filter(mat => mat.category === categoryFilter)
+    }
+
+    // กรองตามประเภท
+    if (usageTypeFilter && usageTypeFilter !== "all") {
+      filtered = filtered.filter(mat => mat.usageType === usageTypeFilter)
+    }
+
+    // กรองตามการค้นหา
+    if (searchTerm) {
+      filtered = filtered.filter(mat =>
+        mat.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        mat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        mat.category.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    return filtered
+  }, [allMaterials, searchTerm, categoryFilter, usageTypeFilter])
+
+  function getCategoryColor(category: string): string {
+    const colors: Record<string, string> = {
+      "อุปกรณ์ไฟฟ้าและเดินสาย": "#4F46E5",
+      "อุปกรณ์เครือข่ายและความปลอดภัย": "#22C55E",
+      "เครื่องมือช่าง": "#9333EA",
+      "อุปกรณ์ระบบอาคารและมัลติมีเดีย": "#F59E0B",
+      "วัสดุติดตั้งและสิ้นเปลือง": "#EF4444",
+    }
+    return colors[category] || "#9CA3AF"
+  }
 
   const addMaterial = () => {
     setOpenAdd(false)
@@ -62,14 +137,84 @@ export default function MaterialDashboard() {
         <div className="md:col-span-2">
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <Input
-                  placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
-                  className="max-w-sm bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                />
+              <div className="flex flex-col gap-3 mb-3">
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="flex-1 bg-muted border-none focus-visible:ring-blue-500">
+                      <SelectValue placeholder="กรองตามหมวดหมู่" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทั้งหมด</SelectItem>
+                      {categories.map((c, i) => (
+                        <SelectItem key={i} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={usageTypeFilter} onValueChange={setUsageTypeFilter}>
+                    <SelectTrigger className="flex-1 bg-muted border-none focus-visible:ring-blue-500">
+                      <SelectValue placeholder="กรองตามประเภท" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">ทั้งหมด</SelectItem>
+                      <SelectItem value="consumable">ไม่ต้องคืน</SelectItem>
+                      <SelectItem value="reusable">คืนได้</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="text-center text-muted-foreground py-12 border rounded-lg bg-muted">
-                (ตารางแสดงรายการวัสดุจะอยู่ตรงนี้)
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20">ID</TableHead>
+                      <TableHead>ชื่อวัสดุ</TableHead>
+                      <TableHead>หมวดหมู่</TableHead>
+                      <TableHead className="w-24">คงเหลือ</TableHead>
+                      <TableHead className="w-20">หน่วย</TableHead>
+                      <TableHead className="w-24">ประเภท</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMaterials.map((material) => (
+                      <TableRow key={material.id}>
+                        <TableCell className="font-mono text-sm">{material.id}</TableCell>
+                        <TableCell className="font-medium">{material.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-xs">
+                            {material.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={`font-semibold ${material.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                          {material.stock}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{material.unit}</TableCell>
+                        <TableCell>
+                          <Badge variant={material.usageType === 'consumable' ? 'default' : 'outline'} className="text-xs">
+                            {material.usageType === 'consumable' ? 'ไม่ต้องคืน' : 'คืนได้'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {filteredMaterials.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    ไม่พบวัสดุที่ค้นหา
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

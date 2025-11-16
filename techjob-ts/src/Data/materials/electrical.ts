@@ -1,0 +1,52 @@
+import type { Material } from "@/types";
+
+export const electricalMaterials: Material[] = [
+  {
+    id: "ELEC-001",
+    name: "สายไฟ VAF 2x2.5",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "consumable",
+    unit: "เมตร",
+    stock: 800,
+  },
+  {
+    id: "ELEC-002",
+    name: "ท่อร้อยสายไฟ PVC (ขนาด 1/2 นิ้ว)",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "consumable",
+    unit: "เส้น",
+    stock: 300,
+  },
+  {
+    id: "ELEC-003",
+    name: "รางเก็บสายไฟ (Wireway) #4",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "consumable",
+    unit: "เส้น",
+    stock: 250,
+  },
+  {
+    id: "ELEC-004",
+    name: "เทปพันสายไฟ (สีดำ)",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "consumable",
+    unit: "ม้วน",
+    stock: 150,
+  },
+  {
+    id: "ELEC-005",
+    name: "เบรกเกอร์ (Circuit Breaker) 2P 32A",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "returnable",
+    unit: "ตัว",
+    stock: 75,
+  },
+  {
+    id: "ELEC-006",
+    name: "ปลั๊กไฟ/เต้ารับ",
+    category: "อุปกรณ์ไฟฟ้าและเดินสาย",
+    usageType: "consumable",
+    unit: "ตัว",
+    stock: 200,
+  },
+];

@@ -83,3 +83,14 @@ export interface Job {
   editHistory: EditHistory[]; // ประวัติการแก้ไขโดย Admin เท่านั้น
   activityLog: ActivityLog[]; // ความคืบหน้างานโดย Leader/Tech
 }
+
+export type MaterialUsageType = 'consumable' | 'returnable';
+
+export interface Material {
+  id: string;
+  name: string;
+  category: string;
+  usageType: MaterialUsageType;
+  unit: string;
+  stock: number;
+}
