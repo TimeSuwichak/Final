@@ -191,15 +191,15 @@ export default function MaterialDashboard() {
                 </div>
               </div>
               <div className="border rounded-lg overflow-hidden flex-grow">
-                <Table>
-                  <TableHeader>
+                <Table className="table-fixed">
+                  <TableHeader className="sticky top-0 bg-card z-10">
                     <TableRow>
                       <TableHead className="w-20">ID</TableHead>
                       <TableHead>ชื่อวัสดุ</TableHead>
                       <TableHead>หมวดหมู่</TableHead>
                       <TableHead className="w-24">คงเหลือ</TableHead>
-                      <TableHead className="w-20">หน่วย</TableHead>
-                      <TableHead className="w-24">ประเภท</TableHead>
+                      <TableHead className="w-28">หน่วย</TableHead>
+                      <TableHead className="w-32">ประเภท</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -280,15 +280,29 @@ export default function MaterialDashboard() {
           </Card>
 
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
-            <CardContent className="p-4">
+            <CardContent className="">
               <h3 className="font-semibold text-foreground mb-2">ภาพรวมสัดส่วนสต็อก</h3>
               <p className="text-sm text-muted-foreground mb-3">{categories.length} หมวดหมู่</p>
-              <div className="w-full h-4 bg-muted rounded-full overflow-hidden mb-4">
-                <div className="flex h-full">
-                  {categories.map((c, i) => (
-                    <div key={i} style={{ width: `${c.percent}%`, backgroundColor: c.color }}></div>
-                  ))}
-                </div>
+              <div className="w-full h-64 mb-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categories.map(c => ({ name: c.name, value: c.percent }))}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                      label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                      labelLine={false}
+                    >
+                      {categories.map((c, i) => (
+                        <Cell key={`cell-${i}`} fill={c.color} stroke={c.color} strokeWidth={2} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
               <ul className="space-y-1 text-sm">
                 {categories.map((c, i) => (
