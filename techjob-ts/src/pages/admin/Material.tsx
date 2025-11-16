@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { electricalMaterials } from "@/data/materials/electrical"
 import { networkMaterials } from "@/data/materials/network"
 import { toolMaterials } from "@/data/materials/tools"
@@ -22,6 +24,8 @@ export default function MaterialDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [usageTypeFilter, setUsageTypeFilter] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   // รวมข้อมูลวัสดุจากทุกหมวดหมู่
   const allMaterials = useMemo(() => [
@@ -93,6 +97,17 @@ export default function MaterialDashboard() {
     return filtered
   }, [allMaterials, searchTerm, categoryFilter, usageTypeFilter])
 
+  // คำนวณข้อมูลสำหรับ pagination
+  const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentMaterials = filteredMaterials.slice(startIndex, endIndex)
+
+  // รีเซ็ตหน้าเมื่อมีการเปลี่ยนการกรองหรือค้นหา
+  useMemo(() => {
+    setCurrentPage(1)
+  }, [searchTerm, categoryFilter, usageTypeFilter])
+
   function getCategoryColor(category: string): string {
     const colors: Record<string, string> = {
       "อุปกรณ์ไฟฟ้าและเดินสาย": "#4F46E5",
@@ -136,7 +151,7 @@ export default function MaterialDashboard() {
         {/* Left Section (Table Placeholder) */}
         <div className="md:col-span-2">
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
-            <CardContent className="p-4">
+            <CardContent className="p-4 h-[600px] flex flex-col">
               <div className="flex flex-col gap-3 mb-3">
                 <div className="flex gap-3">
                   <div className="relative flex-1">
@@ -170,12 +185,12 @@ export default function MaterialDashboard() {
                     <SelectContent>
                       <SelectItem value="all">ทั้งหมด</SelectItem>
                       <SelectItem value="consumable">ไม่ต้องคืน</SelectItem>
-                      <SelectItem value="reusable">คืนได้</SelectItem>
+                      <SelectItem value="returnable">คืนได้</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-hidden flex-grow">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -188,7 +203,7 @@ export default function MaterialDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredMaterials.map((material) => (
+                    {currentMaterials.map((material) => (
                       <TableRow key={material.id}>
                         <TableCell className="font-mono text-sm">{material.id}</TableCell>
                         <TableCell className="font-medium">{material.name}</TableCell>
@@ -216,6 +231,37 @@ export default function MaterialDashboard() {
                   </div>
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center ">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
