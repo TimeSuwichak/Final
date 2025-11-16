@@ -5,6 +5,7 @@ import React, { useState, useRef } from 'react';
 import { type Job, type Task } from '@/types/index';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ interface UserTaskUpdateProps {
 export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   const { updateJobWithActivity } = useJobs();
   const { user } = useAuth();
+  const { addNotification } = useNotifications();
 
   const [message, setMessage] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -142,6 +144,24 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
       'tech',
       { taskId: task.id, taskTitle: task.title }
     );
+
+    // Send notification to leader when tech updates task
+    if (job.leadId) {
+      addNotification({
+        title: "ช่างอัปเดตงาน",
+        message: `${user.fname} มีการอัปเดตในงาน "${job.title}" - "${task.title}"`,
+        recipientRole: "leader",
+        recipientId: String(job.leadId),
+        relatedJobId: job.id,
+        metadata: {
+          type: "task_update_from_tech",
+          taskId: task.id,
+          taskTitle: task.title,
+          jobTitle: job.title,
+          techName: user.fname
+        }
+      });
+    }
 
     setMessage("");
     setImagePreview(null);

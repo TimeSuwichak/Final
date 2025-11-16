@@ -43,7 +43,10 @@ export function NotificationBell() {
   );
 
   const unreadCount = getUnreadCount(role, recipientId);
-  const recentNotifications = notifications.slice(0, 5);
+  // แสดงเฉพาะการแจ้งเตือนที่ยังไม่ได้อ่าน สูงสุด 4 รายการ
+  const recentNotifications = notifications
+    .filter(notification => !notification.read)
+    .slice(0, 4);
 
   const handleViewAll = () => {
     navigate("/notification");
@@ -81,7 +84,7 @@ export function NotificationBell() {
             ไม่มีการแจ้งเตือนใหม่
           </div>
         ) : (
-          <ScrollArea className="max-h-80">
+          <ScrollArea className="">
             <ul className="divide-y divide-muted/40">
               {recentNotifications.map((notification) => (
                 <li

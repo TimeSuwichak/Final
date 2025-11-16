@@ -5,6 +5,7 @@ import React, { useState, useRef } from 'react';
 import { type Job, type Task } from '@/types/index';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import {
@@ -53,6 +64,7 @@ interface TaskManagementProps {
 export function TaskManagement({ job }: TaskManagementProps) {
   const { updateJobWithActivity } = useJobs();
   const { user } = useAuth();
+  const { addNotification } = useNotifications();
 
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -62,6 +74,11 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [isExpanded, setIsExpanded] = useState(false);
+  const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    taskId: string;
+    newStatus: 'pending' | 'in-progress' | 'completed';
+  } | null>(null);
 
   if (!user) return null;
 
@@ -144,6 +161,63 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
     setTaskDialogOpen(true);
+  };
+
+  const handleToggleTaskStatus = (taskId: string, currentStatus: string) => {
+    let newStatus: 'pending' | 'in-progress' | 'completed';
+    if (currentStatus === 'pending') {
+      newStatus = 'in-progress';
+    } else if (currentStatus === 'in-progress') {
+      newStatus = 'completed';
+    } else {
+      newStatus = 'in-progress';
+    }
+
+    // Show confirmation dialog for status changes
+    setPendingStatusChange({ taskId, newStatus });
+    setStatusChangeDialogOpen(true);
+  };
+
+  const confirmStatusChange = () => {
+    if (!pendingStatusChange) return;
+
+    const { taskId, newStatus } = pendingStatusChange;
+    const task = job.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const updatedTask: Task = {
+      ...task,
+      status: newStatus,
+    };
+
+    const updatedTasks = job.tasks.map(t =>
+      t.id === taskId ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      'task_updated',
+      `เปลี่ยนสถานะ Task "${task.title}" เป็น ${newStatus === 'completed' ? 'เสร็จสิ้น' : newStatus === 'in-progress' ? 'กำลังทำ' : 'รอดำเนินการ'}`,
+      user.fname,
+      'leader',
+      { taskId: task.id, taskTitle: task.title, newStatus }
+    );
+
+    // Send notifications to all assigned techs (users)
+    job.assignedTechs?.forEach(techId => {
+      addNotification({
+        title: "สถานะงานเปลี่ยน",
+        message: `หัวหน้า ${user.fname} เปลี่ยนสถานะงาน "${task.title}" เป็น "${newStatus === 'completed' ? 'เสร็จสิ้น' : newStatus === 'in-progress' ? 'กำลังทำ' : 'รอดำเนินการ'}"`,
+        recipientRole: "user",
+        recipientId: String(techId),
+        relatedJobId: job.id,
+        metadata: { type: "task_status_changed", taskId: task.id, newStatus }
+      });
+    });
+
+    setPendingStatusChange(null);
+    setStatusChangeDialogOpen(false);
   };
 
   return (
@@ -270,8 +344,16 @@ export function TaskManagement({ job }: TaskManagementProps) {
                     </div>
                   </div>
 
-                  <Button variant="ghost" size="sm" className="shrink-0">
-                    <Eye className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleTaskStatus(task.id, task.status);
+                    }}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -448,6 +530,26 @@ export function TaskManagement({ job }: TaskManagementProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog open={statusChangeDialogOpen} onOpenChange={setStatusChangeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการเปลี่ยนสถานะงาน</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณต้องการเปลี่ยนสถานะงาน "{job.tasks.find(t => t.id === pendingStatusChange?.taskId)?.title}" เป็น "
+              {pendingStatusChange?.newStatus === 'completed' ? 'เสร็จสิ้น' :
+               pendingStatusChange?.newStatus === 'in-progress' ? 'กำลังทำ' : 'รอดำเนินการ'}" ใช่หรือไม่?
+              <br />
+              การเปลี่ยนสถานะนี้จะส่งการแจ้งเตือนไปยังทีมช่างทั้งหมด
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>ยืนยัน</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
