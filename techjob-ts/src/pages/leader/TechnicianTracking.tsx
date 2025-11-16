@@ -10,9 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import { user as ALL_USERS } from '@/Data/user';
-import { MapPin, Users, Briefcase, Clock, CheckCircle2, AlertCircle, User, Phone, X, Fingerprint } from 'lucide-react';
+import { MapPin, Users, Briefcase, Clock, CheckCircle2, AlertCircle, User, Phone, X, Fingerprint, ChevronDown, ChevronRight, TrendingUp, Lock, LockOpen } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { TaskDetailsLocked } from '@/components/leader/TaskDetailsLocked';
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -52,6 +53,7 @@ const TechnicianTracking: React.FC = () => {
   const { user } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showMapPopup, setShowMapPopup] = useState(false);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
   if (!user) return null;
 
@@ -75,6 +77,13 @@ const TechnicianTracking: React.FC = () => {
   const handleJobSelect = (jobId: string) => {
     setSelectedJobId(jobId);
     setShowMapPopup(true);
+  };
+
+  const calculateTaskProgress = (task: any) => {
+    if (!task) return 0;
+    if (task.status === 'completed') return 100;
+    if (task.status === 'in-progress') return 50;
+    return 0;
   };
 
   const selectedJob = myJobs.find(job => job.id === selectedJobId);
@@ -229,7 +238,7 @@ const TechnicianTracking: React.FC = () => {
         </Card>
 
         <div className="lg:col-span-3 flex flex-col gap-4 relative">
-          <Card className="flex-1">
+          <Card className="h-200 overflow-hidden">
             <CardContent className="p-0 h-full relative">
               <div className="w-full h-full rounded-lg overflow-hidden">
                 <MapContainer
@@ -318,10 +327,6 @@ const TechnicianTracking: React.FC = () => {
                         <span>•</span>
                         <span>{selectedJob.tasks.length} งานย่อย</span>
                       </div>
-
-                      
-
-                     
                     </CardContent>
                   </Card>
                 </div>
@@ -330,7 +335,7 @@ const TechnicianTracking: React.FC = () => {
           </Card>
 
           {selectedJob && (
-            <Card>
+            <Card className="flex-1 flex flex-col overflow-hidden">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-base">{selectedJob.title}</CardTitle>
@@ -340,7 +345,7 @@ const TechnicianTracking: React.FC = () => {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex-1 overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold flex items-center gap-1.5">
@@ -419,28 +424,10 @@ const TechnicianTracking: React.FC = () => {
                 <div className="space-y-2">
                   <h4 className="text-sm font-semibold flex items-center gap-1.5">
                     <Briefcase className="h-4 w-4 text-primary" />
-                    งานย่อย ({selectedJob.tasks.length})
+                    รายละเอียดงานย่อย ({selectedJob.tasks.length})
                   </h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">รอดำเนินการ</p>
-                      <p className="text-lg font-semibold text-orange-600">
-                        {selectedJob.tasks.filter(t => t.status === 'pending').length}
-                      </p>
-                    </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">กำลังทำ</p>
-                      <p className="text-lg font-semibold text-blue-600">
-                        {selectedJob.tasks.filter(t => t.status === 'in-progress').length}
-                      </p>
-                    </div>
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-                      <p className="text-xs text-muted-foreground">เสร็จสิ้น</p>
-                      <p className="text-lg font-semibold text-green-600">
-                        {selectedJob.tasks.filter(t => t.status === 'completed').length}
-                      </p>
-                    </div>
-                  </div>
+                  
+                  <TaskDetailsLocked tasks={selectedJob.tasks} />
                 </div>
               </CardContent>
             </Card>
@@ -452,6 +439,7 @@ const TechnicianTracking: React.FC = () => {
 };
 
 export default TechnicianTracking;
+
 
 
 
