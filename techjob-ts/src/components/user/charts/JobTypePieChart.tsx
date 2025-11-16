@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // เพิ่ม useEffect
 import { Pie, PieChart, ResponsiveContainer, Cell, Sector } from "recharts";
 import {
   Card,
@@ -18,6 +18,7 @@ function useThemeVars() {
     primary: "hsl(252 80% 60%)",
     muted: "hsl(214 14% 58%)",
     foreground: "hsl(210 10% 23%)",
+    background: "hsl(0 0% 100%)", // เพิ่ม background เข้ามา
   });
 
   React.useEffect(() => {
@@ -29,6 +30,7 @@ function useThemeVars() {
       primary: (s.getPropertyValue("--primary") || prev.primary).trim(),
       muted: (s.getPropertyValue("--muted-foreground") || prev.muted).trim(),
       foreground: (s.getPropertyValue("--foreground") || prev.foreground).trim(),
+      background: (s.getPropertyValue("--background") || prev.background).trim(), // ดึง background มาด้วย
     }));
   }, []);
 
@@ -38,7 +40,24 @@ function useThemeVars() {
 // สีสำหรับแต่ละประเภทงาน
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
 
-// (renderActiveShape component - [!!] ปรับขนาด Font ที่นี่)
+// Helper function เพื่อตรวจสอบว่าเป็น Dark Mode
+const isColorDark = (color: string) => {
+  // ตัวอย่างการตรวจสอบ: ถ้าค่า HSL ของ background มี L (Lightness) ต่ำ แสดงว่าเป็น Dark Mode
+  // หรือถ้าสีมีค่า RGB ที่รวมกันแล้วน้อยกว่าค่าที่กำหนด
+  // ใน shadcn/ui dark mode มักจะมี --background เป็นสีเข้ม
+  // เราจะดูที่ --background เป็นหลักเพื่อความแม่นยำ
+  if (color.startsWith("hsl")) {
+    const lightnessMatch = color.match(/hsl\(\d+\s\d+%\s(\d+)%\)/);
+    if (lightnessMatch && parseInt(lightnessMatch[1]) < 50) {
+      return true; // Lightness ต่ำกว่า 50% ถือว่ามืด
+    }
+  }
+  // คุณสามารถเพิ่มเงื่อนไขการตรวจสอบสีอื่นๆ ได้ตามต้องการ
+  // เช่น ถ้าสีเป็น #000000 หรือมีค่าใกล้เคียง
+  return false;
+};
+
+// (renderActiveShape component)
 const renderActiveShape = (props: any) => {
   const {
     cx,
@@ -53,6 +72,10 @@ const renderActiveShape = (props: any) => {
   } = props;
   const theme = useThemeVars(); // ดึง theme มาใช้
 
+  // ใช้ isColorDark จากสีพื้นหลังของ Card หรือ Background โดยรวม
+  const isDarkMode = isColorDark(theme.background); // ตรวจสอบจาก background โดยตรง
+  const textColor = isDarkMode ? "hsl(0 0% 90%)" : theme.foreground; // ถ้าเป็น Dark Mode ให้ใช้สีขาว
+
   return (
     <g>
       {/* [!!] 1. ปรับขนาด Font ข้อความตรงกลาง (ชื่อ) */}
@@ -61,7 +84,7 @@ const renderActiveShape = (props: any) => {
         y={cy - 10}
         dy={8}
         textAnchor="middle"
-        fill={theme.foreground}
+        fill={textColor} // ใช้ textColor ที่ปรับแล้ว
         // [!!] ปรับให้ใหญ่และหนาขึ้น
         style={{ fontSize: "2rem", fontWeight: 700 }} // e.g., 32px
       >
@@ -73,7 +96,7 @@ const renderActiveShape = (props: any) => {
         y={cy + 10}
         dy={12} // เพิ่มระยะห่างจากชื่อ
         textAnchor="middle"
-        fill={theme.muted}
+        fill={theme.muted} // muted-foreground มักจะปรับตาม theme อยู่แล้ว
         // [!!] ปรับให้ใหญ่ขึ้น
         style={{ fontSize: "1.1rem" }} // e.g., ~18px
       >
@@ -101,7 +124,7 @@ export function JobTypePieChart({
 }: {
   data: { name: string; value: number }[];
 }) {
-  const theme = useThemeVars(); // [!!] ดึง theme มาใช้ตรงนี้
+  const theme = useThemeVars();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const AnyPie: any = Pie;
@@ -109,6 +132,10 @@ export function JobTypePieChart({
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
   };
+
+  // ใช้ isColorDark จากสีพื้นหลังของ Card หรือ Background โดยรวม
+  const isDarkMode = isColorDark(theme.background); // ตรวจสอบจาก background โดยตรง
+  const legendTextColor = isDarkMode ? "hsl(0 0% 90%)" : theme.foreground; // ถ้าเป็น Dark Mode ให้ใช้สีขาว
 
   if (!data || data.length === 0) {
     // (ส่วนแสดง "ไม่มีข้อมูล" - [!!] ปรับขนาด Font ที่นี่)
@@ -182,12 +209,12 @@ export function JobTypePieChart({
             <div key={`legend-${index}`} className="flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                style={{ backgroundColor: COLORS[index % COLORS.length]} }
               />
               {/* [!!] 5. ปรับขนาด Font ของ Legend */}
               <span
                 className="text-base" // เปลี่ยนจาก text-sm
-                style={{ color: theme.foreground }}
+                style={{ color: legendTextColor }} // ใช้ legendTextColor ที่ปรับแล้ว
               >
                 {entry.name}
               </span>
