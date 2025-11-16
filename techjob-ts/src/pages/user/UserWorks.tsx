@@ -1,4 +1,4 @@
-// src/pages/user/UserDashboard.tsx (หรือไฟล์หน้าหลักของช่าง)
+// src/pages/user/UserWorks.tsx
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -19,8 +19,10 @@ import { JobCalendar } from "@/components/leader/JobCalendar";
 import { UserJobTable } from "@/components/user/UserJobTable";
 import { UserJobDetailDialog } from "@/components/user/UserJobDetailDialog";
 import type { Job } from "@/types/index";
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
-export default function UserDashboard() {
+export default function UserWorks() {
   // (หรือชื่อ function ที่คุณใช้)
   const { jobs } = useJobs();
   const { user } = useAuth();
@@ -28,6 +30,8 @@ export default function UserDashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // --- "สมอง" กรองงาน (แก้ไข!) ---
   const myJobs = useMemo(() => {
@@ -42,19 +46,27 @@ export default function UserDashboard() {
     );
   }, [jobs, user]);
 
-  // (กรองวันที่ ... เหมือนเดิม)
   const filteredJobs = useMemo(() => {
-    if (!selectedDate) return myJobs;
-    const start = startOfDay(selectedDate);
-    const end = endOfDay(selectedDate);
-    return myJobs.filter(
-      (job) =>
-        isWithinInterval(start, { start: job.startDate, end: job.endDate }) ||
-        isWithinInterval(end, { start: job.startDate, end: job.endDate }) ||
-        isWithinInterval(job.startDate, { start, end }) ||
-        isWithinInterval(job.endDate, { start, end })
-    );
-  }, [myJobs, selectedDate]);
+    return myJobs.filter((job) => {
+      // status filter
+      if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+
+      // date filter (if selectedDate is set)
+      if (selectedDate) {
+        const start = startOfDay(selectedDate);
+        const end = endOfDay(selectedDate);
+        if (!isWithinInterval(selectedDate, { start: job.startDate, end: job.endDate })) return false;
+      }
+
+      // text search
+      const term = (searchTerm || "").trim().toLowerCase();
+      if (term) {
+        if (!job.id.toLowerCase().includes(term) && !(job.title || "").toLowerCase().includes(term)) return false;
+      }
+
+      return true;
+    });
+  }, [myJobs, searchTerm, statusFilter, selectedDate]);
 
   // (สมองหา "ใบงานสด" ... เหมือน Leader)
   const liveSelectedJob = useMemo(() => {
@@ -114,6 +126,31 @@ export default function UserDashboard() {
                 : "คลิกวันที่ในปฏิทินเพื่อกรอง"}
             </p>
           </div>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Input
+                placeholder="ค้นหาโดยรหัสหรือหัวข้อ"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                className="w-full sm:w-72 bg-white border"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">สถานะ:</label>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'new' | 'in-progress' | 'done')}>
+                <SelectTrigger className="w-40 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value="new">งานใหม่</SelectItem>
+                  <SelectItem value="in-progress">กำลังทำ</SelectItem>
+                  <SelectItem value="done">เสร็จสิ้น</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <UserJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
         </div>
       </div>

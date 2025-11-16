@@ -41,7 +41,9 @@ import {
   Clock,
   AlertCircle,
   User,
-  Maximize2
+  Maximize2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface TaskManagementProps {
@@ -59,6 +61,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!user) return null;
 
@@ -177,61 +180,94 @@ export function TaskManagement({ job }: TaskManagementProps) {
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
                     )}
 
-                    {/* All Updates Preview */}
-                    {task.updates && task.updates.length > 0 ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <MessageSquare className="h-3 w-3" />
-                          <span>{task.updates.length} การอัปเดต</span>
+                    {/* Updates Timeline */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                          <h4 className="text-xs font-semibold">ความคืบหน้า ({task.updates?.length || 0})</h4>
                         </div>
-                        <div className="space-y-2">
-                          {task.updates.slice(-2).map((update, idx) => (
-                            <div key={idx} className="bg-muted/50 rounded-lg p-2">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Avatar className="h-5 w-5">
-                                  <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
-                                    {update.updatedBy[0]}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs font-medium">{update.updatedBy}</span>
-                                <span className="text-[10px] text-muted-foreground">
-                                  {format(update.updatedAt, 'dd/MM HH:mm', { locale: th })}
-                                </span>
-                              </div>
-                              <p className="text-xs line-clamp-1">{update.message}</p>
-                              {update.imageUrl && (
-                                <div className="mt-1">
-                                  <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted shrink-0 group">
-                                    <img
-                                      src={update.imageUrl}
-                                      alt="Preview"
-                                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleImageClick(update.imageUrl!);
-                                      }}
-                                    />
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                      <Maximize2 className="h-3 w-3 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                        {task.updates && task.updates.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsExpanded(!isExpanded);
+                            }}
+                            className="h-6 px-2 text-xs gap-1"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="h-3 w-3" />
+                                ซ่อน
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown className="h-3 w-3" />
+                                แสดง
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+
+                      {task.updates && task.updates.length > 0 ? (
+                        isExpanded ? (
+                          <ScrollArea>
+                            <div className="space-y-2 pr-2">
+                              {task.updates.map((update, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                  <Avatar className="h-7 w-7 shrink-0">
+                                    <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
+                                      {update.updatedBy[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                      <span className="font-medium text-xs">{update.updatedBy}</span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        {format(update.updatedAt, 'dd/MM HH:mm', { locale: th })}
+                                      </span>
+                                    </div>
+                                    <div className="bg-muted/50 rounded-lg p-2 space-y-2">
+                                      <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
+                                      {update.imageUrl && (
+                                        <div className="relative group">
+                                          <img
+                                            src={update.imageUrl}
+                                            alt={`จาก ${update.updatedBy}`}
+                                            className="w-full h-auto max-h-48 rounded-md border object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleImageClick(update.imageUrl!);
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md flex items-center justify-center">
+                                            <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
-                              )}
+                              ))}
                             </div>
-                          ))}
-                          {task.updates.length > 2 && (
-                            <div className="text-center text-xs text-muted-foreground">
-                              และอีก {task.updates.length - 2} การอัปเดต ก่อนหน้า
-                            </div>
-                          )}
+                          </ScrollArea>
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground">
+                            <MessageSquare className="h-5 w-5 mx-auto mb-1 opacity-40" />
+                            <p className="text-xs">คลิก "แสดง" เพื่อดูความคืบหน้า</p>
+                          </div>
+                        )
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <MessageSquare className="h-6 w-6 mx-auto mb-1.5 opacity-40" />
+                          <p className="text-xs">ยังไม่มีการอัปเดต</p>
+                          <p className="text-[10px] mt-0.5">เริ่มส่งความคืบหน้าได้เลย</p>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>ยังไม่มีการอัปเดต</span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
 
                   <Button variant="ghost" size="sm" className="shrink-0">
