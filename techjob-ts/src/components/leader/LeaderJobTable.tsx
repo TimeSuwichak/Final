@@ -59,17 +59,57 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border bg-white dark:bg-card overflow-hidden min-h-[433px]">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>รหัสใบงาน</TableHead>
-              <TableHead>ชื่องาน</TableHead>
-              <TableHead>วันที่</TableHead>
-              <TableHead>สถานะ</TableHead>
-              <TableHead className="w-[56px] text-center">ดู</TableHead>
-            </TableRow>
-          </TableHeader>
+      {/* Mobile Card View */}
+      <div className="block md:hidden space-y-3">
+        {currentJobs.length > 0 ? (
+          currentJobs.map((job) => (
+            <div key={job.id} className="rounded-md border bg-white dark:bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">รหัสใบงาน</span>
+                <span className="font-semibold">{job.id}</span>
+              </div>
+              <div className="space-y-1">
+                <span className="font-medium text-sm text-muted-foreground">ชื่องาน</span>
+                <p className="font-medium">{job.title}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">วันที่</span>
+                <span className="text-sm">
+                  {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">สถานะ</span>
+                {getStatusBadge(job.status)}
+              </div>
+              <div className="flex justify-end pt-2">
+                <Button variant="ghost" size="sm" onClick={() => onViewJob(job)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  ดูรายละเอียด
+                </Button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="rounded-md border bg-white dark:bg-card p-8 text-center">
+            <p className="text-muted-foreground">ไม่พบใบงาน</p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border bg-white dark:bg-card overflow-hidden min-h-[433px]">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[120px]">รหัสใบงาน</TableHead>
+                <TableHead className="min-w-[200px]">ชื่องาน</TableHead>
+                <TableHead className="min-w-[140px]">วันที่</TableHead>
+                <TableHead className="min-w-[100px]">สถานะ</TableHead>
+                <TableHead className="w-[56px] text-center">ดู</TableHead>
+              </TableRow>
+            </TableHeader>
           <TableBody>
             {currentJobs.length > 0 ? (
               currentJobs.map((job, index) => (
@@ -97,7 +137,8 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
       {totalPages > 1 && (
         <Pagination>
