@@ -44,6 +44,7 @@ import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { leader as ALL_LEADERS } from "@/data/leader";
+import { user as ALL_USERS } from "@/data/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -54,6 +55,8 @@ import {
 } from "@/components/ui/card";
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
+import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
+import { Briefcase, Users, UserCheck } from "lucide-react";
 
 // --- CONSTANTS ---
 const JOB_TYPES = [
@@ -258,6 +261,44 @@ export function EditJobDialog({
                           </div>
                           <Separator />
                           <div>
+                            <p className="text-xs text-muted-foreground mb-1">หัวหน้างาน</p>
+                            {job.leadId ? (
+                              (() => {
+                                const assignedLeader = ALL_LEADERS.find(l => String(l.id) === String(job.leadId));
+                                return assignedLeader ? (
+                                  <p className="font-medium flex items-center gap-1.5">
+                                    <UserCheck className="h-3.5 w-3.5 text-primary" />
+                                    {assignedLeader.fname} {assignedLeader.lname}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">ไม่พบข้อมูล</p>
+                                );
+                              })()
+                            ) : (
+                              <p className="text-xs text-muted-foreground">ยังไม่ได้มอบหมาย</p>
+                            )}
+                          </div>
+                          <Separator />
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">ทีมช่าง</p>
+                            {job.assignedTechs && job.assignedTechs.length > 0 ? (
+                              <div className="space-y-1.5">
+                                {job.assignedTechs.map((techId) => {
+                                  const tech = ALL_USERS.find(u => String(u.id) === String(techId));
+                                  return tech ? (
+                                    <p key={techId} className="font-medium flex items-center gap-1.5 text-xs">
+                                      <Users className="h-3 w-3 text-primary" />
+                                      {tech.fname} {tech.lname}
+                                    </p>
+                                  ) : null;
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">ยังไม่มีช่างที่มอบหมาย</p>
+                            )}
+                          </div>
+                          <Separator />
+                          <div>
                             <p className="text-xs text-muted-foreground mb-1">ผู้สร้าง</p>
                             <p className="font-medium">{job.adminCreator}</p>
                             <p className="text-xs text-muted-foreground">เมื่อ {format(job.createdAt, "dd/MM/yyyy HH:mm", { locale: th })}</p>
@@ -386,30 +427,7 @@ export function EditJobDialog({
                                 ))}
                               </div>
                             )}
-                            {job.tasks.length > 0 && (
-                              <div className="mt-4 space-y-2">
-                                <h5 className="font-semibold text-sm">งานย่อย (Tasks)</h5>
-                                {job.tasks.map((task) => (
-                                  <div key={task.id} className="p-3 border rounded-md">
-                                    <p className="font-semibold text-sm">{task.title}</p>
-                                    <p className="text-xs text-muted-foreground">{task.description}</p>
-                                    {task.updates && task.updates.length > 0 && (
-                                      <div className="mt-2 space-y-1">
-                                        {task.updates.map((update, idx) => (
-                                          <div key={idx} className="p-2 bg-background rounded-md text-xs border">
-                                            <p>
-                                              <strong>{update.updatedBy}</strong> (เมื่อ{" "}
-                                              {format(update.updatedAt, "PPpp", { locale: th })}):
-                                            </p>
-                                            <p>{update.message}</p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                          
                           </TabsContent>
                           <TabsContent value="admin" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
                             {job.editHistory.length === 0 && (
@@ -422,13 +440,30 @@ export function EditJobDialog({
                                 <p><strong>เหตุผล:</strong> {entry.reason}</p>
                               </div>
                             ))}
+
                           </TabsContent>
                         </Tabs>
                       )}
                     </CardContent>
+                 
                   </Card>
+                   {/* รายละเอียดงานย่อย-  */}
+                   {job.tasks && job.tasks.length > 0 && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-2 text-primary">
+                          <Briefcase className="h-5 w-5" />
+                          <CardTitle className="text-lg">รายละเอียดงานย่อย ({job.tasks.length})</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <TaskDetailsLocked tasks={job.tasks} />
+                      </CardContent>
+                    </Card>
+                  )}
+
                 </div>
-              </ScrollArea>
+              </ScrollArea>              
               <DialogFooter className="border-t bg-background">
                 <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
                 <Button onClick={() => onModeChange("edit")}>ไปที่โหมดแก้ไข</Button>
