@@ -41,6 +41,7 @@ import { AdminMap } from "../admin/AdminMap";
 import type { Job } from "@/types/index";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { user as ALL_USERS } from "@/data/user";
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   MapPin,
@@ -57,6 +58,7 @@ import {
   X,
   Building2,
   MessageSquare,
+  Map,
 } from "lucide-react";
 
 interface LeaderJobDetailDialogProps {
@@ -73,6 +75,7 @@ export function LeaderJobDetailDialog({
   const { updateJobWithActivity, deleteJob } = useJobs();
   const { user } = useAuth();
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
 
   const [draftTechs, setDraftTechs] = useState<string[]>([]);
   const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
@@ -185,6 +188,11 @@ export function LeaderJobDetailDialog({
     alert("บันทึกทีมช่างเรียบร้อย!");
   };
 
+    const handleGoToTracking = () => {
+    onOpenChange(false);
+    navigate('/leader/tracking');
+  };
+
   const isAcknowledged = job.status !== "new";
 
   return (
@@ -235,6 +243,18 @@ export function LeaderJobDetailDialog({
                   </span>
                 </div>
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {isAcknowledged && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={handleGoToTracking}
+                  >
+                    <Map className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">ติดตามช่าง</span>
+                  </Button>
+                )}
               {!isAcknowledged && (
                 <Button
                   size="sm"
@@ -245,6 +265,7 @@ export function LeaderJobDetailDialog({
                   <span className="hidden sm:inline">ยืนยันรับทราบ</span>
                 </Button>
               )}
+              </div>
             </div>
           </DialogHeader>
 
