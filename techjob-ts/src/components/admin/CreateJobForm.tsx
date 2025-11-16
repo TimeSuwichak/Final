@@ -43,6 +43,11 @@ const STEPS = [
 export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const { jobs, addJob } = useJobs();
   const { user } = useAuth(); // --- State ของฟอร์มทั้งหมด ---
+  const [currentStep, setCurrentStep] = useState(1);
+  const [description, setDescription] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerContactOther, setCustomerContactOther] = useState("");
 
   // Form state
   const [title, setTitle] = useState("");
