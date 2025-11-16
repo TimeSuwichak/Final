@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'; // ลบ CardDescription ออกจาก import นี้ เพราะเราจะใช้ <p> ธรรมดาแทน
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useJobs } from '../../contexts/JobContext';
 import { CheckCircle2, Clock, AlertTriangle, Calendar } from 'lucide-react';
 
 // --- Type Definition ---
-// เพิ่ม Type เพื่อให้โค้ดสะอาดขึ้น และลบ 'as any' ออก
 type Job = {
   status: string;
   finishedAt?: string | Date;
@@ -20,30 +19,37 @@ interface KpiProps {
   icon: React.ReactNode;
 }
 
-// นี่คือโครงสร้างมาตรฐานของ shadcn/ui สำหรับ Stat Card
-// เรียบร้อย, อ่านง่าย, และเว้นวรรคได้สวยงาม
 const Kpi = ({ title, value, desc, icon }: KpiProps) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      {/* Icon จะแสดงที่มุมบนขวา */}
+      {/* [UPGRADE] 
+        - เปลี่ยนจาก text-sm font-medium (เล็ก) 
+        - เป็น text-base font-semibold (ใหญ่ขึ้นและชัดขึ้น)
+      */}
+      <CardTitle className="text-base font-semibold">{title}</CardTitle>
       {icon}
     </CardHeader>
     <CardContent>
-      {/* ตัวเลข (Value) จะเด่นที่สุด */}
-      <div className="text-2xl font-bold">{value}</div>
-      {/* คำอธิบาย (Description) เป็นข้อมูลเสริม */}
-      <p className="text-xs text-muted-foreground">{desc}</p>
+      {/* [UPGRADE] 
+        - เปลี่ยนจาก text-2xl (ใหญ่)
+        - เป็น text-4xl font-bold (ใหญ่และเด่นชัดมาก)
+      */}
+      <div className="text-4xl font-bold">{value}</div>
+      {/* [UPGRADE] 
+        - เปลี่ยนจาก text-xs (เล็กมาก)
+        - เป็น text-sm (อ่านง่ายขึ้น)
+      */}
+      <p className="text-sm text-muted-foreground">{desc}</p>
     </CardContent>
   </Card>
 );
 
 // --- KpiRow Component (ปรับปรุงใหม่) ---
 export default function KpiRow() {
-  // ทำให้การดึงข้อมูลมี Type ที่ชัดเจน
   const { jobs = [] } = useJobs() as { jobs: Job[] };
 
   const stats = useMemo(() => {
+    // ... (ส่วน Logic การคำนวณเหมือนเดิม) ...
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const endOfDay = startOfDay + 24 * 60 * 60 * 1000 - 1;
@@ -53,7 +59,6 @@ export default function KpiRow() {
     let pendingApproval = 0;
     let completedToday = 0;
 
-    // ไม่ต้องใช้ 'as any' แล้ว
     for (const j of jobs) {
       const status = j.status || '';
       if (status === 'new' || status === 'received') newJobs++;
@@ -73,35 +78,33 @@ export default function KpiRow() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-      {/* ส่ง Icon ที่ใส่สีเข้าไป
-        - text-blue-500: สื่อถึงของใหม่ (New)
-        - text-orange-500: สื่อถึงงานที่กำลังทำ (In Progress)
-        - text-amber-500: สื่อถึงการรอ (Pending) - ใช้ amber (เหลืองเข้ม) แทน AlertTriangle (แดง) เพื่อไม่ให้ดูน่ากลัวเกินไป
-        - text-green-500: สื่อถึงความสำเร็จ (Completed)
+      {/* [UPGRADE] 
+        - เปลี่ยน Icon จาก h-4 w-4 (16px) 
+        - เป็น h-5 w-5 (20px) ให้สมดุลกับ Title ใหม่
       */}
       <Kpi 
         title="รับงานใหม่" 
         value={stats.newJobs} 
         desc="งานรอรับและจ่ายงาน" 
-        icon={<Calendar className="h-4 w-4 text-blue-500" />} 
+        icon={<Calendar className="h-5 w-5 text-blue-500" />} 
       />
       <Kpi 
         title="กำลังดำเนินการ" 
         value={stats.inProgress} 
         desc="ช่างกำลังปฏิบัติงาน" 
-        icon={<Clock className="h-4 w-4 text-orange-500" />} 
+        icon={<Clock className="h-5 w-5 text-orange-500" />} 
       />
       <Kpi 
         title="รอดำเนินการ/อนุมัติ" 
         value={stats.pendingApproval} 
         desc="รออนุมัติหรือรีวิว" 
-        icon={<AlertTriangle className="h-4 w-4 text-amber-500" />} 
+        icon={<AlertTriangle className="h-5 w-5 text-amber-500" />} 
       />
       <Kpi 
         title="เสร็จวันนี้" 
         value={stats.completedToday} 
         desc="งานที่เสร็จภายในวันนี้" 
-        icon={<CheckCircle2 className="h-4 w-4 text-green-500" />} 
+        icon={<CheckCircle2 className="h-5 w-5 text-green-500" />} 
       />
     </div>
   );

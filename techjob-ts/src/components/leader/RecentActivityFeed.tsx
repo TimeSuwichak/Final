@@ -2,33 +2,33 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { useJobs } from '../../contexts/JobContext';
 import {
-  Activity,       // Icon สำหรับ Header
-  CheckCircle2,   // Icon สำหรับ Completed
-  Clock,          // Icon สำหรับ In Progress
-  FilePlus,       // Icon สำหรับ New
-  AlertTriangle,  // Icon สำหรับ Pending
-  XCircle,        // Icon สำหรับ Cancelled
-  FileText        // Icon สำหรับ Default
+  Activity,
+  CheckCircle2,
+  Clock,
+  FilePlus,
+  AlertTriangle,
+  XCircle,
+  FileText
 } from 'lucide-react';
 
-// --- Types (เพื่อขจัด 'as any') ---
+// --- Types (เหมือนเดิม) ---
 type Job = {
   id: string;
   title?: string;
   subject?: string;
-  status: string; // 'new', 'in-progress', 'completed', 'pending', 'cancelled' etc.
+  status: string;
   updatedAt?: string | Date;
   createdAt?: string | Date;
   created_on?: string | Date;
 };
 
-// --- Helper: Get Timestamp (รวม Logic ที่ซ้ำซ้อน) ---
+// --- Helper: Get Timestamp (เหมือนเดิม) ---
 const getTimestamp = (job: Job): number => {
   const ts = job.updatedAt || job.createdAt || job.created_on;
   return ts ? new Date(ts).getTime() : 0;
 };
 
-// --- Helper: Get Status Icon (หัวใจของการ "ตกแต่ง") ---
+// --- Helper: Get Status Icon (เหมือนเดิม) ---
 const getStatusIcon = (status: string) => {
   const s = status.toLowerCase();
   
@@ -48,47 +48,50 @@ const getStatusIcon = (status: string) => {
     return <XCircle className="h-5 w-5 text-red-500" />;
   }
   
-  // สถานะอื่นๆ ที่ไม่รู้จัก
   return <FileText className="h-5 w-5 text-gray-400" />;
 };
 
 export default function RecentActivityFeed() {
-  const { jobs = [] } = useJobs() as { jobs: Job[] }; // ใช้ Type
+  const { jobs = [] } = useJobs() as { jobs: Job[] }; 
 
   const recent = useMemo(() => {
     return [...jobs]
-      .sort((a, b) => getTimestamp(b) - getTimestamp(a)) // ใช้ Helper
-      .slice(0, 8); // แสดง 8 รายการล่าสุด
+      .sort((a, b) => getTimestamp(b) - getTimestamp(a))
+      .slice(0, 8);
   }, [jobs]);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-lg font-semibold">กิจกรรมล่าสุด</CardTitle>
+          {/* [UPGRADE] เพิ่มขนาด Title เป็น text-xl */}
+          <CardTitle className="text-xl font-semibold">กิจกรรมล่าสุด</CardTitle>
           <CardDescription className="text-sm">อัพเดทงานล่าสุดในระบบ</CardDescription>
         </div>
-        {/* --- Icon ที่ Card Header --- */}
         <Activity className="h-6 w-6 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         {recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
+          // [UPGRADE] เพิ่มขนาด Fallback text เป็น text-base
+          <p className="text-base text-muted-foreground text-center py-4">
             ยังไม่มีการอัพเดท
           </p>
         ) : (
           <ul className="space-y-4 pt-2">
             {recent.map((j) => (
-              // --- จัด Layout ใหม่โดยใช้ Flex ---
               <li key={j.id} className="flex items-center space-x-3">
-                {/* 1. Icon (ส่วนตกแต่ง) */}
                 <div className="flex-shrink-0">
                   {getStatusIcon(j.status)}
                 </div>
-                {/* 2. Text Content (Title + Subtitle) */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{j.title || j.subject || 'งาน (ไม่ระบุชื่อ)'}</div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  {/* [UPGRADE] 
+                    - Key Change: เพิ่มขนาดและความหนา (text-base font-semibold)
+                  */}
+                  <div className="text-base font-semibold truncate">{j.title || j.subject || 'งาน (ไม่ระบุชื่อ)'}</div>
+                  {/* [UPGRADE] 
+                    - Key Change: เพิ่มขนาดจาก xs เป็น sm (text-sm) 
+                  */}
+                  <div className="text-sm text-muted-foreground truncate">
                     {`สถานะ: ${j.status || 'ไม่ระบุ'} • ${new Date(getTimestamp(j)).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}`}
                   </div>
                 </div>
