@@ -1,145 +1,230 @@
-"use client"
-import React, { useState, useMemo, useEffect } from "react"
-import { Package, Layers, AlertTriangle, Box, PlusCircle, Search, Edit, ShoppingCart, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
-import { electricalMaterials } from "@/data/materials/electrical"
-import { networkMaterials } from "@/data/materials/network"
-import { toolMaterials } from "@/data/materials/tools"
-import { multimediaMaterials } from "@/data/materials/multimedia"
-import { consumableMaterials } from "@/data/materials/consumables"
-import { useNotifications } from "@/contexts/NotificationContext"
-import type { Material } from "@/types"
+"use client";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Package,
+  Layers,
+  AlertTriangle,
+  Box,
+  PlusCircle,
+  Search,
+  Edit,
+  ShoppingCart,
+  Clock,
+  Truck,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from "recharts";
+import { electricalMaterials } from "@/data/materials/electrical";
+import { networkMaterials } from "@/data/materials/network";
+import { toolMaterials } from "@/data/materials/tools";
+import { multimediaMaterials } from "@/data/materials/multimedia";
+import { consumableMaterials } from "@/data/materials/consumables";
+import { useNotifications } from "@/contexts/NotificationContext";
+import type { Material } from "@/types";
 
 interface PendingOrder {
   id: string;
   materialId: string;
   quantity: number;
-  deliveryDays: number;
   orderedAt: Date;
+  status: "processing_documents" | "shipping" | "sorting" | "completed";
+  estimatedDays: number;
 }
 
 export default function MaterialDashboard() {
-  const { addNotification } = useNotifications()
-  const [openAdd, setOpenAdd] = useState(false)
-  const [openEdit, setOpenEdit] = useState(false)
-  const [openWithdraw, setOpenWithdraw] = useState(false)
-  const [newMat, setNewMat] = useState({ name: "", type: "", stock: 0, unit: "" })
-  const [editMat, setEditMat] = useState<Material | null>(null)
-  const [withdrawMat, setWithdrawMat] = useState<Material | null>(null)
-  const [withdrawQuantity, setWithdrawQuantity] = useState(0)
-  const [withdrawDays, setWithdrawDays] = useState(3)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
-  const [usageTypeFilter, setUsageTypeFilter] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [materials, setMaterials] = useState<Material[]>([])
-  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([])
-  const itemsPerPage = 10
+  const { addNotification } = useNotifications();
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [newMat, setNewMat] = useState({
+    name: "",
+    type: "",
+    stock: 0,
+    unit: "",
+  });
+  const [editMat, setEditMat] = useState<Material | null>(null);
+  const [withdrawMat, setWithdrawMat] = useState<Material | null>(null);
+  const [withdrawQuantity, setWithdrawQuantity] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [usageTypeFilter, setUsageTypeFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [openShipping, setOpenShipping] = useState(false);
+  const itemsPerPage = 10;
 
   // รวมข้อมูลวัสดุจากทุกหมวดหมู่
-  const allMaterials = useMemo(() => [
-    ...electricalMaterials,
-    ...networkMaterials,
-    ...toolMaterials,
-    ...multimediaMaterials,
-    ...consumableMaterials,
-  ], [])
+  const allMaterials = useMemo(
+    () => [
+      ...electricalMaterials,
+      ...networkMaterials,
+      ...toolMaterials,
+      ...multimediaMaterials,
+      ...consumableMaterials,
+    ],
+    []
+  );
 
   // Initialize materials state with imported data
   useEffect(() => {
-    setMaterials(allMaterials)
-  }, [allMaterials])
+    setMaterials(allMaterials);
+  }, [allMaterials]);
 
   // คำนวณข้อมูลสรุปแบบไดนามิก
   const summary = useMemo(() => {
-    const totalItems = allMaterials.length
-    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0)
-    const categories = [...new Set(allMaterials.map(mat => mat.category))].length
-    const lowStock = allMaterials.filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock).length
+    const totalItems = allMaterials.length;
+    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0);
+    const categories = [...new Set(allMaterials.map((mat) => mat.category))]
+      .length;
+    const lowStock = allMaterials.filter(
+      (mat) => mat.minStock !== undefined && mat.stock <= mat.minStock
+    ).length;
 
     return [
-      { title: "รายการทั้งหมด", value: totalItems, icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" /> },
-      { title: "สต็อกรวม", value: totalStock, icon: <Package className="w-6 h-6 text-green-500 dark:text-green-400" /> },
-      { title: "หมวดหมู่", value: categories, icon: <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" /> },
-      { title: "ใกล้หมด", value: lowStock, icon: <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" /> },
-    ]
-  }, [allMaterials])
+      {
+        title: "รายการทั้งหมด",
+        value: totalItems,
+        icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" />,
+      },
+      {
+        title: "สต็อกรวม",
+        value: totalStock,
+        icon: (
+          <Package className="w-6 h-6 text-green-500 dark:text-green-400" />
+        ),
+      },
+      {
+        title: "หมวดหมู่",
+        value: categories,
+        icon: (
+          <Layers className="w-6 h-6 text-purple-500 dark:text-purple-400" />
+        ),
+      },
+      {
+        title: "ใกล้หมด",
+        value: lowStock,
+        icon: (
+          <AlertTriangle className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />
+        ),
+      },
+    ];
+  }, [allMaterials]);
 
   // คำนวณสัดส่วนหมวดหมู่แบบไดนามิก
   const categories = useMemo(() => {
     const categoryGroups = allMaterials.reduce((acc, mat) => {
       if (!acc[mat.category]) {
-        acc[mat.category] = { total: 0, count: 0 }
+        acc[mat.category] = { total: 0, count: 0 };
       }
-      acc[mat.category].total += mat.stock
-      acc[mat.category].count += 1
-      return acc
-    }, {} as Record<string, { total: number; count: number }>)
+      acc[mat.category].total += mat.stock;
+      acc[mat.category].count += 1;
+      return acc;
+    }, {} as Record<string, { total: number; count: number }>);
 
-    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0)
+    const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0);
 
     return Object.entries(categoryGroups).map(([name, data]) => ({
       name,
-      percent: totalStock > 0 ? Math.round((data.total / totalStock) * 100 * 10) / 10 : 0,
+      percent:
+        totalStock > 0
+          ? Math.round((data.total / totalStock) * 100 * 10) / 10
+          : 0,
       color: getCategoryColor(name),
-    }))
-  }, [allMaterials])
+    }));
+  }, [allMaterials]);
 
   // ฟิลเตอร์วัสดุตามการค้นหาและกรอง
   const filteredMaterials = useMemo(() => {
-    let filtered = allMaterials
+    let filtered = allMaterials;
 
     // กรองตามหมวดหมู่
     if (categoryFilter && categoryFilter !== "all") {
-      filtered = filtered.filter(mat => mat.category === categoryFilter)
+      filtered = filtered.filter((mat) => mat.category === categoryFilter);
     }
 
     // กรองตามประเภท
     if (usageTypeFilter && usageTypeFilter !== "all") {
-      filtered = filtered.filter(mat => mat.usageType === usageTypeFilter)
+      filtered = filtered.filter((mat) => mat.usageType === usageTypeFilter);
     }
 
     // กรองตามการค้นหา
     if (searchTerm) {
-      filtered = filtered.filter(mat =>
-        mat.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mat.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(
+        (mat) =>
+          mat.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mat.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    return filtered
-  }, [allMaterials, searchTerm, categoryFilter, usageTypeFilter])
+    return filtered;
+  }, [allMaterials, searchTerm, categoryFilter, usageTypeFilter]);
 
   // คำนวณข้อมูลสำหรับ pagination
-  const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentMaterials = filteredMaterials.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentMaterials = filteredMaterials.slice(startIndex, endIndex);
 
   // รีเซ็ตหน้าเมื่อมีการเปลี่ยนการกรองหรือค้นหา
   useMemo(() => {
-    setCurrentPage(1)
-  }, [searchTerm, categoryFilter, usageTypeFilter])
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, usageTypeFilter]);
 
   function getCategoryColor(category: string): string {
     const colors: Record<string, string> = {
-      "อุปกรณ์ไฟฟ้าและเดินสาย": "#4F46E5",
-      "อุปกรณ์เครือข่ายและความปลอดภัย": "#22C55E",
-      "เครื่องมือช่าง": "#9333EA",
-      "อุปกรณ์ระบบอาคารและมัลติมีเดีย": "#F59E0B",
-      "วัสดุติดตั้ง": "#EF4444",
-    }
-    return colors[category] || "#9CA3AF"
+      อุปกรณ์ไฟฟ้าและเดินสาย: "#4F46E5",
+      อุปกรณ์เครือข่ายและความปลอดภัย: "#22C55E",
+      เครื่องมือช่าง: "#9333EA",
+      อุปกรณ์ระบบอาคารและมัลติมีเดีย: "#F59E0B",
+      วัสดุติดตั้ง: "#EF4444",
+    };
+    return colors[category] || "#9CA3AF";
   }
 
   const addMaterial = () => {
@@ -150,46 +235,67 @@ export default function MaterialDashboard() {
         category: newMat.type,
         stock: newMat.stock,
         unit: newMat.unit,
-        usageType: 'consumable',
-      }
-      setMaterials([...materials, newMaterial])
-      setOpenAdd(false)
-      setNewMat({ name: "", type: "", stock: 0, unit: "" })
-      addNotification({ type: 'success', message: 'เพิ่มวัสดุสำเร็จ' })
+        usageType: "consumable",
+      };
+      setMaterials([...materials, newMaterial]);
+      setOpenAdd(false);
+      setNewMat({ name: "", type: "", stock: 0, unit: "" });
+      addNotification({ type: "success", message: "เพิ่มวัสดุสำเร็จ" });
     }
-  }
+  };
 
   const editMaterial = () => {
     if (editMat) {
-      setMaterials(materials.map(m => m.id === editMat.id ? editMat : m))
-      setOpenEdit(false)
-      setEditMat(null)
-      addNotification({ type: 'success', message: 'แก้ไขวัสดุสำเร็จ' })
+      setMaterials(materials.map((m) => (m.id === editMat.id ? editMat : m)));
+      setOpenEdit(false);
+      setEditMat(null);
+      addNotification({ type: "success", message: "แก้ไขวัสดุสำเร็จ" });
     }
-  }
+  };
 
   const withdrawMaterial = () => {
-    if (withdrawMat && withdrawQuantity > 0 && withdrawQuantity <= (withdrawMat.stock || 0)) {
-      const newOrder: PendingOrder = {
-        id: `ORD${Date.now()}`,
-        materialId: withdrawMat.id,
-        quantity: withdrawQuantity,
-        deliveryDays: withdrawDays,
-        orderedAt: new Date(),
-      }
-      setPendingOrders([...pendingOrders, newOrder])
-      setOpenWithdraw(false)
-      setWithdrawMat(null)
-      setWithdrawQuantity(0)
-      setWithdrawDays(3)
-      addNotification({ type: 'info', message: 'ส่งคำขอเบิกวัสดุแล้ว' })
+    if (
+      withdrawMat &&
+      withdrawQuantity > 0 &&
+      withdrawQuantity <= (withdrawMat.stock || 0)
+    ) {
+      setOpenWithdraw(false);
+      setOpenConfirm(true);
     }
-  }
+  };
+
+  const confirmWithdraw = async () => {
+    setOpenConfirm(false);
+    setIsProcessing(true);
+
+    // Simulate processing time
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const newOrder: PendingOrder = {
+      id: `ORD${Date.now()}`,
+      materialId: withdrawMat!.id,
+      quantity: withdrawQuantity,
+      orderedAt: new Date(),
+      status: "processing_documents",
+      estimatedDays: Math.floor(Math.random() * 15) + 1, // Random 1-15 days
+    };
+    setPendingOrders([...pendingOrders, newOrder]);
+    setIsProcessing(false);
+    setWithdrawMat(null);
+    setWithdrawQuantity(0);
+    addNotification({ type: "success", message: "สั่งซื้อวัสดุสำเร็จ" });
+  };
 
   return (
     <div className="min-h-screen bg-background dark:bg-[#0B0B16] p-6 transition-colors duration-300">
-      <h1 className="text-2xl font-semibold text-foreground">คลังวัสดุและอุปกรณ์</h1>
-      <p className="text-muted-foreground mb-6">ภาพรวมและจัดการสต็อกวัสดุที่มีอยู่</p>
+      <h1 className="text-2xl font-semibold text-foreground">
+        คลังวัสดุและอุปกรณ์
+      </h1>
+      <p className="text-muted-foreground mb-6">
+        ภาพรวมและจัดการสต็อกวัสดุที่มีอยู่
+      </p>
+
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -227,7 +333,10 @@ export default function MaterialDashboard() {
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={setCategoryFilter}
+                  >
                     <SelectTrigger className="flex-1 bg-muted border-none focus-visible:ring-blue-500">
                       <SelectValue placeholder="กรองตามหมวดหมู่" />
                     </SelectTrigger>
@@ -240,7 +349,10 @@ export default function MaterialDashboard() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Select value={usageTypeFilter} onValueChange={setUsageTypeFilter}>
+                  <Select
+                    value={usageTypeFilter}
+                    onValueChange={setUsageTypeFilter}
+                  >
                     <SelectTrigger className="flex-1 bg-muted border-none focus-visible:ring-blue-500">
                       <SelectValue placeholder="กรองตามประเภท" />
                     </SelectTrigger>
@@ -268,20 +380,44 @@ export default function MaterialDashboard() {
                   <TableBody>
                     {currentMaterials.map((material) => (
                       <TableRow key={material.id}>
-                        <TableCell className="font-mono text-sm">{material.id}</TableCell>
-                        <TableCell className="font-medium">{material.name}</TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {material.id}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {material.name}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {material.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`font-semibold ${material.minStock !== undefined && material.stock <= material.minStock ? 'text-yellow-600' : material.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                        <TableCell
+                          className={`font-semibold ${
+                            material.minStock !== undefined &&
+                            material.stock <= material.minStock
+                              ? "text-yellow-600"
+                              : material.stock < 10
+                              ? "text-red-600"
+                              : "text-green-600"
+                          }`}
+                        >
                           {material.stock}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">{material.unit}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {material.unit}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant={material.usageType === 'consumable' ? 'default' : 'outline'} className="text-xs">
-                            {material.usageType === 'consumable' ? 'ไม่ต้องคืน' : 'คืนได้'}
+                          <Badge
+                            variant={
+                              material.usageType === "consumable"
+                                ? "default"
+                                : "outline"
+                            }
+                            className="text-xs"
+                          >
+                            {material.usageType === "consumable"
+                              ? "ไม่ต้องคืน"
+                              : "คืนได้"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -290,8 +426,8 @@ export default function MaterialDashboard() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                setEditMat(material)
-                                setOpenEdit(true)
+                                setEditMat(material);
+                                setOpenEdit(true);
                               }}
                               className="h-8 px-2"
                             >
@@ -301,8 +437,8 @@ export default function MaterialDashboard() {
                               size="sm"
                               variant="outline"
                               onClick={() => {
-                                setWithdrawMat(material)
-                                setOpenWithdraw(true)
+                                setWithdrawMat(material);
+                                setOpenWithdraw(true);
                               }}
                               className="h-8 px-2"
                             >
@@ -326,25 +462,41 @@ export default function MaterialDashboard() {
                     <PaginationContent>
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        )
+                      )}
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -357,26 +509,23 @@ export default function MaterialDashboard() {
 
         {/* Right Sidebar */}
         <div className="space-y-4">
-          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
-            <CardContent className="p-4">
-              <Button
-                className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400 text-white rounded-xl py-6 text-base font-medium flex items-center justify-center gap-2 transition-all"
-                onClick={() => setOpenAdd(true)}
-              >
-                <PlusCircle className="w-5 h-5" /> เพิ่มวัสดุใหม่
-              </Button>
-            </CardContent>
-          </Card>
 
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <CardContent className="">
-              <h3 className="font-semibold text-foreground mb-2">ภาพรวมสัดส่วนสต็อก</h3>
-              <p className="text-sm text-muted-foreground mb-3">{categories.length} หมวดหมู่</p>
+              <h3 className="font-semibold text-foreground mb-2">
+                ภาพรวมสัดส่วนสต็อก
+              </h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                {categories.length} หมวดหมู่
+              </p>
               <div className="w-full h-64 mb-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={categories.map(c => ({ name: c.name, value: c.percent }))}
+                      data={categories.map((c) => ({
+                        name: c.name,
+                        value: c.percent,
+                      }))}
                       cx="50%"
                       cy="50%"
                       innerRadius={50}
@@ -387,7 +536,12 @@ export default function MaterialDashboard() {
                       labelLine={false}
                     >
                       {categories.map((c, i) => (
-                        <Cell key={`cell-${i}`} fill={c.color} stroke={c.color} strokeWidth={2} />
+                        <Cell
+                          key={`cell-${i}`}
+                          fill={c.color}
+                          stroke={c.color}
+                          strokeWidth={2}
+                        />
                       ))}
                     </Pie>
                   </PieChart>
@@ -396,19 +550,48 @@ export default function MaterialDashboard() {
               <ul className="space-y-1 text-sm">
                 {categories.map((c, i) => (
                   <li key={i} className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ background: c.color }}></span>
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{ background: c.color }}
+                    ></span>
                     <span>{c.name}</span>
-                    <span className="ml-auto text-muted-foreground">{c.percent}%</span>
+                    <span className="ml-auto text-muted-foreground">
+                      {c.percent}%
+                    </span>
                   </li>
                 ))}
               </ul>
             </CardContent>
           </Card>
+
+                {/* Shipping Status Button */}
+      <Button
+        variant="outline"
+        className="w-full max-w-sm justify-start h-auto p-4 rounded-2xl bg-card text-card-foreground shadow-sm transition-colors hover:shadow-md mb-6"
+        onClick={() => setOpenShipping(true)}
+      >
+        <Truck className="w-5 h-5 text-blue-500 mr-2" />
+        <div className="text-left">
+          <p className="font-semibold">สถานะการจัดส่ง</p>
+          <p className="text-sm text-muted-foreground">
+            {pendingOrders.length} คำสั่งซื้อรอดำเนินการ
+          </p>
+        </div>
+      </Button>
+
+
+          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
+            <p>test</p>
+          </Card>
+
+
         </div>
       </div>
 
       {/* Low Stock Card */}
-      {allMaterials.filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock).length > 0 && (
+      {allMaterials.filter(
+        (mat) => mat.minStock !== undefined && mat.stock <= mat.minStock
+      ).length > 0 && (
         <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -419,21 +602,28 @@ export default function MaterialDashboard() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {allMaterials
-                .filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock)
+                .filter(
+                  (mat) =>
+                    mat.minStock !== undefined && mat.stock <= mat.minStock
+                )
                 .map((material) => (
-                  <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+                  <div
+                    key={material.id}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20"
+                  >
                     <div>
                       <p className="font-medium text-sm">{material.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        คงเหลือ: {material.stock} {material.unit} (ต่ำสุด: {material.minStock})
+                        คงเหลือ: {material.stock} {material.unit} (ต่ำสุด:{" "}
+                        {material.minStock})
                       </p>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        setWithdrawMat(material)
-                        setOpenWithdraw(true)
+                        setWithdrawMat(material);
+                        setOpenWithdraw(true);
                       }}
                       className="h-8 px-3"
                     >
@@ -458,13 +648,13 @@ export default function MaterialDashboard() {
               <Label>ชื่อวัสดุ</Label>
               <Input
                 value={newMat.name}
-                onChange={e => setNewMat({ ...newMat, name: e.target.value })}
+                onChange={(e) => setNewMat({ ...newMat, name: e.target.value })}
                 className="bg-muted border-none focus-visible:ring-blue-500"
               />
             </div>
             <div>
               <Label>หมวดหมู่</Label>
-              <Select onValueChange={v => setNewMat({ ...newMat, type: v })}>
+              <Select onValueChange={(v) => setNewMat({ ...newMat, type: v })}>
                 <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
                   <SelectValue placeholder="เลือกหมวดหมู่" />
                 </SelectTrigger>
@@ -483,7 +673,9 @@ export default function MaterialDashboard() {
                 <Input
                   type="number"
                   value={newMat.stock}
-                  onChange={e => setNewMat({ ...newMat, stock: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setNewMat({ ...newMat, stock: Number(e.target.value) })
+                  }
                   className="bg-muted border-none focus-visible:ring-blue-500"
                 />
               </div>
@@ -491,7 +683,9 @@ export default function MaterialDashboard() {
                 <Label>หน่วย</Label>
                 <Input
                   value={newMat.unit}
-                  onChange={e => setNewMat({ ...newMat, unit: e.target.value })}
+                  onChange={(e) =>
+                    setNewMat({ ...newMat, unit: e.target.value })
+                  }
                   className="bg-muted border-none focus-visible:ring-blue-500"
                 />
               </div>
@@ -501,7 +695,10 @@ export default function MaterialDashboard() {
             <Button variant="outline" onClick={() => setOpenAdd(false)}>
               ยกเลิก
             </Button>
-            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={addMaterial}>
+            <Button
+              className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
+              onClick={addMaterial}
+            >
               บันทึก
             </Button>
           </DialogFooter>
@@ -520,13 +717,18 @@ export default function MaterialDashboard() {
                 <Label>ชื่อวัสดุ</Label>
                 <Input
                   value={editMat.name}
-                  onChange={e => setEditMat({ ...editMat, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditMat({ ...editMat, name: e.target.value })
+                  }
                   className="bg-muted border-none focus-visible:ring-blue-500"
                 />
               </div>
               <div>
                 <Label>หมวดหมู่</Label>
-                <Select value={editMat.category} onValueChange={v => setEditMat({ ...editMat, category: v })}>
+                <Select
+                  value={editMat.category}
+                  onValueChange={(v) => setEditMat({ ...editMat, category: v })}
+                >
                   <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
                     <SelectValue placeholder="เลือกหมวดหมู่" />
                   </SelectTrigger>
@@ -541,7 +743,15 @@ export default function MaterialDashboard() {
               </div>
               <div>
                 <Label>ประเภท</Label>
-                <Select value={editMat.usageType} onValueChange={v => setEditMat({ ...editMat, usageType: v as 'consumable' | 'returnable' })}>
+                <Select
+                  value={editMat.usageType}
+                  onValueChange={(v) =>
+                    setEditMat({
+                      ...editMat,
+                      usageType: v as "consumable" | "returnable",
+                    })
+                  }
+                >
                   <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
                     <SelectValue placeholder="เลือกประเภท" />
                   </SelectTrigger>
@@ -557,7 +767,9 @@ export default function MaterialDashboard() {
                   <Input
                     type="number"
                     value={editMat.stock}
-                    onChange={e => setEditMat({ ...editMat, stock: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditMat({ ...editMat, stock: Number(e.target.value) })
+                    }
                     className="bg-muted border-none focus-visible:ring-blue-500"
                   />
                 </div>
@@ -565,7 +777,9 @@ export default function MaterialDashboard() {
                   <Label>หน่วย</Label>
                   <Input
                     value={editMat.unit}
-                    onChange={e => setEditMat({ ...editMat, unit: e.target.value })}
+                    onChange={(e) =>
+                      setEditMat({ ...editMat, unit: e.target.value })
+                    }
                     className="bg-muted border-none focus-visible:ring-blue-500"
                   />
                 </div>
@@ -576,7 +790,10 @@ export default function MaterialDashboard() {
             <Button variant="outline" onClick={() => setOpenEdit(false)}>
               ยกเลิก
             </Button>
-            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={editMaterial}>
+            <Button
+              className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
+              onClick={editMaterial}
+            >
               บันทึก
             </Button>
           </DialogFooter>
@@ -587,33 +804,25 @@ export default function MaterialDashboard() {
       <Dialog open={openWithdraw} onOpenChange={setOpenWithdraw}>
         <DialogContent className="max-w-md bg-card text-card-foreground">
           <DialogHeader>
-            <DialogTitle>เบิกวัสดุ</DialogTitle>
+            <DialogTitle>ซื้อวัสดุ</DialogTitle>
           </DialogHeader>
           {withdrawMat && (
             <div className="space-y-3 py-2">
               <div>
                 <p className="font-medium">{withdrawMat.name}</p>
-                <p className="text-sm text-muted-foreground">คงเหลือ: {withdrawMat.stock} {withdrawMat.unit}</p>
+                <p className="text-sm text-muted-foreground">
+                  คงเหลือ: {withdrawMat.stock} {withdrawMat.unit}
+                </p>
               </div>
               <div>
-                <Label>จำนวนที่ต้องการเบิก</Label>
+                <Label className="mb-2">จำนวนที่ต้องการสั่งซื้อ</Label>
                 <Input
                   type="number"
                   value={withdrawQuantity}
-                  onChange={e => setWithdrawQuantity(Number(e.target.value))}
+                  onChange={(e) => setWithdrawQuantity(Number(e.target.value))}
                   className="bg-muted border-none focus-visible:ring-blue-500"
                   min={1}
                   max={withdrawMat.stock}
-                />
-              </div>
-              <div>
-                <Label>จำนวนวันที่ต้องการใช้</Label>
-                <Input
-                  type="number"
-                  value={withdrawDays}
-                  onChange={e => setWithdrawDays(Number(e.target.value))}
-                  className="bg-muted border-none focus-visible:ring-blue-500"
-                  min={1}
                 />
               </div>
             </div>
@@ -622,14 +831,119 @@ export default function MaterialDashboard() {
             <Button variant="outline" onClick={() => setOpenWithdraw(false)}>
               ยกเลิก
             </Button>
-            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={withdrawMaterial}>
+            <Button
+              className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
+              onClick={withdrawMaterial}
+            >
               เบิกวัสดุ
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog ยืนยันการสั่งซื้อ */}
+      <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
+        <DialogContent className="max-w-md bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle>ยืนยันการสั่งซื้อวัสดุ</DialogTitle>
+          </DialogHeader>
+          {withdrawMat && (
+            <div className="space-y-3 py-2">
+              <div className="text-center">
+                <Clock className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+                <p className="font-medium text-lg">{withdrawMat.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  จำนวน: {withdrawQuantity} {withdrawMat.unit}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  กรุณายืนยันการสั่งซื้อวัสดุนี้
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setOpenConfirm(false)}
+              disabled={isProcessing}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
+              onClick={confirmWithdraw}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  กำลังดำเนินการ...
+                </>
+              ) : (
+                "ยืนยันการสั่งซื้อ"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog สถานะการจัดส่ง */}
+      <Dialog open={openShipping} onOpenChange={setOpenShipping}>
+        <DialogContent className="max-w-2xl bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="w-5 h-5 text-blue-500" />
+              สถานะการจัดส่ง
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {pendingOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                ไม่มีคำสั่งซื้อที่รอดำเนินการ
+              </p>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {pendingOrders.map((order) => {
+                  const material = allMaterials.find(m => m.id === order.materialId);
+                  return (
+                    <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{material?.name || 'วัสดุไม่พบ'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.quantity} {material?.unit} • {order.estimatedDays} วัน
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          สั่งซื้อเมื่อ: {order.orderedAt.toLocaleDateString('th-TH')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ถึงภายวันที่: {(() => {
+                            const deliveryDate = new Date(order.orderedAt);
+                            deliveryDate.setDate(deliveryDate.getDate() + order.estimatedDays);
+                            return deliveryDate.toLocaleDateString('th-TH');
+                          })()}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          order.status === "completed" ? "default" :
+                          order.status === "shipping" ? "secondary" :
+                          "outline"
+                        }
+                        className="text-xs"
+                      >
+                        {order.status === "processing_documents" ? "กำลังดำเนินเอกสาร" :
+                         order.status === "shipping" ? "กำลังจัดส่ง" :
+                         order.status === "sorting" ? "กำลังคัดแยก" :
+                         "เสร็จสิ้น"}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
 }
-
-
