@@ -37,8 +37,9 @@ import {
   Clock,
   X,
   ClipboardList,
-  Building2
+  CheckCircle2,
 } from 'lucide-react';
+import { generateCompletionReportPdf } from "@/utils/jobReport";
 
 interface UserJobDetailDialogProps {
   job: Job | null;
@@ -51,6 +52,41 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
   if (!job) return null;
 
   const assignedLeader = leader.find(l => l.id === job.leadId);
+  const isCompleted = job.status === 'done';
+  const statusLabel = isCompleted
+    ? "งานเสร็จสิ้น"
+    : job.status === 'in-progress'
+    ? "กำลังทำ"
+    : "งานใหม่";
+  const statusBadgeClass = isCompleted
+    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+    : job.status === 'in-progress'
+    ? "bg-amber-100 text-amber-800 border-amber-200"
+    : "bg-blue-100 text-blue-800 border-blue-200";
+
+  const handleDownloadReport = () => {
+    generateCompletionReportPdf(job);
+  };
+
+  const renderTaskStatusBadge = (status: 'pending' | 'in-progress' | 'completed') => {
+    const className =
+      status === 'completed'
+        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+        : status === 'in-progress'
+        ? "bg-amber-100 text-amber-800 border-amber-200"
+        : "bg-blue-100 text-blue-800 border-blue-200";
+    const label =
+      status === 'completed'
+        ? "เสร็จสิ้น"
+        : status === 'in-progress'
+        ? "กำลังทำ"
+        : "รอดำเนินการ";
+    return (
+      <Badge variant="outline" className={`text-xs border ${className}`}>
+        {label}
+      </Badge>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,6 +104,12 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 <Badge variant="secondary" className="text-xs shrink-0">
                   <ClipboardList className="h-3 w-3 mr-1" />
                   งานของฉัน
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className={`text-xs shrink-0 border ${statusBadgeClass}`}
+                >
+                  {statusLabel}
                 </Badge>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -113,6 +155,79 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                             {assignedLeader.phone}
                           </p>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {isCompleted && (
+                  <Card className="border-emerald-200 bg-emerald-50/40">
+                    <CardHeader className="pb-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <CardTitle className="text-sm flex items-center gap-2 text-emerald-800">
+                            <CheckCircle2 className="h-4 w-4" />
+                            สรุปผลการปิดงาน
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            ดูข้อมูลสรุปและดาวน์โหลดเอกสารได้ที่นี่
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadReport}
+                          className="h-8 text-xs gap-1"
+                        >
+                          <FileText className="h-3 w-3" />
+                          ดาวน์โหลดเอกสาร
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          สรุปผลการทำงาน
+                        </p>
+                        <p className="mt-1">
+                          {job.completionSummary || "-"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">
+                          ปัญหาที่พบ
+                        </p>
+                        <p className="mt-1">
+                          {job.completionIssues || "-"}
+                        </p>
+                      </div>
+                      {job.completionIssueImage && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            รูปภาพประกอบ
+                          </p>
+                          <div className="rounded-md border overflow-hidden max-h-60 bg-white">
+                            <img
+                              src={job.completionIssueImage}
+                              alt="หลักฐานการปิดงาน"
+                              className="w-full object-contain max-h-60"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-xs text-muted-foreground">
+                        ปิดงานโดย{" "}
+                        <span className="font-medium text-foreground">
+                          {job.leaderCloser || assignedLeader?.fname || "-"}
+                        </span>{" "}
+                        เมื่อ{" "}
+                        {job.completedAt
+                          ? format(
+                              new Date(job.completedAt),
+                              "dd MMM yyyy HH:mm",
+                              { locale: th }
+                            )
+                          : "-"}
                       </div>
                     </CardContent>
                   </Card>
@@ -216,7 +331,9 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                           งานย่อยที่ต้องทำ
                         </CardTitle>
                         <CardDescription className="text-xs mt-0.5">
-                          อัพเดทความคืบหน้า แจ้งปัญหา และขอเบิกวัสดุ
+                          {isCompleted
+                            ? "ดูรายการงานที่ดำเนินการไปแล้ว"
+                            : "อัพเดทความคืบหน้า แจ้งปัญหา และขอเบิกวัสดุ"}
                         </CardDescription>
                       </div>
                       <Badge variant="outline" className="text-xs">
@@ -226,11 +343,54 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                   </CardHeader>
                   <CardContent>
                     {job.tasks.length > 0 ? (
-                      <div className="space-y-3">
-                        {job.tasks.map(task => (
-                          <UserTaskUpdate key={task.id} job={job} task={task} />
-                        ))}
-                      </div>
+                      isCompleted ? (
+                        <div className="space-y-2">
+                          {job.tasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className="rounded-md border p-3 bg-white/80"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-medium text-sm">
+                                  {task.title}
+                                </p>
+                                {renderTaskStatusBadge(task.status)}
+                              </div>
+                              {task.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {task.description}
+                                </p>
+                              )}
+                              {task.updates.length > 0 && (
+                                <div className="mt-2 rounded-md bg-muted/40 p-2 text-xs space-y-1">
+                                  {task.updates.map((update, index) => (
+                                    <div key={index}>
+                                      <p className="font-medium text-foreground">
+                                        {update.updatedBy}{" "}
+                                        <span className="text-[10px] text-muted-foreground">
+                                          {format(
+                                            update.updatedAt,
+                                            "dd/MM HH:mm"
+                                          )}
+                                        </span>
+                                      </p>
+                                      <p className="text-muted-foreground">
+                                        {update.message}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {job.tasks.map((task) => (
+                            <UserTaskUpdate key={task.id} job={job} task={task} />
+                          ))}
+                        </div>
+                      )
                     ) : (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <div className="p-4 bg-muted rounded-full mb-4">
@@ -240,7 +400,9 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                           ยังไม่มีงานย่อย
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          หัวหน้างานจะสร้างงานย่อยให้ในภายหลัง
+                          {isCompleted
+                            ? "งานนี้ไม่มีการสร้างงานย่อย"
+                            : "หัวหน้างานจะสร้างงานย่อยให้ในภายหลัง"}
                         </p>
                       </div>
                     )}
@@ -248,42 +410,44 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 </Card>
 
                 {/* Quick Action Tips */}
-                <Card className="border-blue-200 bg-blue-50/50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-600" />
-                      คำแนะนำ
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-xs">
-                      <div className="flex items-start gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                        <p className="text-muted-foreground leading-relaxed">
-                          <strong className="text-foreground">อัพเดทความคืบหน้า:</strong> แจ้งสถานะงานให้หัวหน้าทราบอย่างสม่ำเสมอ
-                        </p>
+                {!isCompleted && (
+                  <Card className="border-blue-200 bg-blue-50/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-600" />
+                        คำแนะนำ
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-start gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                          <p className="text-muted-foreground leading-relaxed">
+                            <strong className="text-foreground">อัพเดทความคืบหน้า:</strong> แจ้งสถานะงานให้หัวหน้าทราบอย่างสม่ำเสมอ
+                          </p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                          <p className="text-muted-foreground leading-relaxed">
+                            <strong className="text-foreground">แจ้งปัญหา:</strong> พบอุปสรรคหรือปัญหา? แจ้งทันทีเพื่อหาทางแก้ไข
+                          </p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                          <p className="text-muted-foreground leading-relaxed">
+                            <strong className="text-foreground">ขอเบิกวัสดุ:</strong> ต้องการอุปกรณ์เพิ่ม? ส่งคำขอผ่านระบบ
+                          </p>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                          <p className="text-muted-foreground leading-relaxed">
+                            <strong className="text-foreground">อัพโหลดรูปภาพ:</strong> ถ่ายรูปความคืบหน้างานเพื่อบันทึก
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-start gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                        <p className="text-muted-foreground leading-relaxed">
-                          <strong className="text-foreground">แจ้งปัญหา:</strong> พบอุปสรรคหรือปัญหา? แจ้งทันทีเพื่อหาทางแก้ไข
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                        <p className="text-muted-foreground leading-relaxed">
-                          <strong className="text-foreground">ขอเบิกวัสดุ:</strong> ต้องการอุปกรณ์เพิ่ม? ส่งคำขอผ่านระบบ
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                        <p className="text-muted-foreground leading-relaxed">
-                          <strong className="text-foreground">อัพโหลดรูปภาพ:</strong> ถ่ายรูปความคืบหน้างานเพื่อบันทึก
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
               </div>
             </div>

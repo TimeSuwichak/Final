@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
-import { jsPDF } from "jspdf";
+import { th } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,6 +44,7 @@ import { AdminMap } from "../admin/AdminMap";
 import type { Job } from "@/types/index";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { user as ALL_USERS } from "@/Data/user";
+import { generateCompletionReportPdf } from "@/utils/jobReport";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -62,6 +63,7 @@ import {
   Building2,
   MessageSquare,
   Map,
+  ClipboardList,
 } from "lucide-react";
 
 interface LeaderJobDetailDialogProps {
@@ -93,6 +95,7 @@ export function LeaderJobDetailDialog({
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false);
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  const [isCompletionSuccessOpen, setIsCompletionSuccessOpen] = useState(false);
   const [completionSummary, setCompletionSummary] = useState("");
   const [completionIssues, setCompletionIssues] = useState("");
   const [completionIssueImage, setCompletionIssueImage] = useState<string | null>(null);
@@ -235,68 +238,6 @@ export function LeaderJobDetailDialog({
     setCompletionIssueImageName(file.name);
   };
 
-  const generateCompletionPdf = () => {
-    const doc = new jsPDF();
-    let y = 20;
-
-    doc.setFontSize(16);
-    doc.text("รายงานสรุปการปิดงาน", 14, y);
-    doc.setFontSize(11);
-    y += 10;
-    doc.text(`รหัสงาน: ${job.id}`, 14, y);
-    y += 7;
-    doc.text(`ชื่องาน: ${job.title}`, 14, y);
-    y += 7;
-    doc.text(`หัวหน้างาน: ${user.fname}`, 14, y);
-    y += 7;
-    doc.text(
-      `ลูกค้า: ${job.customerName} (${job.customerPhone || "ไม่มีเบอร์"})`,
-      14,
-      y
-    );
-    y += 10;
-    doc.text(
-      `ช่างที่ร่วมงาน: ${job.assignedTechs
-        .map((techId) => getTechDisplayName(techId))
-        .join(", ") || "-"} `,
-      14,
-      y
-    );
-    y += 10;
-    doc.setFontSize(12);
-    doc.text("สรุปผลการทำงาน", 14, y);
-    doc.setFontSize(11);
-    y += 8;
-    doc.text(doc.splitTextToSize(completionSummary || "-", 180), 14, y);
-    y += 8 + doc.getTextDimensions(completionSummary || "-").h;
-
-    doc.setFontSize(12);
-    doc.text("ปัญหาที่พบ", 14, y);
-    doc.setFontSize(11);
-    y += 8;
-    doc.text(doc.splitTextToSize(completionIssues || "-", 180), 14, y);
-    y += 8 + doc.getTextDimensions(completionIssues || "-").h;
-
-    doc.setFontSize(12);
-    doc.text("รายการ Task", 14, y);
-    doc.setFontSize(11);
-    y += 8;
-    job.tasks.forEach((task, index) => {
-      doc.text(`${index + 1}. ${task.title}`, 16, y);
-      y += 6;
-    });
-
-    if (completionIssueImage) {
-      y += 4;
-      doc.setFontSize(12);
-      doc.text("หลักฐานรูปภาพ", 14, y);
-      y += 4;
-      doc.addImage(completionIssueImage, "JPEG", 14, y, 80, 60);
-    }
-
-    doc.save(`${job.id}-completion-report.pdf`);
-  };
-
   const handleSubmitCompletion = () => {
     if (!completionSummary.trim()) {
       alert("กรุณากรอกสรุปผลการทำงาน");
@@ -349,21 +290,32 @@ export function LeaderJobDetailDialog({
       });
     });
 
-    try {
-      generateCompletionPdf();
-    } finally {
-      setIsGeneratingReport(false);
-      setIsCompletionDialogOpen(false);
-      onOpenChange(false);
-    }
+    setIsGeneratingReport(false);
+    setIsCompletionDialogOpen(false);
+    setIsCompletionSuccessOpen(true);
   };
 
-    const handleGoToTracking = () => {
+  const handleDownloadReport = () => {
+    generateCompletionReportPdf(job);
+  };
+
+  const handleGoToTracking = () => {
     onOpenChange(false);
     navigate('/leader/tracking');
   };
 
   const isAcknowledged = job.status !== "new";
+  const isCompleted = job.status === "done";
+  const statusLabel = isCompleted
+    ? "เสร็จสิ้น"
+    : isAcknowledged
+    ? "กำลังดำเนินการ"
+    : "รอรับทราบ";
+  const statusBadgeClass = isCompleted
+    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+    : isAcknowledged
+    ? "bg-amber-100 text-amber-800 border-amber-200"
+    : "bg-blue-100 text-blue-800 border-blue-200";
 
   return (
     <>
@@ -378,22 +330,14 @@ export function LeaderJobDetailDialog({
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <DialogTitle className="text-lg sm:text-xl font-bold truncate">
+                <DialogTitle className="text-lg sm:text-xl font-bold truncate">
                     {job.title}
                   </DialogTitle>
                   <Badge
-                    variant={isAcknowledged ? "default" : "secondary"}
-                    className="text-xs shrink-0"
+                    variant="outline"
+                    className={`text-xs shrink-0 border ${statusBadgeClass} gap-1`}
                   >
-                    {isAcknowledged ? (
-                      <>
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> ดำเนินการ
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="h-3 w-3 mr-1" /> รอรับทราบ
-                      </>
-                    )}
+                    {statusLabel}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -553,7 +497,157 @@ export function LeaderJobDetailDialog({
 
                 {/* Right Column */}
                 <div className="space-y-4">
-                  {isAcknowledged ? (
+                  {isCompleted ? (
+                    <>
+                      <Card className="border-emerald-200 bg-emerald-50/40">
+                        <CardHeader className="pb-2">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <CardTitle className="text-sm flex items-center gap-2 text-emerald-800">
+                                <CheckCircle2 className="h-4 w-4" />
+                                สรุปผลการปิดงาน
+                              </CardTitle>
+                              <CardDescription className="text-xs">
+                                ตรวจสอบสรุปงานและดาวน์โหลดเอกสารได้ที่นี่
+                              </CardDescription>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleDownloadReport}
+                              className="h-8 text-xs gap-1"
+                            >
+                              <FileText className="h-3 w-3" />
+                              ดาวน์โหลดเอกสาร
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4 text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              สรุปผลการทำงาน
+                            </p>
+                            <p className="mt-1">
+                              {job.completionSummary || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              ปัญหาที่พบ
+                            </p>
+                            <p className="mt-1">
+                              {job.completionIssues || "-"}
+                            </p>
+                          </div>
+                          {job.completionIssueImage && (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                รูปภาพประกอบ
+                              </p>
+                              <div className="rounded-md border overflow-hidden max-h-60 bg-white">
+                                <img
+                                  src={job.completionIssueImage}
+                                  alt="หลักฐานการปิดงาน"
+                                  className="w-full object-contain max-h-60"
+                                />
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground">
+                            ปิดงานโดย{" "}
+                            <span className="font-medium text-foreground">
+                              {job.leaderCloser || user.fname}
+                            </span>{" "}
+                            เมื่อ{" "}
+                            {job.completedAt
+                              ? format(
+                                  new Date(job.completedAt),
+                                  "dd MMM yyyy HH:mm",
+                                  { locale: th }
+                                )
+                              : "-"}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-emerald-200">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              <ClipboardList className="h-4 w-4 text-emerald-700" />
+                              รายการงานย่อย
+                            </CardTitle>
+                            <Badge variant="outline" className="text-xs">
+                              {job.tasks.length} งาน
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {job.tasks.length > 0 ? (
+                            <div className="space-y-2">
+                              {job.tasks.map((task) => (
+                                <div
+                                  key={task.id}
+                                  className="rounded-md border p-3 bg-white/80"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="font-medium text-sm">
+                                      {task.title}
+                                    </p>
+                                    <Badge
+                                      variant="outline"
+                                      className={
+                                        task.status === "completed"
+                                          ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                          : task.status === "in-progress"
+                                          ? "bg-amber-100 text-amber-800 border-amber-200"
+                                          : "bg-blue-100 text-blue-800 border-blue-200"
+                                      }
+                                    >
+                                      {task.status === "completed"
+                                        ? "เสร็จสิ้น"
+                                        : task.status === "in-progress"
+                                        ? "กำลังทำ"
+                                        : "รอดำเนินการ"}
+                                    </Badge>
+                                  </div>
+                                  {task.description && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      {task.description}
+                                    </p>
+                                  )}
+                                  {task.updates.length > 0 && (
+                                    <div className="mt-2 rounded-md bg-muted/40 p-2 text-xs space-y-1">
+                                      {task.updates.map((update, index) => (
+                                        <div key={index}>
+                                          <p className="font-medium text-foreground">
+                                            {update.updatedBy}{" "}
+                                            <span className="text-[10px] text-muted-foreground">
+                                              {format(
+                                                update.updatedAt,
+                                                "dd/MM HH:mm"
+                                              )}
+                                            </span>
+                                          </p>
+                                          <p className="text-muted-foreground">
+                                            {update.message}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center text-xs text-muted-foreground py-6">
+                              ยังไม่มีงานย่อย
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </>
+                  ) : isAcknowledged ? (
                     <>
                       {/* Team Management - Compact */}
                       <Card className="border-primary/20">
@@ -1015,6 +1109,32 @@ export function LeaderJobDetailDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Completion Success */}
+      <AlertDialog
+        open={isCompletionSuccessOpen}
+        onOpenChange={setIsCompletionSuccessOpen}
+      >
+        <AlertDialogContent className="max-w-sm text-center space-y-4">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base flex items-center gap-2 justify-center">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              จบงานเรียบร้อยแล้ว
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              สามารถกลับเข้ามาดูสรุปงานและดาวน์โหลดเอกสารได้ทุกเมื่อ
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="justify-center">
+            <AlertDialogAction
+              className="h-8 text-xs"
+              onClick={() => setIsCompletionSuccessOpen(false)}
+            >
+              รับทราบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Image Dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
