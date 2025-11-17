@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, ExternalLink } from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -88,9 +88,23 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                 <span className="font-medium text-sm text-muted-foreground">สถานะ</span>
                 {getStatusBadge(job.status)}
               </div>
-              <div className="flex justify-end pt-2">
-                <Button variant="ghost" size="sm" onClick={() => onViewJob(job)}>
-                  <Eye className="h-4 w-4 mr-2" />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onViewJob(job)}
+                  className="gap-1"
+                >
+                  <Eye className="h-4 w-4" />
+                  แก้ไข
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => window.location.href = `/leader/workorder/${job.id}`}
+                  className="gap-1"
+                >
+                  <ExternalLink className="h-4 w-4" />
                   ดูรายละเอียด
                 </Button>
               </div>
@@ -113,36 +127,51 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                 <TableHead className="min-w-[200px]">ชื่องาน</TableHead>
                 <TableHead className="min-w-[140px]">วันที่</TableHead>
                 <TableHead className="min-w-[100px]">สถานะ</TableHead>
-                <TableHead className="w-[56px] text-center">ดู</TableHead>
+                <TableHead className="w-[56px] text-center">แก้ไข</TableHead>
+                <TableHead className="w-[56px] text-center">รายละเอียด</TableHead>
               </TableRow>
             </TableHeader>
-          <TableBody>
-            {currentJobs.length > 0 ? (
-              currentJobs.map((job, index) => (
-                <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
-                  <TableCell className="font-medium">{job.id}</TableCell>
-                  <TableCell>{job.title}</TableCell>
-                  <TableCell>
-                    {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(job.status)}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center">
-                      <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
+            <TableBody>
+              {currentJobs.length > 0 ? (
+                currentJobs.map((job, index) => (
+                  <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
+                    <TableCell className="font-medium">{job.id}</TableCell>
+                    <TableCell>{job.title}</TableCell>
+                    <TableCell>
+                      {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(job.status)}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <Button
+                         variant="ghost" 
+                         size="icon" 
+                         onClick={() => onViewJob(job)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => window.location.href = `/leader/workorder/${job.id}`}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="border-b border-gray-200">
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    ไม่พบใบงาน
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="border-b border-gray-200">
-                <TableCell colSpan={5} className="h-24 text-center">
-                  ไม่พบใบงาน
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+              )}
+            </TableBody>
           </Table>
         </div>
       </div>
