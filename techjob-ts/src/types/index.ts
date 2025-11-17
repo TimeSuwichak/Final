@@ -82,6 +82,11 @@ export interface Job {
   createdAt: Date;
   editHistory: EditHistory[]; // ประวัติการแก้ไขโดย Admin เท่านั้น
   activityLog: ActivityLog[]; // ความคืบหน้างานโดย Leader/Tech
+  completionSummary?: string;
+  completionIssues?: string;
+  completionIssueImage?: string;
+  completedAt?: Date;
+  leaderCloser?: string;
 }
 
 export type MaterialUsageType = 'consumable' | 'returnable';

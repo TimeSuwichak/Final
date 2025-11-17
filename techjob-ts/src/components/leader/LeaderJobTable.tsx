@@ -30,17 +30,23 @@ interface LeaderJobTableProps {
   onViewJob: (job: Job) => void;
 }
 
+const statusClasses: Record<'new' | 'in-progress' | 'done', string> = {
+  new: 'bg-blue-100 text-blue-800 border-blue-200',
+  'in-progress': 'bg-amber-100 text-amber-800 border-amber-200',
+  done: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+};
+
 const getStatusBadge = (status: 'new' | 'in-progress' | 'done') => {
-  switch (status) {
-    case 'new':
-      return <Badge variant="default">รอรับงาน</Badge>;
-    case 'in-progress':
-      return <Badge variant="secondary">กำลังทำ</Badge>;
-    case 'done':
-      return <Badge variant="outline">เสร็จสิ้น</Badge>;
-    default:
-      return <Badge variant="destructive">ไม่ทราบสถานะ</Badge>;
-  }
+  const label =
+    status === 'new' ? 'งานใหม่' : status === 'in-progress' ? 'กำลังทำ' : 'เสร็จสิ้น';
+  return (
+    <Badge
+      variant="outline"
+      className={`border ${statusClasses[status]} text-xs font-semibold px-2 py-0.5`}
+    >
+      {label}
+    </Badge>
+  );
 };
 
 const ITEMS_PER_PAGE = 10;

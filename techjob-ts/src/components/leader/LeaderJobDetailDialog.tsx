@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -34,13 +36,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TechSelectMultiDept } from "./TechSelectMultiDept";
 import { TaskManagement } from "./TaskManagement";
 import { AdminMap } from "../admin/AdminMap";
 import type { Job } from "@/types/index";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { user as ALL_USERS } from "@/data/user";
+import { user as ALL_USERS } from "@/Data/user";
 import { useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -88,6 +91,13 @@ export function LeaderJobDetailDialog({
   const [deleteReason, setDeleteReason] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false);
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
+  const [completionSummary, setCompletionSummary] = useState("");
+  const [completionIssues, setCompletionIssues] = useState("");
+  const [completionIssueImage, setCompletionIssueImage] = useState<string | null>(null);
+  const [completionIssueImageName, setCompletionIssueImageName] = useState("");
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
     if (job) {
@@ -96,6 +106,13 @@ export function LeaderJobDetailDialog({
   }, [job]);
 
   if (!job || !user) return null;
+
+  const getTechDisplayName = (techId: string) => {
+    const tech = ALL_USERS.find(
+      (person) => String(person.id) === String(techId)
+    );
+    return tech ? `${tech.fname} ${tech.lname}` : `ช่างรหัส ${techId}`;
+  };
 
   const handleAcknowledge = () => {
     updateJobWithActivity(
@@ -188,6 +205,159 @@ export function LeaderJobDetailDialog({
     alert("บันทึกทีมช่างเรียบร้อย!");
   };
 
+  const handleCompleteJobClick = () => {
+    setIsCompleteConfirmOpen(true);
+  };
+
+  const handleConfirmCompleteAndOpenSummary = () => {
+    setIsCompleteConfirmOpen(false);
+    setCompletionSummary("");
+    setCompletionIssues("");
+    setCompletionIssueImage(null);
+    setCompletionIssueImageName("");
+    setIsCompletionDialogOpen(true);
+  };
+
+  const handleCompletionImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setCompletionIssueImage(null);
+      setCompletionIssueImageName("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCompletionIssueImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    setCompletionIssueImageName(file.name);
+  };
+
+  const generateCompletionPdf = () => {
+    const doc = new jsPDF();
+    let y = 20;
+
+    doc.setFontSize(16);
+    doc.text("รายงานสรุปการปิดงาน", 14, y);
+    doc.setFontSize(11);
+    y += 10;
+    doc.text(`รหัสงาน: ${job.id}`, 14, y);
+    y += 7;
+    doc.text(`ชื่องาน: ${job.title}`, 14, y);
+    y += 7;
+    doc.text(`หัวหน้างาน: ${user.fname}`, 14, y);
+    y += 7;
+    doc.text(
+      `ลูกค้า: ${job.customerName} (${job.customerPhone || "ไม่มีเบอร์"})`,
+      14,
+      y
+    );
+    y += 10;
+    doc.text(
+      `ช่างที่ร่วมงาน: ${job.assignedTechs
+        .map((techId) => getTechDisplayName(techId))
+        .join(", ") || "-"} `,
+      14,
+      y
+    );
+    y += 10;
+    doc.setFontSize(12);
+    doc.text("สรุปผลการทำงาน", 14, y);
+    doc.setFontSize(11);
+    y += 8;
+    doc.text(doc.splitTextToSize(completionSummary || "-", 180), 14, y);
+    y += 8 + doc.getTextDimensions(completionSummary || "-").h;
+
+    doc.setFontSize(12);
+    doc.text("ปัญหาที่พบ", 14, y);
+    doc.setFontSize(11);
+    y += 8;
+    doc.text(doc.splitTextToSize(completionIssues || "-", 180), 14, y);
+    y += 8 + doc.getTextDimensions(completionIssues || "-").h;
+
+    doc.setFontSize(12);
+    doc.text("รายการ Task", 14, y);
+    doc.setFontSize(11);
+    y += 8;
+    job.tasks.forEach((task, index) => {
+      doc.text(`${index + 1}. ${task.title}`, 16, y);
+      y += 6;
+    });
+
+    if (completionIssueImage) {
+      y += 4;
+      doc.setFontSize(12);
+      doc.text("หลักฐานรูปภาพ", 14, y);
+      y += 4;
+      doc.addImage(completionIssueImage, "JPEG", 14, y, 80, 60);
+    }
+
+    doc.save(`${job.id}-completion-report.pdf`);
+  };
+
+  const handleSubmitCompletion = () => {
+    if (!completionSummary.trim()) {
+      alert("กรุณากรอกสรุปผลการทำงาน");
+      return;
+    }
+    setIsGeneratingReport(true);
+
+    updateJobWithActivity(
+      job.id,
+      {
+        status: "done",
+        completionSummary: completionSummary.trim(),
+        completionIssues: completionIssues.trim(),
+        completionIssueImage: completionIssueImage || undefined,
+        completedAt: new Date(),
+        leaderCloser: user.fname,
+      },
+      "status_changed",
+      "หัวหน้าสรุปและปิดงานเรียบร้อย",
+      user.fname,
+      "leader",
+      {
+        summary: completionSummary.trim(),
+        issues: completionIssues.trim(),
+      }
+    );
+
+    addNotification({
+      title: "หัวหน้าปิดงานเรียบร้อย",
+      message: `งาน ${job.title} ถูกปิดโดย ${user.fname}`,
+      recipientRole: "admin",
+      relatedJobId: job.id,
+      metadata: {
+        type: "job_completed",
+        jobId: job.id,
+      },
+    });
+
+    job.assignedTechs.forEach((techId) => {
+      addNotification({
+        title: "งานที่คุณอยู่เสร็จสิ้นแล้ว",
+        message: `หัวหน้า ${user.fname} ปิดงาน ${job.title}`,
+        recipientRole: "user",
+        recipientId: techId,
+        relatedJobId: job.id,
+        metadata: {
+          type: "job_completed",
+          jobId: job.id,
+        },
+      });
+    });
+
+    try {
+      generateCompletionPdf();
+    } finally {
+      setIsGeneratingReport(false);
+      setIsCompletionDialogOpen(false);
+      onOpenChange(false);
+    }
+  };
+
     const handleGoToTracking = () => {
     onOpenChange(false);
     navigate('/leader/tracking');
@@ -204,7 +374,7 @@ export function LeaderJobDetailDialog({
           onEscapeKeyDown={(event) => event.preventDefault()}
         >
           {/* Compact Header */}
-          <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-gradient-to-r from-primary/5 to-primary/10 shrink-0">
+          <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-linear-to-r from-primary/5 to-primary/10 shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -574,16 +744,28 @@ export function LeaderJobDetailDialog({
               ) : (
                 <div />
               )}
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs gap-1"
-                >
-                  <X className="h-3 w-3" />
-                  ปิด
-                </Button>
-              </DialogClose>
+              <div className="flex items-center gap-2">
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs gap-1"
+                  >
+                    <X className="h-3 w-3" />
+                    ปิด
+                  </Button>
+                </DialogClose>
+                {job.status !== "done" && (
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={handleCompleteJobClick}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    จบงาน
+                  </Button>
+                )}
+              </div>
             </div>
           </DialogFooter>
         </DialogContent>
@@ -682,6 +864,157 @@ export function LeaderJobDetailDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Complete Job Confirmation */}
+      <AlertDialog
+        open={isCompleteConfirmOpen}
+        onOpenChange={setIsCompleteConfirmOpen}
+      >
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              ยืนยันการปิดงาน?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs space-y-1">
+              <p>เมื่อปิดงานแล้วจะไม่สามารถแก้ไขข้อมูลได้</p>
+              <p>ระบบจะให้คุณสรุปผลการทำงานและดาวน์โหลดรายงาน PDF</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-xs">
+              ยกเลิก
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="h-8 text-xs"
+              onClick={handleConfirmCompleteAndOpenSummary}
+            >
+              ดำเนินการต่อ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Completion Summary Dialog */}
+      <Dialog
+        open={isCompletionDialogOpen}
+        onOpenChange={(next) => {
+          setIsCompletionDialogOpen(next);
+          if (!next) {
+            setCompletionSummary("");
+            setCompletionIssues("");
+            setCompletionIssueImage(null);
+            setCompletionIssueImageName("");
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg">สรุปและปิดงาน</DialogTitle>
+            <DialogDescription className="text-xs">
+              ตรวจสอบข้อมูลทีมและสรุปผลก่อนยืนยันการปิดงาน
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm border rounded-md p-3 bg-muted/30">
+              <div>
+                <p className="text-xs text-muted-foreground">ชื่องาน</p>
+                <p className="font-semibold">{job.title}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">หัวหน้างาน</p>
+                <p className="font-semibold">{user.fname}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs text-muted-foreground">ทีมช่าง</p>
+                <p className="font-medium">
+                  {job.assignedTechs.length > 0
+                    ? job.assignedTechs
+                        .map((techId) => getTechDisplayName(techId))
+                        .join(", ")
+                    : "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">
+                สรุปผลการทำงาน <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                value={completionSummary}
+                onChange={(e) => setCompletionSummary(e.target.value)}
+                placeholder="อธิบายผลงาน ขั้นตอนสำคัญ และผลลัพธ์"
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">ปัญหาที่พบ (ถ้ามี)</label>
+              <Textarea
+                value={completionIssues}
+                onChange={(e) => setCompletionIssues(e.target.value)}
+                placeholder="แจ้งปัญหาที่พบและวิธีแก้ไข"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">
+                แนบรูปภาพประกอบ (ถ้ามี)
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleCompletionImageChange}
+              />
+              {completionIssueImage && (
+                <div className="mt-2 border rounded-md overflow-hidden">
+                  <img
+                    src={completionIssueImage}
+                    alt="หลักฐาน"
+                    className="max-h-60 object-contain w-full bg-black/5"
+                  />
+                  <p className="text-[10px] p-2 text-muted-foreground">
+                    {completionIssueImageName}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">รายการงานย่อย</label>
+              <div className="rounded-md border bg-muted/20 max-h-40 overflow-auto">
+                {job.tasks.length > 0 ? (
+                  <ul className="text-xs divide-y">
+                    {job.tasks.map((task) => (
+                      <li key={task.id} className="p-2">
+                        {task.title}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground p-3">
+                    ยังไม่มีการสร้าง Task
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCompletionDialogOpen(false)}
+              disabled={isGeneratingReport}
+            >
+              ยกเลิก
+            </Button>
+            <Button onClick={handleSubmitCompletion} disabled={isGeneratingReport}>
+              {isGeneratingReport ? "กำลังบันทึก..." : "ยืนยันปิดงาน"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Image Dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
