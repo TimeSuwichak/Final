@@ -96,6 +96,8 @@ export function EditJobDialog({
   const [pendingChanges, setPendingChanges] = useState<Partial<Job>>({});
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
+  const [isCloseOpen, setIsCloseOpen] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
 
   // State ของฟอร์มแก้ไข
   const [title, setTitle] = useState("");
@@ -380,7 +382,8 @@ export function EditJobDialog({
                     </CardContent>
                   </Card>
 
-                  {/* Leader Status & Progress Card *                 <Card>
+                  {/* Leader Status & Progress Card */}
+                  <Card>
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-primary">
@@ -473,7 +476,6 @@ export function EditJobDialog({
                         </Tabs>
                       )}
                     </CardContent>
-
                   </Card>
                    {/* รายละเอียดงานย่อย-  */}
                    {job.tasks && job.tasks.length > 0 && (

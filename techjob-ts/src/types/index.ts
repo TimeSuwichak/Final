@@ -44,7 +44,7 @@ export interface Task {
     message: string;
     imageUrl?: string;
     updatedBy: string; // User's name
-    updatedAt: Date;
+    updatedAt: string;
   }[];
 }
 
