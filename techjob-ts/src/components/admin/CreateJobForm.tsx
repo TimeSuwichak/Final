@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/data/leader";
 import { AdminMap } from "./AdminMap";
 
+
 // "ประเภทงาน" ที่ Admin จะเลือก
 const JOB_TYPES = [
   "ซ่อมบำรุง",
@@ -196,7 +197,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     <div className="flex items-center justify-center gap-2 mb-8 flex-wrap px-4">
       {STEPS.map((step, index) => (
         <div key={step.id} className="flex items-center gap-2">
-          <Badge
+          <Button
             className={`px-3 py-1.5 cursor-pointer transition-all ${currentStep === step.id
                 ? "bg-purple-500 text-white"
                 : currentStep > step.id
@@ -205,10 +206,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
               }`}
           >
             {step.id}.{step.label}
-          </Badge>
+          </Button>
           {index < STEPS.length - 1 && (
-            <ChevronRight
+             <ChevronRight
               className={`w-4 h-4 ${currentStep > step.id ? "text-green-500" : "text-slate-600"}`}
+
+
             />
           )}
         </div>
@@ -217,8 +220,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   );
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full">
-      <ScrollArea className="flex-1">
+       <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         <div className="w-full p-6">
           <div className="max-w-6xl mx-auto">
             {renderStepIndicator()}
@@ -448,13 +451,14 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="รายละเอียด, เงื่อนไข, หมายเหตุ หรือสิ่งที่ต้องเตรียม..."
-                  className="min-h-64"
+                  className="h-[300px] overflow-y-auto resize-none" 
                 />
               </div>
             )}
           </div>
         </div>
-      </ScrollArea>
+      </div>
+          
 
       <div className="border-t bg-background p-4">
         <div className="mx-auto max-w-6xl flex justify-between">
