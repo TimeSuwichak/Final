@@ -352,9 +352,6 @@ const WorkOrderDetail: React.FC = () => {
                           </div>
                           <div className="text-xs text-muted-foreground space-y-1 px-10">
                             <p>📱 {tech?.phone}</p>
-                            <Badge variant="outline" className="text-xs gap-1">
-                              {tech?.status === 'available' ? '✓ ว่าง' : '⚠ 바쁜'}
-                            </Badge>
                           </div>
                         </CardContent>
                       </Card>
