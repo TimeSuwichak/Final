@@ -128,7 +128,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
     const updatedTask: Task = {
       ...task,
       updates: [...(task.updates || []), newUpdate],
-      status: 'in-progress',
+      status: task.status === 'pending' ? 'in-progress' : task.status,
     };
 
     const updatedTasks = job.tasks.map(t =>
@@ -235,7 +235,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
                               {format(update.updatedAt, 'dd/MM HH:mm', { locale: th })}
                             </span>
                           </div>
-                          <div className="bg-muted/50 rounded-lg p-2 space-y-2">
+                          <div className={`rounded-lg p-2 space-y-2 ${update.message.startsWith('งานถูกตีกลับโดยหัวหน้า:') ? 'bg-yellow-50 border border-yellow-200' : 'bg-muted/50'}`}>
                             <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
                             {update.imageUrl && (
                               <div className="relative group">
