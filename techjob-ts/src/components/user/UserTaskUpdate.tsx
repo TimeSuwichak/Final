@@ -1,7 +1,7 @@
 // src/components/user/UserTaskUpdate.tsx
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { type Job, type Task } from '@/types/index';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,7 +55,18 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   const [imageName, setImageName] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const hasLeaderRejectUpdate = task.updates?.some((update) =>
+    update.message.startsWith("งานถูกตีกลับโดยหัวหน้า:")
+  );
+  const [isExpanded, setIsExpanded] = useState(
+    hasLeaderRejectUpdate || (task.updates?.length ?? 0) > 0
+  );
+
+  useEffect(() => {
+    if (hasLeaderRejectUpdate) {
+      setIsExpanded(true);
+    }
+  }, [hasLeaderRejectUpdate]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -173,10 +184,18 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
     <>
       <Card className="border-blue-200 shadow-sm hover:shadow transition-shadow">
         <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-sm font-semibold flex-1 min-w-0">
-              {task.title}
-            </CardTitle>
+          <div className="flex items-start justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex-1 min-w-0">
+                {task.title}
+              </CardTitle>
+              {hasLeaderRejectUpdate && (
+                <Badge variant="destructive" className="text-[10px] h-5 px-2 gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  ถูกตีกลับ
+                </Badge>
+              )}
+            </div>
             <Badge className={`text-[10px] h-5 px-1.5 gap-1 shrink-0 ${getStatusColor(task.status)}`}>
               {getStatusIcon(task.status)}
               {getStatusText(task.status)}
@@ -257,9 +276,16 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
                   </div>
                 </ScrollArea>
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <MessageSquare className="h-5 w-5 mx-auto mb-1 opacity-40" />
-                  <p className="text-xs">คลิก "แสดง" เพื่อดูความคืบหน้า</p>
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">
+                    {task.updates[task.updates.length - 1].updatedBy}:{" "}
+                    {task.updates[task.updates.length - 1].message.slice(0, 80)}
+                    {task.updates[task.updates.length - 1].message.length > 80 ? "..." : ""}
+                  </div>
+                  <div className="text-center py-2 text-muted-foreground">
+                    <MessageSquare className="h-4 w-4 mx-auto mb-1 opacity-40" />
+                    <p className="text-xs">คลิก "แสดง" เพื่อดูรายละเอียดทั้งหมด</p>
+                  </div>
                 </div>
               )
             ) : (

@@ -295,7 +295,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
     job.assignedTechs?.forEach((techId) => {
       addNotification({
         title: "งานถูกตีกลับ",
-        message: `มีงานตีกลับ จากใบงาน "${job.title}" task "${task.title}"`,
+        message: `หัวหน้า ${user.fname} ตีกลับงาน "${task.title}" ในใบงาน "${job.title}" เหตุผล: ${reason}`,
         recipientRole: "user",
         recipientId: String(techId),
         relatedJobId: job.id,
