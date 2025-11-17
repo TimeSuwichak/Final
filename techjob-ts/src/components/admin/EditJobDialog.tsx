@@ -56,7 +56,8 @@ import {
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
 import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
-import { Briefcase, Users, UserCheck } from "lucide-react";
+import { Briefcase, Users, UserCheck, Download } from "lucide-react";
+import { generateCompletionReportPdf } from "@/utils/jobReport";
 
 // --- CONSTANTS ---
 const JOB_TYPES = [
@@ -379,8 +380,7 @@ export function EditJobDialog({
                     </CardContent>
                   </Card>
 
-                  {/* Leader Status & Progress Card */}
-                  <Card>
+                  {/* Leader Status & Progress Card *                 <Card>
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-primary">
@@ -398,6 +398,34 @@ export function EditJobDialog({
                       {job.status === "new" ? (
                         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
                           <p><strong>สถานะ:</strong> ยังอยู่ในระหว่างรอการยืนยันจากหัวหน้างาน</p>
+                        </div>
+                      ) : job.status === "done" ? (
+                        // สำหรับงานที่เสร็จแล้ว แสดงสรุปผลและปัญหา
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-semibold text-primary mb-2">สรุปผลการทำงาน</h4>
+                            <div className="rounded-lg bg-muted p-3 text-sm leading-relaxed">
+                              <p>{job.completionSummary || "ไม่มีข้อมูลสรุปผล"}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold text-primary mb-2">ปัญหาที่พบ</h4>
+                            <div className="rounded-lg bg-muted p-3 text-sm leading-relaxed">
+                              <p>{job.completionIssues || "ไม่มีปัญหาที่พบ"}</p>
+                            </div>
+                          </div>
+                          {job.completionIssueImage && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-primary mb-2">หลักฐานรูปภาพ</h4>
+                              <div className="rounded-lg overflow-hidden border">
+                                <img
+                                  src={job.completionIssueImage}
+                                  alt="Completion issue"
+                                  className="w-full h-auto max-h-48 object-cover"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <Tabs defaultValue="leader" className="w-full">
@@ -427,7 +455,7 @@ export function EditJobDialog({
                                 ))}
                               </div>
                             )}
-                          
+
                           </TabsContent>
                           <TabsContent value="admin" className="space-y-2 max-h-[40vh] overflow-auto pr-2">
                             {job.editHistory.length === 0 && (
@@ -445,7 +473,7 @@ export function EditJobDialog({
                         </Tabs>
                       )}
                     </CardContent>
-                 
+
                   </Card>
                    {/* รายละเอียดงานย่อย-  */}
                    {job.tasks && job.tasks.length > 0 && (
@@ -466,7 +494,14 @@ export function EditJobDialog({
               </ScrollArea>              
               <DialogFooter className="border-t bg-background">
                 <DialogClose asChild><Button variant="outline">ปิด</Button></DialogClose>
-                <Button onClick={() => onModeChange("edit")}>ไปที่โหมดแก้ไข</Button>
+                {job.status === "done" ? (
+                  <Button onClick={() => generateCompletionReportPdf(job)} variant="default">
+                    <Download className="h-4 w-4 mr-2" />
+                    โหลด PDF รายงาน
+                  </Button>
+                ) : (
+                  <Button onClick={() => onModeChange("edit")}>ไปที่โหมดแก้ไข</Button>
+                )}
               </DialogFooter>
             </>
           ) : (
