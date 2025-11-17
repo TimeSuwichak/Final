@@ -8,6 +8,7 @@ export const multimediaMaterials: Material[] = [
     usageType: "returnable",
     unit: "ตัว",
     stock: 60,
+    minStock: 8,
   },
   {
     id: "IOT-002",
@@ -16,6 +17,7 @@ export const multimediaMaterials: Material[] = [
     usageType: "returnable",
     unit: "ตัว",
     stock: 40,
+    minStock: 5,
   },
   {
     id: "IOT-003",
@@ -24,6 +26,7 @@ export const multimediaMaterials: Material[] = [
     usageType: "consumable",
     unit: "เส้น",
     stock: 50,
+    minStock: 10,
   },
   {
     id: "IOT-004",
@@ -32,5 +35,6 @@ export const multimediaMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 30,
+    minStock: 4,
   },
 ];

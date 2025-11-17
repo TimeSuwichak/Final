@@ -8,6 +8,7 @@ export const networkMaterials: Material[] = [
     usageType: "consumable",
     unit: "เมตร",
     stock: 1500,
+    minStock: 200,
   },
   {
     id: "NET-002",
@@ -16,6 +17,7 @@ export const networkMaterials: Material[] = [
     usageType: "consumable",
     unit: "ตัว",
     stock: 500,
+    minStock: 100,
   },
   {
     id: "NET-003",
@@ -24,6 +26,7 @@ export const networkMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 45,
+    minStock: 5,
   },
   {
     id: "NET-004",
@@ -32,6 +35,7 @@ export const networkMaterials: Material[] = [
     usageType: "returnable",
     unit: "ตัว",
     stock: 80,
+    minStock: 10,
   },
   {
     id: "NET-005",
@@ -40,6 +44,7 @@ export const networkMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 20,
+    minStock: 3,
   },
   {
     id: "NET-006",
@@ -48,5 +53,6 @@ export const networkMaterials: Material[] = [
     usageType: "returnable",
     unit: "ตู้",
     stock: 10,
+    minStock: 2,
   },
 ];

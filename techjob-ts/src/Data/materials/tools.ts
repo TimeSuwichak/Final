@@ -8,6 +8,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 15,
+    minStock: 2,
   },
   {
     id: "TOOL-002",
@@ -16,6 +17,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "อัน",
     stock: 20,
+    minStock: 3,
   },
   {
     id: "TOOL-003",
@@ -24,6 +26,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 12,
+    minStock: 2,
   },
   {
     id: "TOOL-004",
@@ -32,6 +35,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "เครื่อง",
     stock: 18,
+    minStock: 3,
   },
   {
     id: "TOOL-005",
@@ -40,6 +44,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "อัน",
     stock: 30,
+    minStock: 5,
   },
   {
     id: "TOOL-006",
@@ -48,6 +53,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "อัน",
     stock: 10,
+    minStock: 2,
   },
   {
     id: "TOOL-007",
@@ -56,6 +62,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "ชุด",
     stock: 25,
+    minStock: 4,
   },
   {
     id: "TOOL-008",
@@ -64,6 +71,7 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "อัน",
     stock: 22,
+    minStock: 3,
   },
   {
     id: "TOOL-009",
@@ -72,5 +80,6 @@ export const toolMaterials: Material[] = [
     usageType: "returnable",
     unit: "อัน",
     stock: 15,
+    minStock: 2,
   },
 ];

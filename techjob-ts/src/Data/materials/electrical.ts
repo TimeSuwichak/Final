@@ -8,6 +8,7 @@ export const electricalMaterials: Material[] = [
     usageType: "consumable",
     unit: "เมตร",
     stock: 800,
+    minStock: 100,
   },
   {
     id: "ELEC-002",
@@ -16,6 +17,7 @@ export const electricalMaterials: Material[] = [
     usageType: "consumable",
     unit: "เส้น",
     stock: 300,
+    minStock: 50,
   },
   {
     id: "ELEC-003",
@@ -24,6 +26,7 @@ export const electricalMaterials: Material[] = [
     usageType: "consumable",
     unit: "เส้น",
     stock: 250,
+    minStock: 30,
   },
   {
     id: "ELEC-004",
@@ -32,6 +35,7 @@ export const electricalMaterials: Material[] = [
     usageType: "consumable",
     unit: "ม้วน",
     stock: 150,
+    minStock: 20,
   },
   {
     id: "ELEC-005",
@@ -40,6 +44,7 @@ export const electricalMaterials: Material[] = [
     usageType: "returnable",
     unit: "ตัว",
     stock: 75,
+    minStock: 10,
   },
   {
     id: "ELEC-006",
@@ -48,5 +53,6 @@ export const electricalMaterials: Material[] = [
     usageType: "consumable",
     unit: "ตัว",
     stock: 200,
+    minStock: 25,
   },
 ];

@@ -98,4 +98,5 @@ export interface Material {
   usageType: MaterialUsageType;
   unit: string;
   stock: number;
+  minStock: number;
 }

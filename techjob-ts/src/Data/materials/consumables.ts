@@ -8,6 +8,7 @@ export const consumableMaterials: Material[] = [
     usageType: "consumable",
     unit: "ถุง (100 เส้น)",
     stock: 50,
+    minStock: 10,
   },
   {
     id: "GEN-002",
@@ -16,6 +17,7 @@ export const consumableMaterials: Material[] = [
     usageType: "consumable",
     unit: "กล่อง (100 ตัว)",
     stock: 30,
+    minStock: 5,
   },
   {
     id: "GEN-003",
@@ -24,6 +26,7 @@ export const consumableMaterials: Material[] = [
     usageType: "consumable",
     unit: "กล่อง (100 ตัว)",
     stock: 40,
+    minStock: 8,
   },
   {
     id: "GEN-004",
@@ -32,6 +35,7 @@ export const consumableMaterials: Material[] = [
     usageType: "consumable",
     unit: "ถุง (50 ตัว)",
     stock: 60,
+    minStock: 12,
   },
   {
     id: "GEN-005",
@@ -40,5 +44,6 @@ export const consumableMaterials: Material[] = [
     usageType: "consumable",
     unit: "หลอด",
     stock: 20,
+    minStock: 4,
   },
 ];

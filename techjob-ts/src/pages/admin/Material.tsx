@@ -1,8 +1,8 @@
 "use client"
-import React, { useState, useMemo } from "react"
-import { Package, Layers, AlertTriangle, Box, PlusCircle, Search } from "lucide-react"
+import React, { useState, useMemo, useEffect } from "react"
+import { Package, Layers, AlertTriangle, Box, PlusCircle, Search, Edit, ShoppingCart, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -16,15 +16,33 @@ import { networkMaterials } from "@/data/materials/network"
 import { toolMaterials } from "@/data/materials/tools"
 import { multimediaMaterials } from "@/data/materials/multimedia"
 import { consumableMaterials } from "@/data/materials/consumables"
+import { useNotifications } from "@/contexts/NotificationContext"
 import type { Material } from "@/types"
 
+interface PendingOrder {
+  id: string;
+  materialId: string;
+  quantity: number;
+  deliveryDays: number;
+  orderedAt: Date;
+}
+
 export default function MaterialDashboard() {
+  const { addNotification } = useNotifications()
   const [openAdd, setOpenAdd] = useState(false)
+  const [openEdit, setOpenEdit] = useState(false)
+  const [openWithdraw, setOpenWithdraw] = useState(false)
   const [newMat, setNewMat] = useState({ name: "", type: "", stock: 0, unit: "" })
+  const [editMat, setEditMat] = useState<Material | null>(null)
+  const [withdrawMat, setWithdrawMat] = useState<Material | null>(null)
+  const [withdrawQuantity, setWithdrawQuantity] = useState(0)
+  const [withdrawDays, setWithdrawDays] = useState(3)
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [usageTypeFilter, setUsageTypeFilter] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [materials, setMaterials] = useState<Material[]>([])
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([])
   const itemsPerPage = 10
 
   // รวมข้อมูลวัสดุจากทุกหมวดหมู่
@@ -36,12 +54,17 @@ export default function MaterialDashboard() {
     ...consumableMaterials,
   ], [])
 
+  // Initialize materials state with imported data
+  useEffect(() => {
+    setMaterials(allMaterials)
+  }, [allMaterials])
+
   // คำนวณข้อมูลสรุปแบบไดนามิก
   const summary = useMemo(() => {
     const totalItems = allMaterials.length
     const totalStock = allMaterials.reduce((sum, mat) => sum + mat.stock, 0)
     const categories = [...new Set(allMaterials.map(mat => mat.category))].length
-    const lowStock = allMaterials.filter(mat => mat.stock < 10).length
+    const lowStock = allMaterials.filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock).length
 
     return [
       { title: "รายการทั้งหมด", value: totalItems, icon: <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" /> },
@@ -120,8 +143,47 @@ export default function MaterialDashboard() {
   }
 
   const addMaterial = () => {
-    setOpenAdd(false)
-    setNewMat({ name: "", type: "", stock: 0, unit: "" })
+    if (newMat.name && newMat.type && newMat.stock > 0 && newMat.unit) {
+      const newMaterial: Material = {
+        id: `MAT${Date.now()}`,
+        name: newMat.name,
+        category: newMat.type,
+        stock: newMat.stock,
+        unit: newMat.unit,
+        usageType: 'consumable',
+      }
+      setMaterials([...materials, newMaterial])
+      setOpenAdd(false)
+      setNewMat({ name: "", type: "", stock: 0, unit: "" })
+      addNotification({ type: 'success', message: 'เพิ่มวัสดุสำเร็จ' })
+    }
+  }
+
+  const editMaterial = () => {
+    if (editMat) {
+      setMaterials(materials.map(m => m.id === editMat.id ? editMat : m))
+      setOpenEdit(false)
+      setEditMat(null)
+      addNotification({ type: 'success', message: 'แก้ไขวัสดุสำเร็จ' })
+    }
+  }
+
+  const withdrawMaterial = () => {
+    if (withdrawMat && withdrawQuantity > 0 && withdrawQuantity <= (withdrawMat.stock || 0)) {
+      const newOrder: PendingOrder = {
+        id: `ORD${Date.now()}`,
+        materialId: withdrawMat.id,
+        quantity: withdrawQuantity,
+        deliveryDays: withdrawDays,
+        orderedAt: new Date(),
+      }
+      setPendingOrders([...pendingOrders, newOrder])
+      setOpenWithdraw(false)
+      setWithdrawMat(null)
+      setWithdrawQuantity(0)
+      setWithdrawDays(3)
+      addNotification({ type: 'info', message: 'ส่งคำขอเบิกวัสดุแล้ว' })
+    }
   }
 
   return (
@@ -200,6 +262,7 @@ export default function MaterialDashboard() {
                       <TableHead className="w-24">คงเหลือ</TableHead>
                       <TableHead className="w-28">หน่วย</TableHead>
                       <TableHead className="w-32">ประเภท</TableHead>
+                      <TableHead className="w-32">จัดการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -212,7 +275,7 @@ export default function MaterialDashboard() {
                             {material.category}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`font-semibold ${material.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                        <TableCell className={`font-semibold ${material.minStock !== undefined && material.stock <= material.minStock ? 'text-yellow-600' : material.stock < 10 ? 'text-red-600' : 'text-green-600'}`}>
                           {material.stock}
                         </TableCell>
                         <TableCell className="text-muted-foreground">{material.unit}</TableCell>
@@ -220,6 +283,32 @@ export default function MaterialDashboard() {
                           <Badge variant={material.usageType === 'consumable' ? 'default' : 'outline'} className="text-xs">
                             {material.usageType === 'consumable' ? 'ไม่ต้องคืน' : 'คืนได้'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditMat(material)
+                                setOpenEdit(true)
+                              }}
+                              className="h-8 px-2"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setWithdrawMat(material)
+                                setOpenWithdraw(true)
+                              }}
+                              className="h-8 px-2"
+                            >
+                              <ShoppingCart className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -318,6 +407,46 @@ export default function MaterialDashboard() {
         </div>
       </div>
 
+      {/* Low Stock Card */}
+      {allMaterials.filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock).length > 0 && (
+        <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              วัสดุใกล้หมดสต็อก
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allMaterials
+                .filter(mat => mat.minStock !== undefined && mat.stock <= mat.minStock)
+                .map((material) => (
+                  <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
+                    <div>
+                      <p className="font-medium text-sm">{material.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        คงเหลือ: {material.stock} {material.unit} (ต่ำสุด: {material.minStock})
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setWithdrawMat(material)
+                        setOpenWithdraw(true)
+                      }}
+                      className="h-8 px-3"
+                    >
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      เบิก
+                    </Button>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Dialog เพิ่มวัสดุ */}
       <Dialog open={openAdd} onOpenChange={setOpenAdd}>
         <DialogContent className="max-w-md bg-card text-card-foreground">
@@ -374,6 +503,127 @@ export default function MaterialDashboard() {
             </Button>
             <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={addMaterial}>
               บันทึก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog แก้ไขวัสดุ */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="max-w-md bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle>แก้ไขวัสดุ</DialogTitle>
+          </DialogHeader>
+          {editMat && (
+            <div className="space-y-3 py-2">
+              <div>
+                <Label>ชื่อวัสดุ</Label>
+                <Input
+                  value={editMat.name}
+                  onChange={e => setEditMat({ ...editMat, name: e.target.value })}
+                  className="bg-muted border-none focus-visible:ring-blue-500"
+                />
+              </div>
+              <div>
+                <Label>หมวดหมู่</Label>
+                <Select value={editMat.category} onValueChange={v => setEditMat({ ...editMat, category: v })}>
+                  <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
+                    <SelectValue placeholder="เลือกหมวดหมู่" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c, i) => (
+                      <SelectItem key={i} value={c.name}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>ประเภท</Label>
+                <Select value={editMat.usageType} onValueChange={v => setEditMat({ ...editMat, usageType: v as 'consumable' | 'returnable' })}>
+                  <SelectTrigger className="bg-muted border-none focus-visible:ring-blue-500">
+                    <SelectValue placeholder="เลือกประเภท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consumable">ไม่ต้องคืน</SelectItem>
+                    <SelectItem value="returnable">คืนได้</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>คงเหลือ</Label>
+                  <Input
+                    type="number"
+                    value={editMat.stock}
+                    onChange={e => setEditMat({ ...editMat, stock: Number(e.target.value) })}
+                    className="bg-muted border-none focus-visible:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <Label>หน่วย</Label>
+                  <Input
+                    value={editMat.unit}
+                    onChange={e => setEditMat({ ...editMat, unit: e.target.value })}
+                    className="bg-muted border-none focus-visible:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenEdit(false)}>
+              ยกเลิก
+            </Button>
+            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={editMaterial}>
+              บันทึก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog เบิกวัสดุ */}
+      <Dialog open={openWithdraw} onOpenChange={setOpenWithdraw}>
+        <DialogContent className="max-w-md bg-card text-card-foreground">
+          <DialogHeader>
+            <DialogTitle>เบิกวัสดุ</DialogTitle>
+          </DialogHeader>
+          {withdrawMat && (
+            <div className="space-y-3 py-2">
+              <div>
+                <p className="font-medium">{withdrawMat.name}</p>
+                <p className="text-sm text-muted-foreground">คงเหลือ: {withdrawMat.stock} {withdrawMat.unit}</p>
+              </div>
+              <div>
+                <Label>จำนวนที่ต้องการเบิก</Label>
+                <Input
+                  type="number"
+                  value={withdrawQuantity}
+                  onChange={e => setWithdrawQuantity(Number(e.target.value))}
+                  className="bg-muted border-none focus-visible:ring-blue-500"
+                  min={1}
+                  max={withdrawMat.stock}
+                />
+              </div>
+              <div>
+                <Label>จำนวนวันที่ต้องการใช้</Label>
+                <Input
+                  type="number"
+                  value={withdrawDays}
+                  onChange={e => setWithdrawDays(Number(e.target.value))}
+                  className="bg-muted border-none focus-visible:ring-blue-500"
+                  min={1}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenWithdraw(false)}>
+              ยกเลิก
+            </Button>
+            <Button className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400" onClick={withdrawMaterial}>
+              เบิกวัสดุ
             </Button>
           </DialogFooter>
         </DialogContent>
