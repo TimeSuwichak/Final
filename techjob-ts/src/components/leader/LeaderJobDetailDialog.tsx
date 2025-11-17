@@ -47,24 +47,25 @@ import { user as ALL_USERS } from "@/Data/user";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 import { useNavigate } from "react-router-dom";
 import {
-  Calendar,
-  MapPin,
-  User,
-  Phone,
-  FileText,
-  Users,
-  CheckCircle2,
-  AlertCircle,
-  Briefcase,
-  Clock,
-  Save,
-  Trash2,
-  X,
-  Building2,
-  MessageSquare,
-  Map,
-  ClipboardList,
-} from "lucide-react";
+   Calendar, 
+   MapPin, 
+   User, 
+   Phone, 
+   FileText, 
+   Users, 
+   CheckCircle2, 
+   AlertCircle, 
+   Briefcase, 
+   Clock,
+   Save, 
+   Trash2, 
+   X, 
+   Building2, 
+   MessageSquare, 
+   Map, 
+   ClipboardList, 
+   ExternalLink,
+  } from "lucide-react";
 
 interface LeaderJobDetailDialogProps {
   job: Job | null;
@@ -299,9 +300,14 @@ export function LeaderJobDetailDialog({
     generateCompletionReportPdf(job);
   };
 
-  const handleGoToTracking = () => {
+  // const handleGoToTracking = () => {
+  //   onOpenChange(false);
+  //   navigate('/leader/tracking');
+  // };
+
+  const handleGoToWorkOrderDetail = () => {
     onOpenChange(false);
-    navigate('/leader/tracking');
+    navigate(`/leader/workorder/${job.id}`);
   };
 
   const isAcknowledged = job.status !== "new";
@@ -358,7 +364,17 @@ export function LeaderJobDetailDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                {isAcknowledged && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={handleGoToWorkOrderDetail}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">ดูรายละเอียดแบบเต็ม</span>
+                </Button>
+    {/*------------------------------------- เเบบเก่า  -----------------------------------------   */}
+                {/* {isAcknowledged && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -368,7 +384,7 @@ export function LeaderJobDetailDialog({
                     <Map className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">ติดตามช่าง</span>
                   </Button>
-                )}
+                )} */}
               {!isAcknowledged && (
                 <Button
                   size="sm"
@@ -1163,3 +1179,4 @@ export function LeaderJobDetailDialog({
     </>
   );
 }
+

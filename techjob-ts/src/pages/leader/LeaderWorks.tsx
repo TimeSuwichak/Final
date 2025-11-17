@@ -99,18 +99,19 @@ export default function LeaderWorks() {
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
-     <div className="flex items-center justify-between">
+     {/* <div className="flex items-center justify-between"> */}
       <h2 className="text-3xl font-bold tracking-tight">
         ตารางงานของคุณ : {user.fname}
       </h2>
-           <Button 
+      {/* ------------------ของเดิม------------------------ */}
+           {/* <Button 
           onClick={() => navigate('/leader/tracking')}
           className="gap-2"
         >
           <Map className="h-4 w-4" />
           ติดตามช่าง
         </Button>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         {/* (ปฏิทิน ... เหมือนเดิม) */}

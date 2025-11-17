@@ -26,6 +26,7 @@ import UserWorks from "./pages/user/UserWorks";
 import LeaderWorks from "./pages/leader/LeaderWorks";
 import UserDetailPage from "./pages/admin/UserDetailPage";
 import TechnicianTracking from "./pages/leader/TechnicianTracking";
+import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
@@ -56,6 +57,7 @@ const router = createBrowserRouter([
       { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
       { path: "leader/leaderworks", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> },
       { path: "leader/tracking", element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} /> },
+      { path: "leader/workorder/:jobId", element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} /> },
 
       // ──────── Executive ────────
       { path: "executive/exdashboard", element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} /> },
