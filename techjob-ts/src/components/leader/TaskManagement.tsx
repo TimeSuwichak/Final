@@ -54,7 +54,8 @@ import {
   User,
   Maximize2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  CornerUpLeft
 } from 'lucide-react';
 
 interface TaskManagementProps {
@@ -73,12 +74,18 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
-  const [isExpanded, setIsExpanded] = useState(false);
   const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     taskId: string;
     newStatus: 'pending' | 'in-progress' | 'completed';
   } | null>(null);
+  const [rejectTaskDialogOpen, setRejectTaskDialogOpen] = useState(false);
+  const [pendingRejectTask, setPendingRejectTask] = useState<{
+    taskId: string;
+    reason: string;
+    imageUrl?: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!user) return null;
 
@@ -220,6 +227,76 @@ export function TaskManagement({ job }: TaskManagementProps) {
     setStatusChangeDialogOpen(false);
   };
 
+  const handleRejectTask = (taskId: string) => {
+    setPendingRejectTask({ taskId, reason: "" });
+    setRejectTaskDialogOpen(true);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        setPendingRejectTask(prev => prev ? { ...prev, imageUrl } : null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const confirmRejectTask = () => {
+    if (!pendingRejectTask || !pendingRejectTask.reason.trim()) {
+      alert("กรุณาใส่เหตุผลในการตีกลับงาน");
+      return;
+    }
+
+    const { taskId, reason, imageUrl } = pendingRejectTask;
+    const task = job.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newUpdate = {
+      message: `งานถูกตีกลับโดยหัวหน้า: ${reason}`,
+      updatedBy: user.fname,
+      updatedAt: new Date(),
+      imageUrl: imageUrl || undefined,
+    };
+
+    const updatedTask: Task = {
+      ...task,
+      status: 'pending',
+      updates: [...task.updates, newUpdate],
+    };
+
+    const updatedTasks = job.tasks.map(t =>
+      t.id === taskId ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      'task_updated',
+      `ตีกลับงาน "${task.title}"`,
+      user.fname,
+      'leader',
+      { taskId: task.id, taskTitle: task.title, reason, imageUrl }
+    );
+
+    // Send notifications to all assigned techs (users)
+    job.assignedTechs?.forEach(techId => {
+      addNotification({
+        title: "งานถูกตีกลับ",
+        message: `หัวหน้า ${user.fname} ตีกลับงาน "${task.title}": ${reason}`,
+        recipientRole: "user",
+        recipientId: String(techId),
+        relatedJobId: job.id,
+        metadata: { type: "task_rejected", taskId: task.id, reason, imageUrl }
+      });
+    });
+
+    setPendingRejectTask(null);
+    setRejectTaskDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Task List Header */}
@@ -267,11 +344,19 @@ export function TaskManagement({ job }: TaskManagementProps) {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setIsExpanded(!isExpanded);
+                              setExpandedTasks(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(task.id)) {
+                                  newSet.delete(task.id);
+                                } else {
+                                  newSet.add(task.id);
+                                }
+                                return newSet;
+                              });
                             }}
                             className="h-6 px-2 text-xs gap-1"
                           >
-                            {isExpanded ? (
+                            {expandedTasks.has(task.id) ? (
                               <>
                                 <ChevronUp className="h-3 w-3" />
                                 ซ่อน
@@ -287,7 +372,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
                       </div>
 
                       {task.updates && task.updates.length > 0 ? (
-                        isExpanded ? (
+                        expandedTasks.has(task.id) ? (
                           <ScrollArea>
                             <div className="space-y-2 pr-2">
                               {task.updates.map((update, idx) => (
@@ -344,17 +429,30 @@ export function TaskManagement({ job }: TaskManagementProps) {
                     </div>
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleToggleTaskStatus(task.id, task.status);
-                    }}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleTaskStatus(task.id, task.status);
+                      }}
+                      className="text-xs px-2"
+                    >
+                      จบงานย่อย
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRejectTask(task.id);
+                      }}
+                      className="text-xs px-2"
+                    >
+                      ตีกลับงาน
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -547,6 +645,81 @@ export function TaskManagement({ job }: TaskManagementProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction onClick={confirmStatusChange}>ยืนยัน</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reject Task Dialog */}
+      <AlertDialog open={rejectTaskDialogOpen} onOpenChange={setRejectTaskDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ตีกลับงาน</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณต้องการตีกลับงาน "{job.tasks.find(t => t.id === pendingRejectTask?.taskId)?.title}" ใช่หรือไม่?
+              <br />
+              กรุณาระบุเหตุผลในการตีกลับงาน
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-6 py-4 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">เหตุผลในการตีกลับงาน *</Label>
+              <Textarea
+                value={pendingRejectTask?.reason || ""}
+                onChange={(e) => setPendingRejectTask(prev => prev ? { ...prev, reason: e.target.value } : null)}
+                placeholder="ระบุเหตุผลในการตีกลับงาน..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">แนบรูปภาพ (ไม่บังคับ)</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="gap-2"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  เลือกรูปภาพ
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                {pendingRejectTask?.imageUrl && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">รูปภาพถูกเลือกแล้ว</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingRejectTask(prev => prev ? { ...prev, imageUrl: undefined } : null)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {pendingRejectTask?.imageUrl && (
+                <div className="relative w-32 h-32 group overflow-hidden rounded-md border bg-muted shrink-0">
+                  <img
+                    src={pendingRejectTask.imageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRejectTask} disabled={!pendingRejectTask?.reason.trim()}>
+              ตีกลับงาน
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
