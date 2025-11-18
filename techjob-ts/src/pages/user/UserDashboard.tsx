@@ -1,5 +1,5 @@
 "use client";
-
+import { useNavigate } from "react-router-dom";
 import React, { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useJobs } from "@/contexts/JobContext";
@@ -12,15 +12,7 @@ import {
 } from "lucide-react";
 import { JobTypePieChart } from "@/components/user/charts/JobTypePieChart";
 import { MonthlyPerformanceChart } from "@/components/user/charts/MonthlyPerformanceChart";
-<<<<<<< HEAD
-import { collection, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useNavigate } from "react-router-dom";
-import { MessageCircle } from "lucide-react";
-
-=======
 import UserWorkStatus from "@/components/user/UserWorkStatus";
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
 
 // ==========================================================
 // ✨ USER DASHBOARD PAGE (ฉบับสมบูรณ์) ✨
@@ -160,17 +152,6 @@ export default function UserDashboard() {
   // --- 4. JSX (ส่วนแสดงผลที่ปรับ Font แล้ว) ---
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
-<<<<<<< HEAD
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">ผลงานของคุณ, {user.fname}</h2>
-        <button
-    onClick={openChat}
-    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-  >
-    <MessageCircle className="w-5 h-5" />
-    แชทกับแอดมิน
-  </button>
-=======
   <div className="flex items-center justify-between">
     <div className="border-l-4 border-primary pl-4">
       <h2 className="text-4xl font-bold tracking-tight">
@@ -182,7 +163,6 @@ export default function UserDashboard() {
       {/* User Work Status (new) */}
       <div>
         <UserWorkStatus />
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
       </div>
 
       {/* ================================================== */}
@@ -265,14 +245,10 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
       </div>
-<<<<<<< HEAD
-      
-=======
       {/* ================================================== */}
       {/* ✨ จบส่วนที่อัปเดต ✨ */}
       {/* ================================================== */}
 
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <JobTypePieChart data={finalJobTypeData} />

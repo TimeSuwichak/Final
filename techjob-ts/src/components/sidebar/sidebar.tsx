@@ -68,13 +68,8 @@ export default function Sidebar() {
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
-<<<<<<< HEAD
-      { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
-      { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
-=======
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
     ],
 
     executive: [

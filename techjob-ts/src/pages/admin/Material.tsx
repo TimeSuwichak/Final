@@ -319,17 +319,6 @@ export default function MaterialDashboard() {
         {/* Left Section (Table Placeholder) */}
         <div className="md:col-span-2">
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
-<<<<<<< HEAD
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <Input
-                  placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
-                  className="max-w-sm bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                />
-              </div>
-              <div className="text-center text-muted-foreground py-12 border rounded-lg bg-muted">
-                (ตารางแสดงรายการวัสดุจะอยู่ตรงนี้)
-=======
             <CardContent className="p-4 h-[600px] flex flex-col">
               <div className="flex flex-col gap-3 mb-3">
                 <div className="flex gap-3">
@@ -466,7 +455,6 @@ export default function MaterialDashboard() {
                     ไม่พบวัสดุที่ค้นหา
                   </div>
                 )}
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
               </div>
               {totalPages > 1 && (
                 <div className="flex justify-center ">

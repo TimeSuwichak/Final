@@ -1,9 +1,11 @@
 // src/router.tsx
 import React from "react";
-import { Navigate } from "react-router-dom";
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 import Sidebar from "./components/sidebar/sidebar";
 import LoginPage from "./pages/LoginPage";
+
+// COMPONENTS
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // ADMIN
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -23,6 +25,8 @@ import UserWorks from "./pages/user/UserWorks";
 // LEADER
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import LeaderWorks from "./pages/leader/LeaderWorks";
+import TechnicianTracking from "./pages/leader/TechnicianTracking";
+import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
 
 // EXECUTIVE
 import ExDashboard from "./pages/executive/ExDashboard";
@@ -34,24 +38,6 @@ import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
-<<<<<<< HEAD
-=======
-import Settings from "./pages/admin/Settings";
-import UserDashboard from "./pages/user/UserDashboard";
-import LeaderDashboard from "./pages/leader/LeaderDashboard";
-import ReportProblem from "./pages/user/ReportProblem";
-import ProtectedRoute from "./components/ProtectedRoute";
-import UserDetail from "./pages/admin/UserDetail";
-import ExDashboard from "./pages/executive/ExDashboard";
-import UserWorks from "./pages/user/UserWorks";
-import LeaderWorks from "./pages/leader/LeaderWorks";
-import UserDetailPage from "./pages/admin/UserDetailPage";
-import TechnicianTracking from "./pages/leader/TechnicianTracking";
-import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
-
-// PROTECTED
-import ProtectedRoute from "./components/ProtectedRoute";
 
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
@@ -68,7 +54,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <Sidebar />,
     children: [
-      // ADMIN
+      // ──────── ADMIN ────────
       {
         path: "admin/admindashboard",
         element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
@@ -98,7 +84,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />,
       },
 
-      // USER
+      // ──────── USER ────────
       {
         path: "user/userdashboard",
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} />,
@@ -112,31 +98,31 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />,
       },
 
-<<<<<<< HEAD
-      // LEADER
-      {
-        path: "leader/leaderdashboard",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />,
-      },
-      {
-        path: "leader/leaderworks",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />,
-      },
-=======
       // ──────── LEADER ────────
-      { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
-      { path: "leader/leaderworks", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> },
-      { path: "leader/tracking", element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} /> },
-      { path: "leader/workorder/:jobId", element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} /> },
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
+      { 
+        path: "leader/leaderdashboard", 
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> 
+      },
+      { 
+        path: "leader/leaderworks", 
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> 
+      },
+      { 
+        path: "leader/tracking", 
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} /> 
+      },
+      { 
+        path: "leader/workorder/:jobId", 
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} /> 
+      },
 
-      // EXECUTIVE
+      // ──────── EXECUTIVE ────────
       {
         path: "executive/exdashboard",
         element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} />,
       },
 
-      // COMMON
+      // ──────── COMMON ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
       { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
       { path: "notification", element: <ProtectedRoute element={<Notification />} /> },
@@ -145,6 +131,7 @@ const router = createBrowserRouter([
       { path: "system", element: <ProtectedRoute element={<System />} /> },
       { path: "user-detail/:userId", element: <UserDetailPage /> },
 
+      // ──────── CHAT ────────
       // USER CHAT
       {
         path: "chat",
@@ -168,7 +155,3 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-
-
-
-
