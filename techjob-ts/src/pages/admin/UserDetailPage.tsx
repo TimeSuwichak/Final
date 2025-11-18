@@ -13,6 +13,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { JobStats } from "@/components/admin/JobStats";
+import { UserJobCalendar } from "@/components/admin/UserJobCalendar";
 
 // รวมข้อมูลเริ่มต้นทั้งหมด
 const allPersonnel = [...user, ...leader, ...executive, ...admin];
@@ -48,20 +50,20 @@ const normalizePerson = (p: any) => ({
 });
 
 export default function UserDetailPage() {
-  const { userId } = useParams<{ userId: string }>();
+  const { id } = useParams<{ id: string }>();
   const [person, setPerson] = useState<any>(null);
 
-  // โหลดข้อมูลผู้ใช้ตาม userId
+  // โหลดข้อมูลผู้ใช้ตาม id (รับมาจาก route parameter)
   const loadPersonData = useCallback(() => {
-    if (!userId) return;
+    if (!id) return;
 
-    console.log("🔍 Loading user:", userId);
+    console.log("🔍 Loading user:", id);
 
     // 1) โหลดจาก localStorage ก่อน
     // ค้นหาทั้ง id และ originalId เพราะ Datauser.tsx ส่ง originalId มา
     const stored = loadPersonnelFromStorage();
     const fromLocal = stored.find((p: any) =>
-      String(p.originalId) === String(userId) || String(p.id) === String(userId)
+      String(p.originalId) === String(id) || String(p.id) === String(id)
     );
 
     if (fromLocal) {
@@ -73,7 +75,7 @@ export default function UserDetailPage() {
     // 2) โหลดจาก initial data
     // ค้นหาทั้ง id และ originalId (ถ้ามี)
     const fromInitial = allPersonnel.find((p: any) =>
-      String(p.id) === String(userId) || String(p.originalId) === String(userId)
+      String(p.id) === String(id) || String(p.originalId) === String(id)
     );
 
     if (fromInitial) {
@@ -85,7 +87,7 @@ export default function UserDetailPage() {
     // 3) ไม่พบข้อมูล
     console.log("❌ User not found");
     setPerson("NOT_FOUND");
-  }, [userId]);
+  }, [id]);
 
   useEffect(() => {
     loadPersonData();
@@ -118,9 +120,9 @@ export default function UserDetailPage() {
     return (
       <div className="flex-1 space-y-6 p-4 md:p-8 text-center">
         <h2 className="text-2xl font-bold">ไม่พบข้อมูลผู้ใช้</h2>
-        <p className="text-muted-foreground">ไม่พบข้อมูลสำหรับ ID: {userId}</p>
+        <p className="text-muted-foreground">ไม่พบข้อมูลสำหรับ ID: {id}</p>
         <Button asChild>
-          <Link to="/admin/Datauser">กลับไปหน้ารายชื่อ</Link>
+          <Link to="/admin/datauser">กลับไปหน้ารายชื่อ</Link>
         </Button>
       </div>
     );
@@ -130,56 +132,66 @@ export default function UserDetailPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <Button asChild variant="outline">
-        <Link to="/admin/Datauser">
+        <Link to="/admin/datauser">
           <ArrowLeft className="mr-2 h-4 w-4" />
           กลับไปหน้ารายชื่อ
         </Link>
       </Button>
 
-      <Card className="max-w-3xl mx-auto">
-        <CardHeader className="text-center">
-          <Avatar className="w-24 h-24 mx-auto mb-4 border-2 border-primary">
-            <AvatarImage src={person.urlImage} />
-            <AvatarFallback className="text-3xl">
-              {person.fname?.[0] || "U"}
-              {person.lname?.[0] || ""}
-            </AvatarFallback>
-          </Avatar>
-          <CardTitle className="text-3xl">{person.fname} {person.lname}</CardTitle>
-          <CardDescription className="text-lg">{person.position}</CardDescription>
-        </CardHeader>
+      {/* ส่วนบน: ข้อมูลโปรไฟล์และสถิติงาน */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* กล่องด้านซ้าย: รายละเอียดโปรไฟล์ */}
+        <Card>
+          <CardHeader className="text-center">
+            <Avatar className="w-24 h-24 mx-auto mb-4 border-2 border-primary">
+              <AvatarImage src={person.urlImage} />
+              <AvatarFallback className="text-3xl">
+                {person.fname?.[0] || "U"}
+                {person.lname?.[0] || ""}
+              </AvatarFallback>
+            </Avatar>
+            <CardTitle className="text-3xl">{person.fname} {person.lname}</CardTitle>
+            <CardDescription className="text-lg">{person.position}</CardDescription>
+          </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="p-4 bg-muted rounded-lg space-y-2">
-            <p><strong>แผนก:</strong> {departmentMap[person.department] || person.department}</p>
-            <p><strong>Email:</strong> {person.email}</p>
-            <p><strong>ตำแหน่ง:</strong> {person.position}</p>
-            {person.phone && <p><strong>เบอร์โทร:</strong> {person.phone}</p>}
-            {person.address && <p><strong>ที่อยู่:</strong> {person.address}</p>}
-            {person.idCard && <p><strong>บัตรประชาชน:</strong> {person.idCard}</p>}
-            {person.startDate && <p><strong>เริ่มงาน:</strong> {person.startDate}</p>}
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <p><strong>แผนก:</strong> {departmentMap[person.department] || person.department}</p>
+              <p><strong>Email:</strong> {person.email}</p>
+              <p><strong>ตำแหน่ง:</strong> {person.position}</p>
+              {person.phone && <p><strong>เบอร์โทร:</strong> {person.phone}</p>}
+              {person.address && <p><strong>ที่อยู่:</strong> {person.address}</p>}
+              {person.idCard && <p><strong>บัตรประชาชน:</strong> {person.idCard}</p>}
+              {person.startDate && <p><strong>เริ่มงาน:</strong> {person.startDate}</p>}
 
-            <p>
-              <strong>สถานะ:</strong>
-              <span
-                className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
-                  ? "bg-green-400 text-gray-700"
-                  : "bg-red-400 text-gray-200"
-                  }`}
-              >
-                {person.status}
-              </span>
-            </p>
+              <p>
+                <strong>สถานะ:</strong>
+                <span
+                  className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
+                    ? "bg-green-400 text-gray-700"
+                    : "bg-red-400 text-gray-200"
+                    }`}
+                >
+                  {person.status}
+                </span>
+              </p>
 
-            <p>
-              <strong>Role:</strong>
-              <span className="capitalize px-2 py-1 bg-secondary rounded-full text-xs ml-2">
-                {person.role}
-              </span>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+              <p>
+                <strong>Role:</strong>
+                <span className="capitalize px-2 py-1 bg-secondary rounded-full text-xs ml-2">
+                  {person.role}
+                </span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* กล่องด้านขวา: สถิติงาน */}
+        <JobStats userId={person.originalId || person.id} />
+      </div>
+
+      {/* ส่วนล่าง: ปฏิทินงาน */}
+      <UserJobCalendar userId={person.originalId || person.id} />
     </div>
   );
 }
