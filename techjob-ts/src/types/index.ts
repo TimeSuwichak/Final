@@ -46,6 +46,12 @@ export interface Task {
     updatedBy: string; // User's name
     updatedAt: string;
   }[];
+  materials: {
+    materialId: string;
+    quantity: number;
+    withdrawnAt: Date;
+    withdrawnBy: string;
+  }[];
 }
 
 // พิมพ์เขียวสำหรับ "ใบงานหลัก" (Job)
