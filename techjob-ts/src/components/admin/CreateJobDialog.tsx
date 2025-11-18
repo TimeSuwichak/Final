@@ -25,9 +25,9 @@ export function CreateJobDialog({ open, onOpenChange }: CreateJobDialogProps) {
         <Button>+ สร้างใบงานใหม่</Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-4xl max-h-[90vh]  flex flex-col"
+        className="sm:max-w-4xl h-[90vh] flex flex-col overflow-hidden"
         onPointerDownOutside={(event) => event.preventDefault()}
-        onEscapeKeyDown={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()} 
       >
         <DialogHeader>
           <DialogTitle>สร้างใบงานใหม่</DialogTitle>

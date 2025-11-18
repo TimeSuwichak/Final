@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom"
 import { FaCog } from "react-icons/fa"
 import { VscGraph } from "react-icons/vsc"
 import { HiMenu, HiX } from "react-icons/hi"
+import { Map } from 'lucide-react'
 import { ModeToggle } from "../common/mode-toggle"
 import LogoutButton from "../auth/LogoutButton"
 import { useAuth } from "@/contexts/AuthContext"
@@ -43,11 +44,19 @@ export default function LeaderSidebar() {
             >
               <VscGraph className="inline mr-2" /> ข้อมูลภาพรวม
             </NavLink>
+
             <NavLink
               to="/leader/LeaderReport"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <VscGraph className="inline mr-2" /> การแจ้งปัญหา
+            </NavLink>
+
+             <NavLink
+              to="/leader/tracking"
+              className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
+            >
+              <Map className="inline mr-2 h-4 w-4" /> ติดตามช่าง
             </NavLink>
 
             <NavLink

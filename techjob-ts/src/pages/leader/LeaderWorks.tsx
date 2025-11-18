@@ -20,11 +20,16 @@ import { LeaderJobTable } from "@/components/leader/LeaderJobTable";
 import { LeaderJobDetailDialog } from "@/components/leader/LeaderJobDetailDialog";
 import type { Job } from "@/types/index";
 import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Map } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // (ใช้ชื่อฟังก์ชันใหม่ตาม Error Log)
 export default function LeaderWorks() {
   const { jobs } = useJobs();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // (State ที่จำ "ID" ถูกต้องแล้ว)
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -94,13 +99,23 @@ export default function LeaderWorks() {
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
+     {/* <div className="flex items-center justify-between"> */}
       <h2 className="text-3xl font-bold tracking-tight">
-        Leader Dashboard: {user.fname}
+        ตารางงานของคุณ : {user.fname}
       </h2>
+      {/* ------------------ของเดิม------------------------ */}
+           {/* <Button 
+          onClick={() => navigate('/leader/tracking')}
+          className="gap-2"
+        >
+          <Map className="h-4 w-4" />
+          ติดตามช่าง
+        </Button>
+      </div> */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         {/* (ปฏิทิน ... เหมือนเดิม) */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-1 order-1 xl:order-1">
           <JobCalendar
             jobs={myJobs}
             selectedDate={selectedDate}
@@ -109,7 +124,7 @@ export default function LeaderWorks() {
         </div>
 
         {/* (ตาราง ... เหมือนเดิม) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="xl:col-span-2 space-y-4 order-2 xl:order-2">
           <div>
             <h3 className="text-xl font-semibold">
               {selectedDate
@@ -130,21 +145,22 @@ export default function LeaderWorks() {
                 placeholder="ค้นหาโดยรหัสหรือหัวข้อ"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-                className="w-full sm:w-72"
+                className="w-full sm:w-72 bg-white border"
               />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground">สถานะ:</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="rounded-md border px-2 py-1"
-              >
-                <option value="all">ทั้งหมด</option>
-                <option value="new">รอรับทราบ</option>
-                <option value="in-progress">กำลังดำเนินการ</option>
-                <option value="done">เสร็จสิ้น</option>
-              </select>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'new' | 'in-progress' | 'done')}>
+                <SelectTrigger className="w-40 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">ทั้งหมด</SelectItem>
+                  <SelectItem value="new">รอรับทราบ</SelectItem>
+                  <SelectItem value="in-progress">กำลังดำเนินการ</SelectItem>
+                  <SelectItem value="done">เสร็จสิ้น</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

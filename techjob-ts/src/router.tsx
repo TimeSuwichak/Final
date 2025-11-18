@@ -34,6 +34,21 @@ import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
+<<<<<<< HEAD
+=======
+import Settings from "./pages/admin/Settings";
+import UserDashboard from "./pages/user/UserDashboard";
+import LeaderDashboard from "./pages/leader/LeaderDashboard";
+import ReportProblem from "./pages/user/ReportProblem";
+import ProtectedRoute from "./components/ProtectedRoute";
+import UserDetail from "./pages/admin/UserDetail";
+import ExDashboard from "./pages/executive/ExDashboard";
+import UserWorks from "./pages/user/UserWorks";
+import LeaderWorks from "./pages/leader/LeaderWorks";
+import UserDetailPage from "./pages/admin/UserDetailPage";
+import TechnicianTracking from "./pages/leader/TechnicianTracking";
+import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
+>>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
 
 // PROTECTED
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -97,6 +112,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />,
       },
 
+<<<<<<< HEAD
       // LEADER
       {
         path: "leader/leaderdashboard",
@@ -106,6 +122,13 @@ const router = createBrowserRouter([
         path: "leader/leaderworks",
         element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />,
       },
+=======
+      // ──────── LEADER ────────
+      { path: "leader/leaderdashboard", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> },
+      { path: "leader/leaderworks", element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> },
+      { path: "leader/tracking", element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} /> },
+      { path: "leader/workorder/:jobId", element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} /> },
+>>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
 
       // EXECUTIVE
       {
