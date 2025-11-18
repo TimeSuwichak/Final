@@ -807,9 +807,15 @@ export default function Datauser() {
             <TableBody>
               {pagedData.length > 0 ? (
                 pagedData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="min-w-0">
-                      <div className="flex items-center gap-3 min-w-0">
+                  <TableRow
+                     onClick={() =>
+                              navigate(`/admin/user-detail/${item.originalId}`)
+                            }
+                  key={item.id}>
+                    <TableCell className="min-w-0 cursor-pointer">
+                      <div
+                   
+                       className="flex items-center gap-3 min-w-0">
                         <img
                           src={item.urlImage}
                           className="w-8 h-8 rounded-full object-cover bg-muted"
