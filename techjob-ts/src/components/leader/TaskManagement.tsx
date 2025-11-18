@@ -33,6 +33,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
+import { electricalMaterials } from "@/data/materials/electrical";
+import { networkMaterials } from "@/data/materials/network";
+import { toolMaterials } from "@/data/materials/tools";
+import { multimediaMaterials } from "@/data/materials/multimedia";
+import { consumableMaterials } from "@/data/materials/consumables";
 import {
   Plus,
   MessageSquare,
@@ -81,6 +86,22 @@ export function TaskManagement({ job }: TaskManagementProps) {
     imageUrl?: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Combine all materials for lookup
+  const allMaterials = [
+    ...electricalMaterials,
+    ...networkMaterials,
+    ...toolMaterials,
+    ...multimediaMaterials,
+    ...consumableMaterials,
+  ];
+
+  const getMaterialName = (materialId: string) => {
+    // Extract the actual material ID by removing the category prefix (e.g., "multimedia-IOT-001" -> "IOT-001")
+    const actualId = materialId.includes('-') ? materialId.split('-').slice(1).join('-') : materialId;
+    const material = allMaterials.find(m => m.id === actualId);
+    return material ? material.name : materialId;
+  };
 
   if (!user) return null;
 

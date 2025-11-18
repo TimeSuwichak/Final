@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
