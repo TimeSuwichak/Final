@@ -37,8 +37,16 @@ import {
   Camera,
   Maximize2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Package,
+  Plus
 } from 'lucide-react';
+import { MaterialSelectionDialog } from './MaterialSelectionDialog';
+import { electricalMaterials } from '@/data/materials/electrical';
+import { networkMaterials } from '@/data/materials/network';
+import { toolMaterials } from '@/data/materials/tools';
+import { multimediaMaterials } from '@/data/materials/multimedia';
+import { consumableMaterials } from '@/data/materials/consumables';
 
 interface UserTaskUpdateProps {
   job: Job;
@@ -55,6 +63,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   const [imageName, setImageName] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
   const hasLeaderRejectUpdate = task.updates?.some((update) =>
     update.message.startsWith("งานถูกตีกลับโดยหัวหน้า:")
   );
@@ -69,6 +78,20 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   }, [hasLeaderRejectUpdate]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Combine all materials for lookup
+  const allMaterials = [
+    ...electricalMaterials,
+    ...networkMaterials,
+    ...toolMaterials,
+    ...multimediaMaterials,
+    ...consumableMaterials,
+  ];
+
+  const getMaterialName = (materialId: string) => {
+    const material = allMaterials.find(m => m.id === materialId);
+    return material ? material.name : materialId;
+  };
 
   if (!user) return null;
 
@@ -299,6 +322,30 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
           <Separator />
 
+          {/* Withdrawn Materials Section */}
+          {task.materials && task.materials.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Package className="h-3.5 w-3.5 text-green-600" />
+                <h4 className="text-xs font-semibold">วัสดุที่เบิก ({task.materials.length})</h4>
+              </div>
+              <div className="space-y-1">
+                {task.materials.map((material, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">{getMaterialName(material.materialId)} ({material.materialId})</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {material.quantity} • {format(material.withdrawnAt, 'dd/MM/yyyy HH:mm', { locale: th })} • {material.withdrawnBy}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
           {/* Update Form */}
           <div className="space-y-2.5">
             <div className="flex items-center gap-1.5">
@@ -371,7 +418,16 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
               )}
             </div>
 
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-between pt-1">
+              <Button
+                onClick={() => setMaterialDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+              >
+                <Plus className="h-3 w-3" />
+                เบิกวัสดุ
+              </Button>
               <Button
                 onClick={handleUpdate}
                 disabled={!message.trim()}
@@ -408,6 +464,14 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Material Selection Dialog */}
+      <MaterialSelectionDialog
+        open={materialDialogOpen}
+        onOpenChange={setMaterialDialogOpen}
+        job={job}
+        task={task}
+      />
     </>
   );
 }
