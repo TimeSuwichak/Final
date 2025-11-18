@@ -1,8 +1,8 @@
 import React from 'react';
 import { 
   ResponsiveContainer, 
-  BarChart, 
-  Bar, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -22,79 +22,67 @@ interface ChartProps {
   isDarkMode: boolean;
 }
 
-const MonthlyBarChart: React.FC<ChartProps> = ({ isDarkMode }) => {
+const MonthlyAreaChart: React.FC<ChartProps> = ({ isDarkMode }) => {
   return (
-    <div className="h-full p-6 transition-colors duration-300 bg-white border shadow-lg rounded-xl border-slate-200 dark:bg-[#1e1e2d] dark:border-slate-800">
-      <div className="mb-6">
-        <h4 className="text-lg font-bold text-slate-800 dark:text-white">ผลงานรายเดือน</h4>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">จำนวนงานที่คุณทำสำเร็จในแต่ละเดือน</p>
+    <div className="h-full p-6 bg-white border shadow-sm rounded-2xl border-slate-200 dark:bg-[#1e1e2d] dark:border-slate-800">
+      <div className="flex items-end justify-between mb-6">
+        <div>
+            <h4 className="text-lg font-bold text-slate-800 dark:text-white">Trends</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400">แนวโน้มปริมาณงาน (6 เดือน)</p>
+        </div>
+        <div className="text-2xl font-bold text-indigo-500">
+            32 <span className="text-sm font-normal text-slate-400">งานรวม</span>
+        </div>
       </div>
       
       <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 20, right: 0, left: -25, bottom: 0 }}>
-            {/* 1. นิยามการไล่สี (Gradient) */}
+          <AreaChart data={data} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
             <defs>
-              <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#a78bfa" stopOpacity={1}/> {/* สีม่วงอ่อน */}
-                <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8}/> {/* สีม่วงเข้ม */}
+              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/> {/* Indigo-500 */}
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
               </linearGradient>
             </defs>
-
-            {/* 2. Grid: ปรับสีเส้นตามโหมด */}
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke={isDarkMode ? "#334155" : "#e2e8f0"} 
-              vertical={false} 
-            />
-
-            {/* 3. แกน X: ปรับสีตัวหนังสือ */}
+            
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? "#334155" : "#f1f5f9"} />
+            
             <XAxis 
               dataKey="name" 
-              stroke={isDarkMode ? "#94a3b8" : "#64748b"} 
-              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }} 
               axisLine={false} 
               tickLine={false} 
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }} 
+              dy={10}
             />
-
-            {/* 4. แกน Y: ปรับสีตัวหนังสือ */}
             <YAxis 
-              stroke={isDarkMode ? "#94a3b8" : "#64748b"} 
-              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }} 
               axisLine={false} 
               tickLine={false} 
+              tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }} 
             />
-
-            {/* 5. Tooltip: ปรับพื้นหลังและสีตัวอักษร */}
+            
             <Tooltip 
-              cursor={{ fill: isDarkMode ? '#334155' : '#f1f5f9', opacity: 0.4 }}
-              contentStyle={{ 
-                backgroundColor: isDarkMode ? '#1e1e2d' : '#ffffff', 
-                borderColor: isDarkMode ? '#334155' : '#e2e8f0', 
-                color: isDarkMode ? '#fff' : '#1e293b', 
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-              }}
+                contentStyle={{ 
+                    backgroundColor: isDarkMode ? '#1e1e2d' : '#ffffff', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }}
+                cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '4 4' }}
             />
-
-            {/* 6. ตัวแท่งกราฟ (Bar) และ Label ด้านบน */}
-            <Bar 
-              dataKey="value" 
-              fill="url(#purpleGradient)" 
-              radius={[6, 6, 0, 0]} 
-              barSize={32}
-              label={{ 
-                position: 'top', 
-                fill: isDarkMode ? '#e2e8f0' : '#475569', // ปรับสีตัวเลขบนกราฟ
-                fontSize: 12, 
-                fontWeight: 'bold' 
-              }} 
+            
+            <Area 
+                type="monotone" // ทำให้เส้นโค้ง
+                dataKey="value" 
+                stroke="#6366f1" // สีเส้น
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorValue)" // สีพื้นที่ไล่ระดับ
             />
-          </BarChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-export default MonthlyBarChart;
+export default MonthlyAreaChart;
