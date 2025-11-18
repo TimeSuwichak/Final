@@ -1,24 +1,23 @@
 import React from 'react';
-import KpiRow from '../../components/leader/KpiRow';
-import UrgentSection from '../../components/leader/UrgentSection';
-import TechnicianStatusTable from '../../components/leader/TechnicianStatusTable';
-import WorkloadDistributionChart from '../../components/leader/WorkloadDistributionChart';
-import RecentActivityFeed from '../../components/leader/RecentActivityFeed';
+import TaskStatusHeader from '../../components/leader/TaskStatusHeader';
+import SummaryCards from '../../components/leader/SummaryCards';
+import TypeDonut from '../../components/leader/TypeDonut';
+import MonthlyBarChart from '../../components/leader/MonthlyBarChart';
 
 const LeaderDashboard: React.FC = () => {
   return (
     <div className="space-y-6 p-4">
-      <KpiRow />
+      <TaskStatusHeader />
 
-      <UrgentSection />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
-          <TechnicianStatusTable />
-          <RecentActivityFeed />
+      <SummaryCards />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <TypeDonut />
         </div>
 
-        <div className="space-y-4">
-          <WorkloadDistributionChart />
+        <div>
+          <MonthlyBarChart />
         </div>
       </div>
     </div>

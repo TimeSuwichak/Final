@@ -65,7 +65,7 @@ const router = createBrowserRouter([
       },
       {
         path: "admin/user-detail/:id",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetail />} />,
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetailPage />} />,
       },
       {
         path: "admin/workoders",
@@ -99,21 +99,21 @@ const router = createBrowserRouter([
       },
 
       // ──────── LEADER ────────
-      { 
-        path: "leader/leaderdashboard", 
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} /> 
+      {
+        path: "leader/leaderdashboard",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />
       },
-      { 
-        path: "leader/leaderworks", 
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks/>} /> 
+      {
+        path: "leader/leaderworks",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />
       },
-      { 
-        path: "leader/tracking", 
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} /> 
+      {
+        path: "leader/tracking",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} />
       },
-      { 
-        path: "leader/workorder/:jobId", 
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} /> 
+      {
+        path: "leader/workorder/:jobId",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} />
       },
 
       // ──────── EXECUTIVE ────────
