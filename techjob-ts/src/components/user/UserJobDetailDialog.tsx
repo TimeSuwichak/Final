@@ -39,6 +39,7 @@ import {
   X,
   ClipboardList,
   CheckCircle2,
+   ImageIcon
 } from 'lucide-react';
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 
@@ -300,6 +301,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                         </div>
                       )}
                     </div>
+                     
                   </CardContent>
                 </Card>
 
@@ -315,6 +317,23 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                     <div className="rounded-md bg-muted/50 p-3 text-xs leading-relaxed">
                       <p>{job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</p>
                     </div>
+                    
+                      {job.imageUrl && (
+                        <div className="pt-2">
+                          <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            รูปภาพหน้างาน
+                          </p>
+                          <div className="rounded-md overflow-hidden border border-border">
+                            <img
+                              src={job.imageUrl || "/placeholder.svg"}
+                              alt="รูปภาพหน้างาน"
+                              className="w-full h-auto max-h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(job.imageUrl, '_blank')}
+                            />
+                          </div>
+                        </div>
+                      )}
                   </CardContent>
                 </Card>
 

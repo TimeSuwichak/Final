@@ -1,4 +1,4 @@
-// src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
+  // src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -95,7 +95,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       reader.readAsDataURL(file);
     }
   };
-
+  
   const validateStep = (step: number): boolean => {
     if (step === 1) {
       return !!(title && jobType);

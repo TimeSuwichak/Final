@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import { user as ALL_USERS } from '@/Data/user';
-import { MapPin, Users, Briefcase, Clock, CheckCircle2, AlertCircle, User, Phone, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Briefcase, Clock, CheckCircle2, AlertCircle, User, Phone, X, ChevronLeft, ChevronRight, ImageIcon} from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { TaskDetailsLocked } from '@/components/leader/TaskDetailsLocked';
@@ -252,6 +252,26 @@ const WorkOrderDetail: React.FC = () => {
                   <p className="text-xs leading-relaxed">{currentJob.description}</p>
                 </div>
               )}
+              
+              {currentJob.imageUrl && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                    <ImageIcon className="h-3 w-3" />
+                    รูปภาพหน้างาน
+                  </p>
+                  <div className="rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={currentJob.imageUrl || "/placeholder.svg"}
+                      alt="รูปภาพหน้างาน"
+                      className="w-full h-auto max-h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => window.open(currentJob.imageUrl, '_blank')}
+                    />
+                  </div>
+                </div>
+              )}
+              
+             
+
             </CardContent>
           </Card>
 
@@ -412,3 +432,4 @@ const WorkOrderDetail: React.FC = () => {
 };
 
 export default WorkOrderDetail;
+

@@ -56,7 +56,7 @@ import {
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
 import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
-import { Briefcase, Users, UserCheck, Download } from "lucide-react";
+import { Briefcase, Users, UserCheck, Download,ImageIcon } from "lucide-react";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 
 // --- CONSTANTS ---
@@ -230,6 +230,7 @@ export function EditJobDialog({
 
           {mode === "view" ? (
             // --- โหมด "ดูรายละเอียด" ---
+            
             <>
               <ScrollArea className="flex-1 overflow-auto">
                 <div className="p-6 space-y-6">
@@ -280,6 +281,7 @@ export function EditJobDialog({
                             ) : (
                               <p className="text-xs text-muted-foreground">ยังไม่ได้มอบหมาย</p>
                             )}
+                   
                           </div>
                           <Separator />
                           <div>
@@ -379,6 +381,23 @@ export function EditJobDialog({
                       <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
                         <p>{job.description || "ไม่มีรายละเอียด"}</p>
                       </div>
+                               
+                      {job.imageUrl && (
+                        <div className="pt-2">
+                          <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            รูปภาพหน้างาน
+                          </p>
+                          <div className="rounded-md overflow-hidden border border-border">
+                            <img
+                              src={job.imageUrl || "/placeholder.svg"}
+                              alt="รูปภาพหน้างาน"
+                              className="w-full h-auto max-h-50 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(job.imageUrl, '_blank')}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 

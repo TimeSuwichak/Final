@@ -116,33 +116,33 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
                 <TableHead className="w-[56px] text-center">ดู</TableHead>
               </TableRow>
             </TableHeader>
-          <TableBody>
-            {currentJobs.length > 0 ? (
-              currentJobs.map((job, index) => (
-                <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
-                  <TableCell className="font-medium">{job.id}</TableCell>
-                  <TableCell>{job.title}</TableCell>
-                  <TableCell>
-                    {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(job.status)}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center">
-                      <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
+            <TableBody>
+              {currentJobs.length > 0 ? (
+                currentJobs.map((job, index) => (
+                  <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
+                    <TableCell className="font-medium">{job.id}</TableCell>
+                    <TableCell>{job.title}</TableCell>
+                    <TableCell>
+                      {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(job.status)}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center">
+                        <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="border-b border-gray-200">
+                <TableCell colSpan={5} className="h-24 text-center">
+                    ไม่พบใบงาน
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="border-b border-gray-200">
-                <TableCell colSpan={5} className="h-24 text-center">
-                  ไม่พบใบงาน
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+              )}
+            </TableBody>
           </Table>
         </div>
       </div>
