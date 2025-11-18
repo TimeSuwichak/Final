@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Wrench, CheckCircle2 } from "lucide-react";
 import { JobTypePieChart } from "@/components/user/charts/JobTypePieChart";
 import { MonthlyPerformanceChart } from "@/components/user/charts/MonthlyPerformanceChart";
+import { collection, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useNavigate } from "react-router-dom";
+import { MessageCircle } from "lucide-react";
 
 
 // ==========================================================
@@ -63,6 +67,36 @@ export default function UserDashboard() {
   const finalJobTypeData = jobTypeData.length > 0 ? jobTypeData : mockJobTypeData;
   const finalMonthlyPerformanceData = monthlyPerformanceData.some(month => month["งานที่เสร็จ"] > 0) ? monthlyPerformanceData : mockMonthlyPerformanceData;
 
+  const navigate = useNavigate();
+
+  const openChat = async () => {
+  if (!user) return;
+
+  // 1) ตรวจสอบว่า chat doc ที่มี id = user.id มีอยู่หรือยัง
+  const chatRef = doc(db, "chats", String(user.id));
+  const chatSnap = await getDoc(chatRef);
+
+  if (chatSnap.exists()) {
+    // ถ้ามีแล้ว ให้ไปหน้าแชท (ผู้ใช้ใช้ auth user id ใน ChatPage)
+    navigate(`/chat`);
+    return;
+  }
+
+  // 2) ถ้ายังไม่มี ให้สร้าง doc โดยใช้ user.id เป็น doc id (เพื่อให้ AdminChatList หา user ได้)
+  await setDoc(chatRef, {
+    userId: user.id,
+    userName: `${user.fname} ${user.lname}`,
+    lastMessage: "",
+    lastSender: "user",
+    updatedAt: serverTimestamp(),
+    adminSeen: true,
+    userSeen: true,
+  }, { merge: true });
+
+  navigate(`/chat`);
+};
+
+
   // --- หน้า Loading ---
   if (userLoading || jobsLoading) {
     return <div className="p-8 font-bold text-lg">Loading Dashboard...</div>;
@@ -77,6 +111,13 @@ export default function UserDashboard() {
     <div className="flex-1 space-y-8 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">ผลงานของคุณ, {user.fname}</h2>
+        <button
+    onClick={openChat}
+    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+  >
+    <MessageCircle className="w-5 h-5" />
+    แชทกับแอดมิน
+  </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -111,7 +152,7 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
       </div>
-
+      
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
            <JobTypePieChart data={finalJobTypeData} />
