@@ -8,19 +8,21 @@ const TaskStatusHeroRich: React.FC = () => {
          {/* Decorative Left Border */}
          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-600"></div>
 
-         {/* Icon Box */}
+         {/* Icon Box (เหมือนเดิม) */}
          <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
          </div>
          
-         {/* Text Content */}
+         {/* [UPGRADE] Text Content - ปรับให้ดูเป็นมืออาชีพยิ่งขึ้น */}
          <div>
-            <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">
+            {/* หัวข้อหลัก: ใช้ Font Weight ที่หนาขึ้น, Tracking ที่คมชัด, และใช้สีที่เน้นใน Dark Mode */}
+            <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">
             Task Status Leader
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
+            {/* คำอธิบาย: ปรับขนาดและ Font Weight ให้ดูเป็นรอง, ใช้สีเทาที่อ่านง่าย */}
+            <p className="text-base text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             ภาพรวมสถานะงานและสถิติการทำงานของคุณ
             </p>
          </div>

@@ -9,6 +9,8 @@ import {
   Tooltip,
   Cell
 } from 'recharts';
+// [UPGRADE] 1. Import Icon ที่เกี่ยวข้อง
+import { BarChart2 } from 'lucide-react'; 
 
 const data = [
   { name: 'มิ.ย.', value: 4 },
@@ -29,18 +31,22 @@ const MonthlyBarChart: React.FC<ChartProps> = ({ isDarkMode }) => {
       {/* Header Section */}
       <div className="flex items-end justify-between mb-6">
         <div>
-            <h4 className="text-lg font-bold text-slate-800 dark:text-white">Monthly Trends</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">ปริมาณงานรายเดือน (6 เดือน)</p>
+            {/* [UPGRADE] 2. ปรับ h4 โดยเพิ่ม Icon และใช้ flex จัดวาง */}
+            <h4 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <BarChart2 size={20} className="text-indigo-500" /> {/* เพิ่ม Icon */}
+                Monthly Trends
+            </h4>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ปริมาณงานรายเดือน (6 เดือน)</p> {/* ปรับ text-xs เป็น text-sm ให้ใหญ่ขึ้นเล็กน้อย */}
         </div>
         <div className="text-right">
-            <div className="text-2xl font-bold text-indigo-500">
+            <div className="text-3xl font-extrabold text-indigo-500"> {/* ปรับเป็น text-3xl และ font-extrabold */}
                 32
             </div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Jobs</span>
         </div>
       </div>
       
-      {/* Chart Section */}
+      {/* Chart Section (เหมือนเดิม) */}
       <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>

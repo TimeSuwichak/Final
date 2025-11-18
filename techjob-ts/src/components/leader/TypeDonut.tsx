@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Pie, PieChart, ResponsiveContainer, Cell, Sector } from "recharts";
+// [UPGRADE] 1. Import Icon ที่เกี่ยวข้อง
+import { Wrench } from 'lucide-react'; 
 import {
   Card,
   CardContent,
@@ -47,7 +49,7 @@ const COLORS = [
   "#ef4444", // Red-500 (เผื่อมีเพิ่ม)
 ];
 
-// --- 3. Function เรนเดอร์ตรงกลางวงกลมเมื่อ Hover ---
+// --- 3. Function เรนเดอร์ตรงกลางวงกลมเมื่อ Hover (เหมือนเดิม) ---
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
 
@@ -110,7 +112,9 @@ export function JobTypePieChart({
   return (
     <Card className="h-full border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1e1e2d] shadow-md transition-colors duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl font-bold text-slate-800 dark:text-white">
+        {/* [UPGRADE] 2. ปรับ CardTitle โดยเพิ่ม Icon */}
+        <CardTitle className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <Wrench size={20} className="text-indigo-500" /> {/* เพิ่ม Icon */}
           ประเภทงานที่เชี่ยวชาญ
         </CardTitle>
         <CardDescription className="text-slate-500 dark:text-slate-400">
@@ -149,7 +153,7 @@ export function JobTypePieChart({
           </ResponsiveContainer>
         </div>
 
-        {/* Custom Legend ด้านล่าง */}
+        {/* Custom Legend ด้านล่าง (เหมือนเดิม) */}
         <div className="mt-4 flex flex-wrap justify-center gap-4">
           {data.map((entry, index) => (
             <div 
