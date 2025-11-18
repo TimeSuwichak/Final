@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, BarChart2, Briefcase } from 'lucide-react' // [NEW] Import Icon เพิ่ม
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -7,7 +7,8 @@ import html2canvas from 'html2canvas'
 import OverviewPanel from '../../components/dashboard/OverviewPanel'
 import RightPanel from '../../components/dashboard/RightPanel'
 import TechnicianPerformance from '../../components/dashboard/TechnicianPerformance'
-import KpiCard from '../../components/dashboard/KpiCard'
+// KpiCard ถูก Import แต่ไม่ได้ถูกเรียกใช้โดยตรงในไฟล์นี้ (ไม่เป็นไร)
+// import KpiCard from '../../components/dashboard/KpiCard' 
 
 // --- TimeRangeButton (kept in page) ---
 function TimeRangeButton({ label, isActive, onClick }: any) {
@@ -45,7 +46,8 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
     setIsCalendarOpen(false)
   }
 
-  const renderCalendarDays = () => {
+  // [ปรับปรุง] ใช้ useMemo เพื่อ optimize การ Render วันที่ใน Calendar
+  const renderCalendarDays = useMemo(() => {
     const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
     const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
     const startDayOfWeek = firstDayOfMonth.getDay()
@@ -60,7 +62,7 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
       days.push(<div key={`day-${i}`} className={dayClasses} onClick={() => handleDateClick(i)}>{i}</div>)
     }
     return days
-  }
+  }, [currentMonth, selectedDate]) // Dependency array
 
   const filterBoxStyle = "bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-800 rounded-lg px-4 py-2 min-w-[180px] transition-colors hover:border-gray-400 dark:hover:border-slate-700"
   const labelStyle = "text-xs text-gray-500 dark:text-gray-400 block"
@@ -93,7 +95,7 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
               <button onClick={() => changeMonth(1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300"><ChevronRight size={18} /></button>
             </div>
             <div className="grid grid-cols-7 gap-1 mb-2 text-center">{weekdays.map(day => (<div key={day} className="text-xs font-medium text-gray-500 dark:text-gray-400">{day}</div>))}</div>
-            <div className="grid grid-cols-7 gap-1 text-center">{renderCalendarDays()}</div>
+            <div className="grid grid-cols-7 gap-1 text-center">{renderCalendarDays}</div> {/* [แก้ไข] เรียกใช้ useMemo */}
           </div>
         )}
       </div>
@@ -208,6 +210,7 @@ export default function ExDashboard() {
         </header>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
+            {/* [ปรับปรุง Skeleton] ใช้ Component Skeleton ที่สร้างไว้ */}
             <div className="space-y-6">
               <div className="h-6 bg-gray-300 dark:bg-slate-700 rounded w-1/3"></div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -217,18 +220,9 @@ export default function ExDashboard() {
               </div>
               <ChartSkeleton />
             </div>
-            <div className="h-6 bg-gray-300 dark:bg-slate-700 rounded w-1/3"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <KpiCardSkeleton />
-              <KpiCardSkeleton />
-              <KpiCardSkeleton />
-              <KpiCardSkeleton />
-            </div>
-            <ChartSkeleton />
             <TableSkeleton />
           </div>
           <div className="lg:col-span-1 space-y-8">
-            <ChartSkeleton />
             <ChartSkeleton />
             <ChartSkeleton />
           </div>
@@ -241,9 +235,19 @@ export default function ExDashboard() {
     <div ref={dashboardRef} className={baseContainerClass}>
       <header className="mb-8">
         <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">CEO Dashboard</h1>
-            <p className="text-gray-500 dark:text-gray-400">ภาพรวมสถิติการทำงานและสถานะทีมช่าง</p>
+          <div className="flex items-center gap-3"> {/* [UPGRADE] เพิ่ม flex items-center gap-3 */}
+            {/* [UPGRADE] เพิ่ม Icon */}
+            <Briefcase size={36} className="text-indigo-600 dark:text-indigo-400" />
+            <div>
+              {/* [UPGRADE] ปรับขนาดและสีของหัวข้อ */}
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
+                CEO Dashboard
+              </h1>
+              {/* [UPGRADE] ปรับสีและขนาดคำอธิบาย */}
+              <p className="text-base text-gray-600 dark:text-gray-400 mt-1">
+                ภาพรวมสถิติการทำงานและสถานะทีมช่าง
+              </p>
+            </div>
           </div>
           <div className="shrink-0"><DashboardActions onExportClick={handleExportPDF} isExporting={isExporting} /></div>
         </div>
@@ -253,7 +257,7 @@ export default function ExDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <OverviewPanel activeRange={activeRange} />
-          <TechnicianPerformance />
+          {/* <TechnicianPerformance /> */}
         </div>
 
         <div className="lg:col-span-1 space-y-8">

@@ -3,7 +3,7 @@ import { Badge } from "../ui/badge";
 import { 
   BarChart2, PlayCircle, Clock, CheckCircle, 
   Wrench, Zap, Settings2,
-  PieChart as PieChartIcon // [UPGRADE] 1. Import PieChartIcon
+  PieChart as PieChartIcon 
 } from 'lucide-react'
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, 
@@ -32,6 +32,26 @@ const CustomYAxisTick = (props: any) => {
   );
 };
 
+// [NEW] Custom Label สำหรับ Bar Chart เพื่อปรับปรุงการแสดงผล
+const CustomBarLabel = (props: any) => {
+  const { x, y, width, height, value, index } = props;
+  const color = PALETTE[index % PALETTE.length];
+  
+  return (
+    <text 
+      x={x + width + 5} // ขยับไปทางขวาของ Bar เล็กน้อย
+      y={y + height / 2} 
+      dy={4} 
+      fill={color} // ใช้สีเดียวกับ Bar
+      textAnchor="start" 
+      className="text-sm font-bold"
+    >
+      {`${value}%`}
+    </text>
+  );
+};
+
+
 // (PALETTE และ statusConfig เหมือนเดิม)
 const PALETTE = ['#4f46e5', '#10b981', '#f59e0b'];
 const statusConfig: any = {
@@ -57,7 +77,7 @@ export default function RightPanel() {
   ]
 
   const jobTypeData = [ { name: 'ติดตั้ง A/C', value: 45 }, { name: 'ซ่อมบำรุง', value: 30 }, { name: 'ซ่อมด่วน', value: 25 } ]
-  const ffrData = [ { name: 'ติดตั้ง A/C', ffr: 85 }, { name: 'ซ่อมบำรุง', ffr: 95 }, { name: 'ซ่อมด่วน', ffr: 70 } ]
+  const ffrData = [ { name: 'ติดตั้ง A/C', Rate: 85 }, { name: 'ซ่อมบำรุง', Rate: 95 }, { name: 'ซ่อมด่วน', Rate: 70 } ]
 
   return (
     <>
@@ -87,44 +107,71 @@ export default function RightPanel() {
         </ul>
       </div>
 
-      {/* --- [UPGRADE] Card 2: Pie Chart (อัปเกรดใหม่) --- */}
+      {/* --- Card 2: Pie Chart (ปรับปรุงให้ดูนุ่มนวลและมีมิติ) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-        {/* [UPGRADE] 1. เพิ่ม Icon ที่ Header */}
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <PieChartIcon size={20} className="text-indigo-500" />
           สัดส่วนประเภทงาน (Job Type Mix)
         </h3>
-        {/* (ความสูง h-56 เหมือนเดิม) */}
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Tooltip contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} formatter={(value: any, name: string) => [`${value}%`, name]} />
+              {/* [NEW] เพิ่ม Drop Shadow Definition ใน Recharts */}
+              <defs>
+                <filter id="shadow" height="130%">
+                  <feDropShadow 
+                    dx="0" 
+                    dy="4" 
+                    stdDeviation="4" 
+                    floodColor="#000000" 
+                    floodOpacity="0.15" 
+                  />
+                </filter>
+              </defs>
+
+              <Tooltip 
+                // ปรับ Tooltip Style ให้ดูสะอาดและมีขอบมนมากขึ้น
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255,255,255,0.95)', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '12px', 
+                  padding: '8px 12px',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.1)', 
+                  color: '#333' 
+                }} 
+                formatter={(value: any, name: string) => [`${value}%`, name]} 
+                labelStyle={{ fontWeight: 'bold', color: '#4f46e5' }}
+              />
               <Pie data={jobTypeData} cx="50%" cy="50%" 
-                // [UPGRADE] 3. ขยายขนาด Donut Chart
                 innerRadius={70} 
                 outerRadius={90} 
                 fill="#8884d8" 
                 paddingAngle={5} 
                 dataKey="value"
+                // [UPGRADE] ใช้ filter เพื่อใส่ Drop Shadow
+                filter="url(#shadow)" 
               >
                 {jobTypeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} stroke="none" />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={PALETTE[index % PALETTE.length]} 
+                    // [UPGRADE] ทำให้เส้นขอบหายไป เพื่อความนุ่มนวล
+                    stroke="none" 
+                  />
                 ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
         </div>
-        {/* [UPGRADE] 2. สร้าง Legend ใหม่แบบมี Icon */}
+        {/* Legend ปรับปรุงให้มี Icon และดูดีอยู่แล้ว */}
         <ul className="mt-6 space-y-4">
           {jobTypeData.map((entry, index) => {
             const color = PALETTE[index % PALETTE.length];
-            // ดึง Icon component จาก map
             const Icon = legendIconMap[entry.name] || Wrench; 
             
             return (
               <li key={entry.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* แสดง Icon พร้อมใส่สีแบบ dynamic */}
                   <Icon className="h-5 w-5" style={{ color }} />
                   <span className="text-base font-medium text-gray-700 dark:text-gray-300">
                     {entry.name}
@@ -139,7 +186,7 @@ export default function RightPanel() {
         </ul>
       </div>
 
-      {/* --- Card 3: Bar Chart (เหมือนเดิม) --- */}
+      {/* --- Card 3: Bar Chart (เหมือนเดิมจากการปรับปรุงก่อนหน้า) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Wrench size={20} className="text-indigo-500" />
@@ -147,9 +194,19 @@ export default function RightPanel() {
         </h3>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={ffrData} layout="vertical" margin={{ top: 5, right: 50, left: 20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} horizontal={false} />
-              <XAxis type="number" domain={[0, 100]} hide={true} />
+            <BarChart 
+              data={ffrData} 
+              layout="vertical" 
+              margin={{ top: 10, right: 30, left: 20, bottom: 0 }} 
+            >
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} horizontal={false} />
+              
+              <XAxis 
+                type="number" 
+                domain={[0, 100]} 
+                hide={true} 
+              />
+              
               <YAxis 
                 dataKey="name" 
                 type="category" 
@@ -159,19 +216,37 @@ export default function RightPanel() {
                 tick={<CustomYAxisTick />}
                 interval={0}
               />
+              
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                type="number"
+                domain={[0, 100]}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#6b7280', fontSize: '12px' }}
+                interval={0}
+                label={{ value: 'Completion Rate (%)', angle: 0, position: 'top', dx: 30, dy: -5, fill: '#4f46e5', fontWeight: 'bold' }}
+              />
+
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} 
-                formatter={(value: any) => [`${value}%`, "Task Rate"]} 
+                formatter={(value: any) => [`${value}%`, "Completion Rate"]} 
               />
-              <Bar dataKey="ffr" name="FFR Rate" radius={[0, 8, 8, 0]}>
+              
+              <Bar 
+                dataKey="Rate" 
+                name="Completion Rate" 
+                radius={[0, 10, 10, 0]} 
+                barSize={20} 
+              >
                 {ffrData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
                 ))}
+                
                 <LabelList 
-                  dataKey="ffr" 
-                  position="right" 
-                  formatter={(value: number) => `${value}%`}
-                  style={{ fill: '#fff', fontSize: '14px', fontWeight: '600' }}
+                  dataKey="Rate" 
+                  content={<CustomBarLabel />}
                 />
               </Bar>
             </BarChart>

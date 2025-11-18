@@ -92,7 +92,6 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
           {/* [UPGRADE] 2. ขยาย Font หัวข้อการ์ด */}
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">สถิติงาน (Job Type Statistics)</h3>
           <div className="h-64">
-            {/* (โค้ดส่วนนี้ดีอยู่แล้ว ใช้ AreaChart ที่คุณชอบ) */}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyJobTypeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <defs>
@@ -119,27 +118,6 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
                 <Area type="monotone" dataKey="urgent" name="ซ่อมด่วน" stackId="a" stroke={COLORS.urgent} fill="url(#colorUrgent)" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
-
-          {/* --- [UPGRADE] 3. ปรับปรุงสถิติ 4 ช่องล่าง --- */}
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-800 grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-slate-800">
-            
-            <div className="py-4 md:py-2 px-4 text-center">
-              <p className="text-base text-gray-500 dark:text-gray-400">เวลาปิดงานเฉลี่ย</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">3.5 วัน</p>
-            </div>
-            <div className="py-4 md:py-2 px-4 text-center">
-              <p className="text-base text-gray-500 dark:text-gray-400">ส่งงานตรงเวลา</p>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">92%</p>
-            </div>
-            <div className="py-4 md:py-2 px-4 text-center">
-              <p className="text-base text-gray-500 dark:text-gray-400">แก้จบในครั้งแรก (FFR)</p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">88%</p>
-</div>
-            <div className="py-4 md:py-2 px-4 text-center">
-              <p className="text-base text-gray-500 dark:text-gray-400">งานค้างบ่อยที่สุด</p>
-              <p className="text-xl font-medium text-gray-900 dark:text-white">"ติดตั้ง A/C"</p>
-            </div>
           </div>
         </div>
       </>
