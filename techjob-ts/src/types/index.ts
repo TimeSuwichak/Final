@@ -73,6 +73,7 @@ export interface Job {
   // ไฟล์แนบ
   imageUrl?: string;
   otherFileUrl?: string;
+  pdfFiles?: string[]; // Array of PDF file URLs
 
   // วันที่
   startDate: Date;

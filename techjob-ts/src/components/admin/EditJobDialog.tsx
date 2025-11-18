@@ -58,6 +58,7 @@ import { AdminMap } from "./AdminMap"
 import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
 import { Briefcase, Users, UserCheck, Download,ImageIcon } from "lucide-react";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
+import { PdfViewer } from "@/components/common/PdfViewer";  
 
 // --- CONSTANTS ---
 const JOB_TYPES = [
@@ -400,6 +401,10 @@ export function EditJobDialog({
                       )}
                     </CardContent>
                   </Card>
+                   {/* PDF Viewer Card */}
+                {job.pdfFiles && job.pdfFiles.length > 0 && (
+                  <PdfViewer pdfFiles={job.pdfFiles} />
+                )}
 
                   {/* Leader Status & Progress Card */}
                   <Card>

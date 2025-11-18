@@ -67,6 +67,7 @@ import {
    ExternalLink,
     ImageIcon
   } from "lucide-react";
+  import { PdfViewer } from "@/components/common/PdfViewer";
 
 interface LeaderJobDetailDialogProps {
   job: Job | null;
@@ -530,6 +531,11 @@ export function LeaderJobDetailDialog({
                       
                     </CardContent>
                   </Card>
+
+                  {job.pdfFiles && job.pdfFiles.length > 0 && (
+                    <PdfViewer pdfFiles={job.pdfFiles} />
+                  )}
+
                 </div>
 
                 {/* Right Column */}

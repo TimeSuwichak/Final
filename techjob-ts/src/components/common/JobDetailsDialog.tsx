@@ -10,6 +10,8 @@ import { th } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
 import InteractiveMap from "@/components/common/InteractiveMap"
+import { PdfViewer } from "@/components/common/PdfViewer";
+
 
 export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, onEdit, currentUser }) => {
   if (!job) return null
@@ -88,7 +90,17 @@ export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, o
                     </div>
                   </div>
                 )}
-          
+
+                 {/* --- ดู PDF --- */}
+                {job.pdfFiles && job.pdfFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold">เอกสาร PDF</h3>
+                    <Separator />
+                    <div className="pt-2">
+                      <PdfViewer pdfFiles={job.pdfFiles} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
