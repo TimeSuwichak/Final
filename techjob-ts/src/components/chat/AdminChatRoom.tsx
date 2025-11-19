@@ -14,12 +14,15 @@ import {
 import { db } from "@/lib/firebase";
 import ChatInput from "./ChatInput";
 import ChatBubble from "./ChatBubble";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { user as userData } from "@/Data/user";
 
 export default function AdminChatRoom({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { addNotification } = useNotifications();
 
   // mark seen
   useEffect(() => {
@@ -80,6 +83,19 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
         },
         { merge: true }
       );
+
+      // ส่งการแจ้งเตือนให้ผู้ใช้
+      const userInfo = userData.find((u) => String(u.id) === userId);
+      if (userInfo) {
+        const messagePreview = payload.type === "text" ? payload.text : "[รูปภาพ]";
+        addNotification({
+          title: "ข้อความใหม่จากแอดมิน",
+          message: messagePreview.substring(0, 100),
+          recipientRole: "user",
+          recipientId: userId,
+          metadata: { type: "new_chat_message", chatId: userId },
+        });
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       alert("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
