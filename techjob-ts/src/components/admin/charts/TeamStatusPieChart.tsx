@@ -46,10 +46,10 @@ export function TeamStatusPieChart({ data }) {
       <CardHeader>
         {/* 🛠️ ปรับปรุง Title ให้ชัดเจนยิ่งขึ้น */}
         <CardTitle className="text-2xl font-bold text-gray-800">
-          สถานะทีมช่างทั้งหมด ({total} ทีม)
+          สถานะทีมช่างทั้งหมด ({total} Teams )
         </CardTitle>
         <CardDescription className="text-md text-gray-500">
-          สรุปสัดส่วนสถานะการทำงานของทีมช่างในปัจจุบัน
+          สรุปจำนวนช่างในแต่ละสถานะปัจจุบัน
         </CardDescription>
       </CardHeader>
       <CardContent>

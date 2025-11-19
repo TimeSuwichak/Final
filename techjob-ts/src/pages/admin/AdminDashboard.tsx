@@ -98,9 +98,9 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {/* 💡 เพิ่ม Card สรุปตัวเลข (Key Metrics) */}
-        <MetricCard icon={<Zap className="h-6 w-6 text-blue-500" />} title="งานค้าง" value={jobStatusData[0]['งานใหม่']} description="รออนุมัติ/จัดทีม" />
-        <MetricCard icon={<Users className="h-6 w-6 text-emerald-500" />} title="ทีมพร้อมรับ" value={teamStatusData.find(d => d.name === 'พร้อมรับงาน')?.value || 0} description="ช่างที่ว่าง/พร้อมทำงาน" />
-        <MetricCard icon={<TrendingUp className="h-6 w-6 text-yellow-500" />} title="งานเสร็จสิ้น" value={jobStatusData[0]['เสร็จสิ้น']} description="สำเร็จในเดือนนี้" />
+        <MetricCard icon={<Zap className="h-6 w-6 text-blue-500" />} title="งานค้าง Backlog" value={jobStatusData[0]['งานใหม่']} description="รออนุมัติ/จัดทีม" />
+        <MetricCard icon={<Users className="h-6 w-6 text-emerald-500" />} title="ทีมพร้อมรับงาน Available Team" value={teamStatusData.find(d => d.name === 'พร้อมรับงาน')?.value || 0} description="ช่างที่ว่าง/พร้อมทำงาน" />
+        <MetricCard icon={<TrendingUp className="h-6 w-6 text-yellow-500" />} title="งานเสร็จสิ้น Completed" value={jobStatusData[0]['เสร็จสิ้น']} description="สำเร็จในเดือนนี้" />
         {/* เพิ่ม Metric Card ที่ 4 ได้หากมีข้อมูล เช่น ยอดใช้จ่ายวัสดุ */}
       </div>
 
@@ -117,9 +117,9 @@ export default function AdminDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
                 <TrendingUp className="mr-3 h-5 w-5 text-purple-600" />
-                5 ประเภทงานยอดนิยมในเดือนนี้
+                 ประเภทงานยอดนิยมในเดือนนี้ (Popular Job Types)
             </CardTitle>
-            <CardDescription>แสดงสัดส่วนงานที่ถูกร้องขอมากที่สุดในรอบเดือน</CardDescription>
+            <CardDescription>แสดงสัดส่วนงานในรอบเดือน</CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-5">
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
             <CardHeader>
                 <CardTitle className="flex items-center text-xl">
                     <Package className="mr-3 h-5 w-5 text-amber-500" />
-                    รายการเบิกวัสดุล่าสุด (จำลอง)
+                    รายการเบิกวัสดุล่าสุด (Material Usage)
                 </CardTitle>
                 <CardDescription>การเคลื่อนไหวของวัสดุคงคลังที่ถูกเบิกล่าสุด</CardDescription>
             </CardHeader>

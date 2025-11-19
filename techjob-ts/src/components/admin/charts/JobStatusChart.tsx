@@ -8,7 +8,7 @@ export function JobStatusChart({ data }) {
     
 <Card>
   <CardHeader>
-    <CardTitle>📊 ภาพรวมสถานะงาน</CardTitle>
+    <CardTitle> ภาพรวมสถานะงาน (Work status overview)</CardTitle>
     <CardDescription>สรุปจำนวนงานในแต่ละสถานะของเดือนนี้</CardDescription>
   </CardHeader>
   <CardContent>
