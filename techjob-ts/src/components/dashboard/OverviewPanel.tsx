@@ -4,9 +4,10 @@ import { CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react'
 // (Import เหมือนเดิม)
 import { 
   ResponsiveContainer, 
-  LineChart, Line, // 💡 ใช้ LineChart และ Line
+  LineChart, Line, 
   XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, 
+  BarChart, Bar, // ใช้ BarChart และ Bar
   AreaChart, Area
 } from 'recharts'
 
@@ -32,7 +33,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
 
   return (
     <div className="space-y-8">
-      {/* --- ส่วน KpiRow 1 --- */}
+      {/* --- ส่วน KpiRow 1 (ไม่เปลี่ยน) --- */}
       <div className="space-y-6">
         {/* [UPGRADE] 2. ขยาย Font หัวข้อหลัก */}
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">ภาพรวมสถิติงาน Statistics Overview</h2>
@@ -42,29 +43,22 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
           <KpiCard title="งานเกินดำหนด" numericValue={5} suffix=" งาน" icon={<AlertTriangle size={22} />} color="red" change="-0.5% จากเดือนที่แล้ว" />
         </div>
 
-        {/* --- [ปรับปรุง] เปลี่ยนจาก AreaChart เป็น LineChart --- */}
+        {/* --- [ปรับปรุง] แนวโน้มงานที่เข้ามา (LineChart เดิม) --- */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-          {/* [UPGRADE] 2. ขยาย Font หัวข้อการ์ด */}
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">แนวโน้มงานที่เข้ามา</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {/* 💡 เปลี่ยนเป็น LineChart */}
               <LineChart data={jobTrendData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                
-                {/* 💡 ลบ <defs> ออก */}
-                
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                 <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} stroke="#6b7280" />
                 <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} งาน`} stroke="#6b7280" />
                 <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} formatter={(value) => [`${value} งาน`, "จำนวนงาน"]} />
-                
-                {/* 💡 เปลี่ยนเป็น Line */}
                 <Line 
                   type="monotone" 
                   dataKey="jobs" 
-                  stroke={COLORS.install} // ใช้สีเดิมของ Install
+                  stroke={COLORS.install} 
                   strokeWidth={3}
-                  dot={true} // 💡 ให้มีจุดบนเส้นกราฟ
+                  dot={true} 
                   activeDot={{ r: 6, stroke: '#fff', fill: COLORS.install, strokeWidth: 2 }}
                 />
               </LineChart>
@@ -73,7 +67,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
         </div>
       </div>
 
-      {/* --- ส่วน KpiRow 2 --- */}
+      {/* --- ส่วน KpiRow 2 (ไม่เปลี่ยน) --- */}
       <>
         {/* [UPGRADE] 2. ขยาย Font หัวข้อหลัก */}
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">ภาพรวมการดำเนินงาน (Operations)</h2>
@@ -81,31 +75,51 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
           <KpiCard title="งานทั้งหมด" numericValue={328} icon={<Briefcase size={22} />} color="default" change="+2.5% จากเดือนที่แล้ว" />
           <KpiCard title="งานกำลังดำเนิน" numericValue={85} icon={<Clock size={22} />} color="blue" change="+1.2% จากเดือนที่แล้ว" />
           <KpiCard title="งานเสร็จแล้ว" numericValue={77} icon={<CheckCircle size={22} />} color="green" change="+3.0% จากเดือนที่แล้ว" />
-          <KpiCard title="งานค้าง / ล่าช้า" numericValue={5} icon={<AlertTriangle size={22} />} color="red" change="-0.5% จากเดือนที่แล้ว" />
         </div>
 
-        {/* --- ส่วน "สถิติงาน" (LineChart ที่ปรับปรุงแล้ว) --- */}
+        {/* --- ส่วน "สถิติงาน" (Grouped Bar Chart) --- */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-          {/* [UPGRADE] 2. ขยาย Font หัวข้อการ์ด */}
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">สถิติงาน (Job Type Statistics)</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {/* 💡 เปลี่ยนเป็น LineChart */}
-              <LineChart data={monthlyJobTypeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              {/* ใช้ BarChart */}
+              <BarChart data={monthlyJobTypeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} barGap={5}> {/* 💡 เพิ่ม barGap */}
                 
-                {/* 💡 ลบ <defs> ออก */}
-                
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                 <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} stroke="#6b7280" />
                 <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} งาน`} stroke="#6b7280" />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} formatter={(value, name) => [`${value} งาน`, name]} />
+                
+                <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} 
+                    formatter={(value, name) => [`${value} งาน`, name]} 
+                />
+                
                 <Legend verticalAlign="top" height={36} iconSize={10} wrapperStyle={{ fontSize: '12px', color: '#6b7280' }} />
                 
-                {/* 💡 เปลี่ยนเป็น Line สำหรับแต่ละ dataKey */}
-                <Line type="monotone" dataKey="install" name="ติดตั้ง" stroke={COLORS.install} strokeWidth={2} dot={true} activeDot={{ r: 6, stroke: '#fff', fill: COLORS.install, strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="maintenance" name="ซ่อมบำรุง" stroke={COLORS.maintenance} strokeWidth={2} dot={true} activeDot={{ r: 6, stroke: '#fff', fill: COLORS.maintenance, strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="urgent" name="ซ่อมด่วน" stroke={COLORS.urgent} strokeWidth={2} dot={true} activeDot={{ r: 6, stroke: '#fff', fill: COLORS.urgent, strokeWidth: 2 }} />
-              </LineChart>
+                {/* 💡 Bar 1: ติดตั้ง (ลบ stackId) */}
+                <Bar 
+                    dataKey="install" 
+                    name="ติดตั้ง" 
+                    fill={COLORS.install} 
+                    radius={[4, 4, 0, 0]} // ทำให้แท่งมีมุมมนด้านบน
+                />
+                
+                {/* 💡 Bar 2: ซ่อมบำรุง (ลบ stackId) */}
+                <Bar 
+                    dataKey="maintenance" 
+                    name="ซ่อมบำรุง" 
+                    fill={COLORS.maintenance}
+                    radius={[4, 4, 0, 0]} 
+                />
+                
+                {/* 💡 Bar 3: ซ่อมด่วน (ลบ stackId) */}
+                <Bar 
+                    dataKey="urgent" 
+                    name="ซ่อมด่วน" 
+                    fill={COLORS.urgent} 
+                    radius={[4, 4, 0, 0]} 
+                />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>

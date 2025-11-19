@@ -69,45 +69,26 @@ const legendIconMap: Record<string, React.ElementType> = {
 };
 
 export default function RightPanel() {
-  const activityFeed = [
-    { id: 1, techName: 'นายสมชาย (ทีม A)', job: '#1026 - ติดตั้ง A/C', status: 'กำลังดำเนินการ' },
-    { id: 2, techName: 'นายวิรัตน์ (ทีม B)', job: '#1025 - ซ่อมด่วน', status: 'งานเสร็จสิ้น' },
-    { id: 3, techName: 'นายประยุทธ์ (ทีม C)', job: '#1027 - ซ่อมบำรุง', status: 'เริ่มงาน' },
-    { id: 4, techName: 'นายมงคล (ทีม D)', job: '#1024 - Overdue', status: 'กำลังดำเนินการ' }
-  ]
+  // 💡 ลบ activityFeed ออก หรือเก็บไว้เฉยๆ เนื่องจากไม่ได้ถูกใช้งานแล้ว
+  // const activityFeed = [
+  //   { id: 1, techName: 'นายสมชาย (ทีม A)', job: '#1026 - ติดตั้ง A/C', status: 'กำลังดำเนินการ' },
+  //   { id: 2, techName: 'นายวิรัตน์ (ทีม B)', job: '#1025 - ซ่อมด่วน', status: 'งานเสร็จสิ้น' },
+  //   { id: 3, techName: 'นายประยุทธ์ (ทีม C)', job: '#1027 - ซ่อมบำรุง', status: 'เริ่มงาน' },
+  //   { id: 4, techName: 'นายมงคล (ทีม D)', job: '#1024 - Overdue', status: 'กำลังดำเนินการ' }
+  // ]
 
   const jobTypeData = [ { name: 'ติดตั้ง A/C', value: 45 }, { name: 'ซ่อมบำรุง', value: 30 }, { name: 'ซ่อมด่วน', value: 25 } ]
   const ffrData = [ { name: 'ติดตั้ง A/C', Rate: 85 }, { name: 'ซ่อมบำรุง', Rate: 95 }, { name: 'ซ่อมด่วน', Rate: 70 } ]
 
   return (
     <>
-      {/* --- Card 1: Live Feed (เหมือนเดิม) --- */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <BarChart2 size={20} className="text-indigo-500" /> สถานะงานช่าง (Live Feed)
-        </h3>
-        <ul className="space-y-4 max-h-96 overflow-y-auto pr-2">
-          {activityFeed.map(activity => {
-            const config = statusConfig[activity.status] || statusConfig.default
-            return (
-              <li key={activity.id} className="flex items-start gap-3">
-                <div className="mt-1 shrink-0">{config.icon}</div>
-                <div className="flex-1">
-                  <p className="text-base font-semibold text-gray-900 dark:text-white">{activity.techName}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{activity.job}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <Badge variant="outline" className={`font-semibold ${config.className}`}>
-                    {activity.status}
-                  </Badge>
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
+      {/* --- Card 1: Live Feed ถูกลบออกตามคำขอ --- */}
+      {/* <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
+        ... (โค้ด Live Feed ที่ถูกลบออก) ...
+      </div> 
+      */}
 
-      {/* --- Card 2: Pie Chart (ปรับปรุงให้ดูนุ่มนวลและมีมิติ) --- */}
+      {/* --- Card 2: Pie Chart (สัดส่วนประเภทงาน) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <PieChartIcon size={20} className="text-indigo-500" />
@@ -186,7 +167,7 @@ export default function RightPanel() {
         </ul>
       </div>
 
-      {/* --- Card 3: Bar Chart (เหมือนเดิมจากการปรับปรุงก่อนหน้า) --- */}
+      {/* --- Card 3: Bar Chart (Most Performed Tasks) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Wrench size={20} className="text-indigo-500" />
