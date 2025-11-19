@@ -16,12 +16,15 @@ interface JobCalendarProps {
 
 export function JobCalendar({ jobs, selectedDate, onDateSelect }: JobCalendarProps) {
 
-  // --- "สมอง" ของปฏิทิน ---
-  // สร้าง Set ของ "วันที่มีงาน" ทั้งหมด
+  const activeJobs = useMemo(
+    () => jobs.filter((job) => job.status !== 'done'),
+    [jobs]
+  );
+
   const jobDays = useMemo(() => {
     const dates = new Set<Date>();
     
-    jobs.forEach(job => {
+    activeJobs.forEach(job => {
       // หาวันทั้งหมดใน "ระหว่าง" วันเริ่มและวันจบ
       const daysInJob = eachDayOfInterval({
         start: job.startDate,
@@ -33,7 +36,7 @@ export function JobCalendar({ jobs, selectedDate, onDateSelect }: JobCalendarPro
     });
     
     return Array.from(dates);
-  }, [jobs]);
+  }, [activeJobs]);
 
   // --- "ตัวไฮไลท์" สำหรับปฏิทิน ---
   // บอก react-day-picker ว่าวันไหนคือ "วันทำงาน"
@@ -54,7 +57,7 @@ export function JobCalendar({ jobs, selectedDate, onDateSelect }: JobCalendarPro
   };
 
   return (
-    <div className="rounded-md border bg-card">
+    <div className="rounded-md border bg-white dark:bg-card overflow-hidden">
       <Calendar
         mode="single"
         selected={selectedDate}

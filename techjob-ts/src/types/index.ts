@@ -44,7 +44,13 @@ export interface Task {
     message: string;
     imageUrl?: string;
     updatedBy: string; // User's name
-    updatedAt: Date;
+    updatedAt: string;
+  }[];
+  materials: {
+    materialId: string;
+    quantity: number;
+    withdrawnAt: Date;
+    withdrawnBy: string;
   }[];
 }
 
@@ -61,10 +67,13 @@ export interface Job {
   customerPhone: string;
   customerContactOther?: string;
   location: string; // (ที่อยู่สำหรับ Map)
+  latitude?: number;
+  longitude?: number;
  
   // ไฟล์แนบ
   imageUrl?: string;
   otherFileUrl?: string;
+  pdfFiles?: string[]; // Array of PDF file URLs
 
   // วันที่
   startDate: Date;
@@ -80,4 +89,21 @@ export interface Job {
   createdAt: Date;
   editHistory: EditHistory[]; // ประวัติการแก้ไขโดย Admin เท่านั้น
   activityLog: ActivityLog[]; // ความคืบหน้างานโดย Leader/Tech
+  completionSummary?: string;
+  completionIssues?: string;
+  completionIssueImage?: string;
+  completedAt?: Date;
+  leaderCloser?: string;
+}
+
+export type MaterialUsageType = 'consumable' | 'returnable';
+
+export interface Material {
+  id: string;
+  name: string;
+  category: string;
+  usageType: MaterialUsageType;
+  unit: string;
+  stock: number;
+  minStock: number;
 }

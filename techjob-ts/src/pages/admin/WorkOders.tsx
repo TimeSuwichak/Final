@@ -44,7 +44,11 @@ export default function WorkOders() {
     return jobs.filter((job) => {
       if (viewMode === "my-jobs" && job.adminCreator !== adminName) return false;
       if (filterType !== "all" && job.jobType !== filterType) return false;
+<<<<<<< HEAD
       if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+=======
+      if (statusFilter !== "all" && job.status !== statusFilter) return false;
+>>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
       const term = searchTerm.toLowerCase();
       if (term && !job.id.toLowerCase().includes(term) && !job.title.toLowerCase().includes(term)) return false;
       return true;
@@ -66,7 +70,21 @@ export default function WorkOders() {
     setDialogMode(null);
   };
 
+<<<<<<< HEAD
   
+=======
+  const handleUpdateStatus = (jobId: string, newStatus: 'new' | 'in-progress' | 'done') => {
+    const { updateJobWithActivity } = useJobs();
+    updateJobWithActivity(
+      jobId,
+      { status: newStatus },
+      'status_changed',
+      `สถานะงานเปลี่ยนเป็น ${newStatus === 'new' ? 'งานใหม่' : newStatus === 'in-progress' ? 'กำลังทำ' : 'เสร็จแล้ว'}`,
+      user.fname,
+      'tech'
+    );
+  };
+>>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
@@ -81,9 +99,10 @@ export default function WorkOders() {
           placeholder="ค้นหาชื่องาน, รหัสงาน..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-white"
         />
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger>
+          <SelectTrigger className="bg-white">
             <SelectValue placeholder="เลือกประเภทงาน" />
           </SelectTrigger>
           <SelectContent>
@@ -98,13 +117,12 @@ export default function WorkOders() {
 
         {/* Status filter */}
         <div className="">
-          <Label>กรองตามสถานะ</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="สถานะทั้งหมด" />
+            <SelectTrigger className="w-44 bg-white ">
+              <SelectValue placeholder="สถานะทั้งหมด"  />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">ทั้งหมด</SelectItem>
+              <SelectItem value="all">สถานะงานทั้งหมด</SelectItem>
               <SelectItem value="new">งานใหม่</SelectItem>
               <SelectItem value="in-progress">กำลังทำ</SelectItem>
               <SelectItem value="done">เสร็จแล้ว</SelectItem>
@@ -112,18 +130,35 @@ export default function WorkOders() {
           </Select>
         </div>
 
-        <ToggleGroup
-          type="single"
-          value={viewMode}
-          onValueChange={(val) => val && setViewMode(val)}
-          className="justify-start"
-        >
-          <ToggleGroupItem value="all">งานทั้งหมด</ToggleGroupItem>
-          <ToggleGroupItem value="my-jobs">งานของฉัน</ToggleGroupItem>
-        </ToggleGroup>
+<ToggleGroup
+  type="single"
+  value={viewMode}
+  onValueChange={(val) => val && setViewMode(val)}
+  className="justify-start"
+>
+  <ToggleGroupItem 
+    value="all" 
+    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-l-md rounded-r-none border border-r-0 
+             hover:bg-gray-50 dark:hover:bg-[#2d2d2d] 
+             data-[state=on]:bg-primary data-[state=on]:text-white
+             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+             transition-colors"
 
-
-
+  >
+    งานทั้งหมด
+  </ToggleGroupItem>
+  
+  <ToggleGroupItem 
+    value="my-jobs" 
+    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-r-md rounded-l-none border 
+             hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
+             data-[state=on]:bg-primary data-[state=on]:text-white
+             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+             transition-colors"
+  >
+    งานของฉัน
+  </ToggleGroupItem>
+</ToggleGroup>
       </div>
 
 

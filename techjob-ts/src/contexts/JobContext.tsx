@@ -18,6 +18,7 @@ const reviveDates = (job: any): Job => {
     startDate: new Date(job.startDate),
     endDate: new Date(job.endDate),
     createdAt: new Date(job.createdAt),
+    completedAt: job.completedAt ? new Date(job.completedAt) : undefined,
     editHistory: (job.editHistory || []).map((entry: any) => ({
       ...entry,
       editedAt: new Date(entry.editedAt),
@@ -123,6 +124,11 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       activityLog: [],
       tasks: [],
       assignedTechs: [],
+      completionSummary: undefined,
+      completionIssues: undefined,
+      completionIssueImage: undefined,
+      completedAt: undefined,
+      leaderCloser: undefined,
     };
 
     // 🔥 เพิ่มโค้ด: ถ้าระบุ leadId ให้ส่ง notification ให้ Leader
