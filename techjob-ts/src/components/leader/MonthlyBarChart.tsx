@@ -34,7 +34,7 @@ const MonthlyBarChart: React.FC<ChartProps> = ({ isDarkMode }) => {
             {/* [UPGRADE] 2. ปรับ h4 โดยเพิ่ม Icon และใช้ flex จัดวาง */}
             <h4 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <BarChart2 size={20} className="text-indigo-500" /> {/* เพิ่ม Icon */}
-                Monthly Trends
+               งานรายเดือน Monthly Trends
             </h4>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ปริมาณงานรายเดือน (6 เดือน)</p> {/* ปรับ text-xs เป็น text-sm ให้ใหญ่ขึ้นเล็กน้อย */}
         </div>
