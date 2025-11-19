@@ -4,28 +4,27 @@ import { Pie, PieChart, ResponsiveContainer, Cell, Tooltip, Legend } from 'recha
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 // 🎨 กำหนดชุดสีที่สวยงามและคอนทราสต์สูง
-// ใช้สีที่สื่อถึงสถานะ: พร้อม/ว่าง (เขียว), กำลังทำงาน (ส้ม), มีปัญหา/ปิด (น้ำเงินเข้ม)
 const PROFESSIONAL_COLORS = [
-    '#10B981', // Emerald Green
-    '#F59E0B', // Amber Orange
-    '#3B82F6', // Blue (แทนสีแดง หากไม่ต้องการให้ดูเป็น Error มากเกินไป)
+    '#10B981', // Emerald Green (คมชัดใน Dark Mode)
+    '#F59E0B', // Amber Orange (คมชัดใน Dark Mode)
+    '#3B82F6', // Blue (คมชัดใน Dark Mode)
 ];
 
-// Custom Tooltip Component เพื่อการแสดงผลที่ดูเป็นมืออาชีพ
+// Custom Tooltip Component เพื่อการแสดงผลที่ดูเป็นมืออาชีพ (ปรับปรุงให้ใช้ Dark Mode)
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    // 💡 Tooltip: ปรับพื้นหลัง/ขอบ/สีข้อความให้รองรับ Dark Mode
     return (
-      <div className="p-3 border rounded-lg shadow-md" style={{ 
-        backgroundColor: 'hsl(var(--background))', // ใช้สีพื้นหลังของ Dashboard
-        borderColor: 'hsl(var(--border))' 
-      }}>
-        <p className="font-bold text-lg text-primary">{data.name}</p>
+      <div className="p-3 border rounded-lg shadow-md bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600">
+        <p className="font-bold text-lg text-primary dark:text-indigo-400">{data.name}</p>
         <p>
-          <span className="text-muted-foreground">จำนวนทีม:</span> **{data.value}**
+          <span className="text-muted-foreground dark:text-gray-300">จำนวนทีม:</span> 
+          <span className="font-bold text-gray-900 dark:text-gray-50"> {data.value}</span>
         </p>
         <p>
-          <span className="text-muted-foreground">สัดส่วน:</span> **{(data.percent * 100).toFixed(1)}%**
+          <span className="text-muted-foreground dark:text-gray-300">สัดส่วน:</span> 
+          <span className="font-bold text-gray-900 dark:text-gray-50"> {(data.percent * 100).toFixed(1)}%</span>
         </p>
       </div>
     );
@@ -33,48 +32,58 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-// 💅 ปรับปรุง Component หลัก (ใช้ชื่อฟังก์ชันเดิมเพื่อให้เข้ากับโค้ดที่คุณมี)
+// 💅 ปรับปรุง Component หลัก
 export function TeamStatusPieChart({ data }) {
     // ⚙️ ตั้งค่าขนาดวงแหวน (Donut Chart)
-    const INNER_RADIUS = 65; // ขนาดวงใน
-    const OUTER_RADIUS = 110; // ขนาดวงนอก
+    const INNER_RADIUS = 55;
+    const OUTER_RADIUS = 95;
     const total = data.reduce((sum, entry) => sum + entry.value, 0);
 
   return (
-    // 🌟 เพิ่มเงาและเอฟเฟกต์ยกขึ้นเล็กน้อยเมื่อเมาส์ชี้
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    // 🌟 Card: ปรับพื้นหลัง/ขอบ ให้รองรับ Dark Mode
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 dark:bg-gray-800 dark:border-gray-700">
       <CardHeader>
-        {/* 🛠️ ปรับปรุง Title ให้ชัดเจนยิ่งขึ้น */}
-        <CardTitle className="text-2xl font-bold text-gray-800">
+        {/* Title: ปรับสีข้อความให้เป็นสีสว่างใน Dark Mode */}
+        <CardTitle className="text-2xl font-bold text-gray-800 dark:text-gray-50">
           สถานะทีมช่างทั้งหมด ({total} Teams )
         </CardTitle>
-        <CardDescription className="text-md text-gray-500">
+        {/* Description: ปรับสีข้อความให้เป็นสีเทาอ่อนใน Dark Mode */}
+        <CardDescription className="text-md text-gray-500 dark:text-gray-400">
           สรุปจำนวนช่างในแต่ละสถานะปัจจุบัน
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={300}> 
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              // ⚙️ **สำคัญ:** กำหนด innerRadius เพื่อสร้าง Donut Chart
               innerRadius={INNER_RADIUS}
               outerRadius={OUTER_RADIUS}
               dataKey="value"
-              // 📝 ปรับ Label ให้แสดงผลแบบแม่นยำขึ้น (ทศนิยม 1 ตำแหน่ง) และจัดตำแหน่งที่ชัดเจน
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+              // 📝 Label: ใช้สี Foreground ที่เปลี่ยนตามโหมด
+              label={({ name, percent, x, y, cx }) => (
+                <text 
+                  x={x} 
+                  y={y} 
+                  // 💡 ใช้สีที่คมชัดใน Dark Mode (สีขาว/เทาอ่อน)
+                  fill="hsl(var(--foreground))" 
+                  textAnchor={x > cx ? 'start' : 'end'} 
+                  dominantBaseline="central" 
+                  className="text-xs font-semibold dark:text-gray-50" 
+                >
+                  {`${name} (${(percent * 100).toFixed(1)}%)`}
+                </text>
+              )}
               labelLine={false}
-              paddingAngle={3} // เพิ่มช่องว่างเล็กน้อยระหว่างชิ้น
+              paddingAngle={3}
             >
               {data.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]}
-                  // 🚫 ลบ Stroke ออกเพื่อให้ดูเป็นวงแหวนที่สวยงาม
                   stroke="none" 
-                  // 🖱️ เพิ่มเอฟเฟกต์ไฮไลท์เมื่อเมาส์ชี้ (Optional)
                   onMouseOver={(e) => {
                     e.currentTarget.style.filter = 'brightness(1.1)';
                   }}
@@ -84,15 +93,16 @@ export function TeamStatusPieChart({ data }) {
                 />
               ))}
             </Pie>
-            {/* 💡 ใช้ Custom Tooltip ที่จัดรูปแบบใหม่ */}
+            {/* 💡 ใช้ Custom Tooltip ที่ปรับแล้ว */}
             <Tooltip content={<CustomTooltip />} />
-            {/* 📊 ปรับ Legend ให้อยู่ด้านล่างและจัดกึ่งกลาง */}
+            {/* 📊 Legend: ปรับสีข้อความ Legend ให้เป็นสีอ่อนใน Dark Mode */}
             <Legend 
               layout="horizontal" 
               verticalAlign="bottom" 
               align="center" 
               iconType="circle"
-              wrapperStyle={{ paddingTop: '20px' }} 
+              // 💡 ใช้สี muted-foreground ที่เปลี่ยนตามโหมด
+              wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--muted-foreground))' }} 
             />
           </PieChart>
         </ResponsiveContainer>
