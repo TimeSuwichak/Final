@@ -1,7 +1,7 @@
 // JobStatusChart.jsx (ปรับเป็น Grouped Bar Chart 3 แท่งต่อสัปดาห์: งานใหม่, กำลังดำเนินการ, งานเสร็จสิ้น)
 
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // 💡 เพิ่ม useState, useEffect
 import { 
   ResponsiveContainer, 
   ComposedChart, 
@@ -13,18 +13,17 @@ import {
   Legend,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChartBig } from 'lucide-react'; // 💡 ใช้ BarChartBig เพื่อสื่อถึง Bar Chart
+import { BarChartBig } from 'lucide-react'; 
 
 // ==========================================================
 // 🎨 ค่าสีที่ได้รับการปรับปรุงเพื่อให้เข้ากับ Deep Dark Mode
 // ==========================================================
 const PRIMARY_DARK_BG = '#1B182B'; // ม่วงเข้มเกือบดำ (พื้นหลัง Card)
 const DARK_BORDER_COLOR = '#2F2C41'; // สีขอบ/เส้น Grid
-const DARK_AXIS_COLOR = '#9894dd'; // สีแกน/ข้อความรอง
+// 💡 DARK_AXIS_COLOR ถูกแทนที่ด้วย Logic ด้านล่าง
 
 // 💡 ข้อมูลจำลองใหม่: ใช้ 3 คีย์สำหรับ Grouped Bar Chart (งานใหม่, กำลังดำเนินการ, งานเสร็จสิ้น)
 const groupedBarData = [
-  // 💡 ปรับตัวเลขและคีย์ให้เข้ากับ: งานใหม่ (ฟ้า), กำลังดำเนินการ (เหลือง), งานเสร็จสิ้น (เขียว)
   { status: 'สัปดาห์ 1', 'งานใหม่': 15, 'กำลังดำเนินการ': 10, 'งานเสร็จสิ้น': 40 },
   { status: 'สัปดาห์ 2', 'งานใหม่': 20, 'กำลังดำเนินการ': 15, 'งานเสร็จสิ้น': 55 },
   { status: 'สัปดาห์ 3', 'งานใหม่': 25, 'กำลังดำเนินการ': 20, 'งานเสร็จสิ้น': 60 },
@@ -47,7 +46,7 @@ const CustomGroupedTooltip = ({ active, payload, label }) => {
         <hr className="my-1 border-gray-700"/>
         
         {payload.map((p, index) => (
-          // 🌙 ปรับสีข้อความใน Tooltip
+          // 🌙 ปรับสีข้อความใน Tooltip (ใช้สี p.color)
           <p key={index} style={{ color: p.color }} className="dark:text-gray-100">
             {p.name}: **{p.value}** งาน
           </p>
@@ -60,23 +59,50 @@ const CustomGroupedTooltip = ({ active, payload, label }) => {
 
 
 export function JobStatusChart({ data }) {
+    // 💡 1. Logic ตรวจสอบ Dark Mode
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    useEffect(() => {
+        const checkTheme = () => {
+            setIsDarkMode(document.documentElement.classList.contains('dark'));
+        };
+
+        checkTheme();
+        
+        const observer = new MutationObserver(checkTheme);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+
+    // 💡 2. ฟังก์ชันกำหนดสี Dynamic
+    const getChartColor = (type) => {
+        if (isDarkMode) {
+            // Dark Mode: ใช้สีที่กำหนดไว้สำหรับ Deep Dark Mode (แต่ปรับให้ชัดเจน)
+            if (type === 'text') return '#E0E0E0'; // เทาอ่อนสำหรับข้อความ
+            if (type === 'line') return 'hsl(var(--border))'; // สี border สำหรับเส้น
+        } else {
+            // Light Mode: ใช้สีที่คมชัดสูงสุด
+            if (type === 'text') return '#000000'; // ดำล้วน
+            if (type === 'line') return '#D0D0D0'; // เทาอ่อนสำหรับเส้น
+        }
+    };
+    
   return (
     
-    <Card className="shadow-2xl dark:bg-[var(--primary-dark-bg)] dark:border-[var(--dark-border-color)]"
-        style={{ '--primary-dark-bg': PRIMARY_DARK_BG, '--dark-border-color': DARK_BORDER_COLOR }}
-    >
+    // 💡 แก้ไข: ลบ style prop ที่กำหนดสีพื้นหลังเฉพาะ Dark Mode ออกจาก Card 
+    // และใช้ dark:bg-card dark:border-border มาตรฐาน เพื่อให้ Card ทำงานใน Light Mode
+    <Card className="shadow-2xl dark:bg-card dark:border-border"> 
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2 dark:text-gray-50"> 
-            <BarChartBig size={24} className="text-indigo-500" /> {/* เปลี่ยนสี Icon */}
+        <CardTitle className="text-2xl font-bold dark:text-foreground text-gray-800 flex items-center gap-2"> 
+            <BarChartBig size={24} className="text-indigo-500" /> 
             ภาพรวมสถานะงาน (Work Status Overview)
         </CardTitle>
-        <CardDescription className="text-md text-gray-500 dark:text-gray-400"> 
+        <CardDescription className="text-md dark:text-muted-foreground text-gray-600"> 
             แสดงจำนวนงานใหม่, งานที่กำลังดำเนินการ, และงานที่เสร็จสิ้น ในแต่ละสัปดาห์
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          {/* 💡 ใช้ ComposedChart แต่ใส่แต่ Bar เพื่อให้ได้ Grouped Bar Chart */}
           <ComposedChart 
             data={groupedBarData}
             margin={{
@@ -89,36 +115,44 @@ export function JobStatusChart({ data }) {
             {/* 🌙 ปรับสีเส้นตาราง */}
             <CartesianGrid 
                 strokeDasharray="3 3" 
-                stroke={DARK_BORDER_COLOR} 
+                stroke={getChartColor('line')} // 💡 ใช้สีเส้น dynamic
                 strokeOpacity={0.8} 
                 vertical={false} 
               />
             
             <XAxis 
               dataKey="status" 
-              stroke={DARK_AXIS_COLOR} 
+              stroke={getChartColor('line')} // 💡 ใช้สีเส้น dynamic
               fontSize={12} 
               tickLine={false} 
               axisLine={false} 
-              tick={{ fill: DARK_AXIS_COLOR }} 
+              tick={{ fill: getChartColor('text') }} // 💡 ใช้สีข้อความ dynamic
             />
             
             <YAxis 
-              stroke={DARK_AXIS_COLOR} 
+              stroke={getChartColor('line')} // 💡 ใช้สีเส้น dynamic
               fontSize={12} 
               tickLine={false} 
               axisLine={false} 
               allowDecimals={false}
-              label={{ value: 'จำนวนงาน', angle: -90, position: 'insideLeft', fill: DARK_AXIS_COLOR, fontSize: 12, offset: 5 }}
-              tick={{ fill: DARK_AXIS_COLOR }} 
+              label={{ 
+                  value: 'จำนวนงาน', 
+                  angle: -90, 
+                  position: 'insideLeft', 
+                  fill: getChartColor('text'), // 💡 ใช้สีข้อความ dynamic
+                  fontSize: 12, 
+                  offset: 5 
+              }}
+              tick={{ fill: getChartColor('text') }} // 💡 ใช้สีข้อความ dynamic
             />
             
             <Tooltip
+                // 💡 Tooltip ใช้ Custom CSS Variable ได้ตามเดิม
                 content={<CustomGroupedTooltip />}
-                cursor={{ fill: DARK_BORDER_COLOR, fillOpacity: 0.3 }}
+                cursor={{ fill: 'hsl(var(--border))', fillOpacity: 0.3 }}
             />
             <Legend 
-                wrapperStyle={{ paddingTop: '10px', color: DARK_AXIS_COLOR }} 
+                wrapperStyle={{ paddingTop: '10px', color: getChartColor('text') }} // 💡 ใช้สีข้อความ dynamic
             />
             
             {/* Bar 1: งานใหม่ (สีน้ำเงิน) - เรียงลำดับที่ 1 */}
