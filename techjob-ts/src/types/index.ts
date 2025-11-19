@@ -46,6 +46,12 @@ export interface Task {
     updatedBy: string; // User's name
     updatedAt: string;
   }[];
+  materials: {
+    materialId: string;
+    quantity: number;
+    withdrawnAt: Date;
+    withdrawnBy: string;
+  }[];
 }
 
 // พิมพ์เขียวสำหรับ "ใบงานหลัก" (Job)
@@ -67,6 +73,7 @@ export interface Job {
   // ไฟล์แนบ
   imageUrl?: string;
   otherFileUrl?: string;
+  pdfFiles?: string[]; // Array of PDF file URLs
 
   // วันที่
   startDate: Date;

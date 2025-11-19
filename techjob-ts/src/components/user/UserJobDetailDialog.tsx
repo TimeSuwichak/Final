@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -38,8 +39,10 @@ import {
   X,
   ClipboardList,
   CheckCircle2,
+   ImageIcon
 } from 'lucide-react';
 import { generateCompletionReportPdf } from "@/utils/jobReport";
+import { PdfViewer } from "@/components/common/PdfViewer";
 
 interface UserJobDetailDialogProps {
   job: Job | null;
@@ -96,7 +99,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
         onEscapeKeyDown={(event) => event.preventDefault()}
       >
         {/* Compact Header */}
-        <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-gradient-to-r from-blue-50 to-blue-100 shrink-0">
+        <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-linear-to-r from-primary/5 to-primary/10 shrink-0">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -133,7 +136,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
 
                 {/* Leader Information */}
                 {assignedLeader && (
-                  <Card className="border-blue-200 bg-green-50/50">
+                  <Card className="border-primary/20 ">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <User className="h-4 w-4 text-green-600" />
@@ -161,7 +164,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 )}
 
                 {isCompleted && (
-                  <Card className="border-emerald-200 bg-emerald-50/40">
+                  <Card className="border-primary/20  ">
                     <CardHeader className="pb-2">
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
@@ -234,7 +237,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 )}
 
                 {/* Job Info Card */}
-                <Card className="border-blue-200">
+                <Card className="border-primary/20">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <FileText className="h-4 w-4 text-blue-600" />
@@ -259,7 +262,7 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                 </Card>
 
                 {/* Customer & Location Combined */}
-                <Card className="border-blue-200">
+                <Card className="border-primary/20">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <User className="h-4 w-4 text-blue-600" />
@@ -299,11 +302,12 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                         </div>
                       )}
                     </div>
+                     
                   </CardContent>
                 </Card>
 
                 {/* Description */}
-                <Card className="border-blue-200">
+                <Card className="border-primary/20">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <FileText className="h-4 w-4 text-blue-600" />
@@ -314,8 +318,29 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                     <div className="rounded-md bg-muted/50 p-3 text-xs leading-relaxed">
                       <p>{job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</p>
                     </div>
+                    
+                      {job.imageUrl && (
+                        <div className="pt-2">
+                          <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            รูปภาพหน้างาน
+                          </p>
+                          <div className="rounded-md overflow-hidden border border-border">
+                            <img
+                              src={job.imageUrl || "/placeholder.svg"}
+                              alt="รูปภาพหน้างาน"
+                              className="w-full h-auto max-h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(job.imageUrl, '_blank')}
+                            />
+                          </div>
+                        </div>
+                      )}
                   </CardContent>
                 </Card>
+                {/* PDF Viewer Card */}
+                {job.pdfFiles && job.pdfFiles.length > 0 && (
+                  <PdfViewer pdfFiles={job.pdfFiles} />
+                )}
 
               </div>
 

@@ -1,11 +1,14 @@
 // src/router.tsx
 import React from "react";
-import { Navigate } from "react-router-dom";
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 import Sidebar from "./components/sidebar/sidebar";
 import LoginPage from "./pages/LoginPage";
 
+// COMPONENTS
+import ProtectedRoute from "./components/ProtectedRoute";
+
 // ADMIN
+
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Datauser from "./pages/admin/Datauser";
 import Report from "./pages/admin/Report";
@@ -23,6 +26,8 @@ import UserWorks from "./pages/user/UserWorks";
 // LEADER
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import LeaderWorks from "./pages/leader/LeaderWorks";
+import TechnicianTracking from "./pages/leader/TechnicianTracking";
+import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
 
 // EXECUTIVE
 import ExDashboard from "./pages/executive/ExDashboard";
@@ -34,9 +39,12 @@ import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
+<<<<<<< HEAD
 
 // PROTECTED
 import ProtectedRoute from "./components/ProtectedRoute";
+=======
+>>>>>>> 5d10eb873482fcffcd32d5c2535c6c17b3b30920
 
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
@@ -53,7 +61,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <Sidebar />,
     children: [
-      // ADMIN
+      // ──────── ADMIN ────────
       {
         path: "admin/admindashboard",
         element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
@@ -64,7 +72,7 @@ const router = createBrowserRouter([
       },
       {
         path: "admin/user-detail/:id",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetail />} />,
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetailPage />} />,
       },
       {
         path: "admin/workoders",
@@ -83,7 +91,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />,
       },
 
-      // USER
+      // ──────── USER ────────
       {
         path: "user/userdashboard",
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} />,
@@ -97,23 +105,35 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />,
       },
 
+<<<<<<< HEAD
       // LEADER
+=======
+      // ──────── LEADER ────────
+>>>>>>> 5d10eb873482fcffcd32d5c2535c6c17b3b30920
       {
         path: "leader/leaderdashboard",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />,
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />
       },
       {
         path: "leader/leaderworks",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />,
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />
+      },
+      {
+        path: "leader/tracking",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} />
+      },
+      {
+        path: "leader/workorder/:jobId",
+        element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} />
       },
 
-      // EXECUTIVE
+      // ──────── EXECUTIVE ────────
       {
         path: "executive/exdashboard",
         element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} />,
       },
 
-      // COMMON
+      // ──────── COMMON ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
       { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
       { path: "notification", element: <ProtectedRoute element={<Notification />} /> },
@@ -122,6 +142,7 @@ const router = createBrowserRouter([
       { path: "system", element: <ProtectedRoute element={<System />} /> },
       { path: "user-detail/:userId", element: <UserDetailPage /> },
 
+      // ──────── CHAT ────────
       // USER CHAT
       {
         path: "chat",
@@ -145,7 +166,3 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
-
-
-
-

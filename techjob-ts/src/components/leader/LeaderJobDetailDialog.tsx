@@ -65,7 +65,9 @@ import {
    Map, 
    ClipboardList, 
    ExternalLink,
+    ImageIcon
   } from "lucide-react";
+  import { PdfViewer } from "@/components/common/PdfViewer";
 
 interface LeaderJobDetailDialogProps {
   job: Job | null;
@@ -433,7 +435,7 @@ export function LeaderJobDetailDialog({
                             {format(job.endDate, "dd/MM")}
                           </p>
                         </div>
-                      </div>
+                      </div>  
                     </CardContent>
                   </Card>
 
@@ -489,6 +491,7 @@ export function LeaderJobDetailDialog({
                           </div>
                         )}
                       </div>
+                      
                     </CardContent>
                   </Card>
 
@@ -507,8 +510,32 @@ export function LeaderJobDetailDialog({
                             "รวมตรวจอัตราการผลิตการยอมรับงานทั่วไปในด้านต่างๆ และยังได้วิเคราะห์ส่วนเสริม"}
                         </p>
                       </div>
+                        {job.imageUrl && (
+                        <div className="pt-2">
+                          <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            รูปภาพหน้างาน
+                          </p>
+                          <div className="rounded-md overflow-hidden border border-border">
+                            <img
+                              src={job.imageUrl || "/placeholder.svg"}
+                              alt="รูปภาพหน้างาน"
+                              className="w-full h-auto max-h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(job.imageUrl, '_blank')}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      
+                      
                     </CardContent>
                   </Card>
+
+                  {job.pdfFiles && job.pdfFiles.length > 0 && (
+                    <PdfViewer pdfFiles={job.pdfFiles} />
+                  )}
+
                 </div>
 
                 {/* Right Column */}

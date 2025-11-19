@@ -1,75 +1,16 @@
-<<<<<<< HEAD
-# Chat System Fixes Plan
+# TODO: Implement Material Withdrawal in UserJobDetailDialog
 
-## Issues Identified
-1. **Inconsistent Data Structures**: Two different collections ('chats' vs 'chatRooms') causing confusion
-2. **Broken Unread Logic**: Missing 'read' fields and improper admin unread tracking
-3. **Hardcoded User IDs**: Not using proper authentication context
-4. **Poor Admin UX**: Chat list shows IDs instead of user names
-5. **Duplicate Components**: Multiple chat implementations
+## Current Status
+- [x] Analyze code and create plan
+- [x] Update Task interface in types/index.ts
+- [x] Modify UserTaskUpdate.tsx to add withdrawal UI
+- [x] Add material selection dialog
+- [ ] Implement withdrawal logic and notifications
+- [ ] Display withdrawn materials in task
+- [ ] Verify leader visibility in LeaderJobDetailDialog
+- [ ] Test functionality
 
-## Fix Plan
-
-### Phase 1: Standardize Data Structure
-- [x] Remove 'chatRooms' references from ChatPage.tsx and ChatRoom.tsx
-- [x] Use only 'chats' collection with 'messages' subcollection
-- [x] Update routing to use consistent chat pages
-
-### Phase 2: Fix Authentication
-- [x] Replace hardcoded userId in pages/chat/index.tsx with auth context
-- [x] Update FloatingChatWidget to use proper user ID
-- [x] Ensure all chat components use authenticated user IDs
-
-### Phase 3: Fix Unread Message Logic
-- [x] Add 'read' field to message documents
-- [x] Properly set 'hasUnreadForAdmin' in chat documents
-- [x] Update useUnreadChatCount hook to work correctly
-- [x] Mark messages as read when viewed
-
-### Phase 4: Improve Admin Experience
-- [x] Update AdminChatList to show user names instead of IDs
-- [x] Add user information to chat documents
-- [x] Improve chat list UI with last message preview
-
-### Phase 5: Clean Up Components
-- [x] Remove duplicate chat components (ChatPage.tsx, ChatRoom.tsx if not needed)
-- [x] Consolidate chat functionality into UserChat and AdminChatRoom
-- [x] Update router to use consistent chat routes
-
-### Phase 6: Testing
-- [ ] Test user chat functionality
-- [ ] Test admin chat management
-- [ ] Test unread badge updates
-- [ ] Test image upload functionality
-
-### Current Task: Fix Message Sending
-- [ ] Add error handling to UserChat.tsx sendMessage
-- [ ] Add error handling to AdminChatRoom.tsx sendMessage
-- [ ] Ensure text trimming in AdminChatRoom.tsx
-- [ ] Remove ChatPage.tsx and ChatRoom.tsx
-- [ ] Update router.tsx to remove chatRooms routes
-- [ ] Test message sending functionality
-
-### Add Missing Chat Route
-- [x] Import ChatPage in router.tsx
-- [x] Add "/chat" route for user, leader, executive roles
-- [x] Delete techjob-ts/src/pages/chat/ChatPage.tsx
-- [x] Delete techjob-ts/src/pages/chat/ChatRoom.tsx
-- [x] Update TODO.md to reflect completed tasks
-=======
-# TODO: Implement Material Settings Features
-
-## Steps to Complete
-- [x] Update Material type to include minStock
-- [x] Update all material data files to include minStock values
-- [ ] Add materials state management in Material.tsx
-- [ ] Add Actions column to table with Edit and Withdraw buttons
-- [ ] Add low stock card at bottom with withdraw buttons
-- [ ] Implement edit dialog for material settings
-- [ ] Implement withdraw dialog with quantity and delivery days simulation
-- [ ] Add pending orders state and delivery simulation logic
-- [ ] Update low stock highlighting to use minStock (yellow when <= min)
-- [ ] Implement notifications for low stock materials
-- [ ] Update summary calculations to use minStock for low stock count
-- [ ] Test all features: edit, withdraw, notifications, delivery simulation
->>>>>>> 19eff251d53fd181d0e55585bcfac9d767ad023f
+## Notes
+- Materials are stored in arrays: electricalMaterials, networkMaterials, etc.
+- Withdrawal per task, displayed in task, visible to leaders.
+- Use existing notification system for leader alerts.

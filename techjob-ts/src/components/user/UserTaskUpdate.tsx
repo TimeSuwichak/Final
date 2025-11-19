@@ -1,4 +1,4 @@
-// src/components/user/UserTaskUpdate.tsx
+
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -37,8 +37,16 @@ import {
   Camera,
   Maximize2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Package,
+  Plus
 } from 'lucide-react';
+import { MaterialSelectionDialog } from './MaterialSelectionDialog';
+import { electricalMaterials } from '@/data/materials/electrical';
+import { networkMaterials } from '@/data/materials/network';
+import { toolMaterials } from '@/data/materials/tools';
+import { multimediaMaterials } from '@/data/materials/multimedia';
+import { consumableMaterials } from '@/data/materials/consumables';
 
 interface UserTaskUpdateProps {
   job: Job;
@@ -55,11 +63,13 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   const [imageName, setImageName] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
   const hasLeaderRejectUpdate = task.updates?.some((update) =>
     update.message.startsWith("งานถูกตีกลับโดยหัวหน้า:")
   );
+  const hasContent = (task.updates?.length ?? 0) > 0 || (task.materials?.length ?? 0) > 0;
   const [isExpanded, setIsExpanded] = useState(
-    hasLeaderRejectUpdate || (task.updates?.length ?? 0) > 0
+    hasLeaderRejectUpdate || hasContent
   );
 
   useEffect(() => {
@@ -69,6 +79,22 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
   }, [hasLeaderRejectUpdate]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Combine all materials for lookup
+  const allMaterials = [
+    ...electricalMaterials,
+    ...networkMaterials,
+    ...toolMaterials,
+    ...multimediaMaterials,
+    ...consumableMaterials,
+  ];
+
+  const getMaterialName = (materialId: string) => {
+    // Extract the actual material ID by removing the category prefix (e.g., "multimedia-IOT-001" -> "IOT-001")
+    const actualId = materialId.includes('-') ? materialId.split('-').slice(1).join('-') : materialId;
+    const material = allMaterials.find(m => m.id === actualId);
+    return material ? material.name : materialId;
+  };
 
   if (!user) return null;
 
@@ -133,7 +159,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
       message: message.trim(),
       imageUrl: imagePreview || undefined,
       updatedBy: user.fname,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     };
 
     const updatedTask: Task = {
@@ -236,52 +262,87 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
               )}
             </div>
 
-            {task.updates && task.updates.length > 0 ? (
+            {hasContent ? (
               isExpanded ? (
                 <ScrollArea>
                   <div className="space-y-2 pr-2">
-                    {task.updates.map((update, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Avatar className="h-7 w-7 shrink-0">
-                          <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
-                            {update.updatedBy[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className="font-medium text-xs">{update.updatedBy}</span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {format(update.updatedAt, 'dd/MM HH:mm', { locale: th })}
-                            </span>
-                          </div>
-                          <div className={`rounded-lg p-2 space-y-2 ${update.message.startsWith('งานถูกตีกลับโดยหัวหน้า:') ? 'bg-yellow-50 border border-yellow-200' : 'bg-muted/50'}`}>
-                            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
-                            {update.imageUrl && (
-                              <div className="relative group">
-                                <img
-                                  src={update.imageUrl}
-                                  alt={`จาก ${update.updatedBy}`}
-                                  className="w-full h-auto max-h-48 rounded-md border object-cover cursor-pointer hover:opacity-95 transition-opacity"
-                                  onClick={() => handleImageClick(update.imageUrl!)}
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md flex items-center justify-center">
-                                  <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
-                                </div>
+                    {/* Updates Section */}
+                    {task.updates && task.updates.length > 0 && (
+                      <div className="space-y-2">
+                        {task.updates.map((update, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <Avatar className="h-7 w-7 shrink-0">
+                              <AvatarFallback className="text-[10px] bg-blue-100 text-blue-700">
+                                {update.updatedBy[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="font-medium text-xs">{update.updatedBy}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {format(new Date(update.updatedAt), 'dd/MM HH:mm', { locale: th })}
+                                </span>
                               </div>
-                            )}
+                              <div className={`rounded-lg p-2 space-y-2 ${update.message.startsWith('งานถูกตีกลับโดยหัวหน้า:') ? 'bg-yellow-50 border border-yellow-200' : 'bg-muted/50'}`}>
+                                <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
+                                {update.imageUrl && (
+                                  <div className="relative group">
+                                    <img
+                                      src={update.imageUrl}
+                                      alt={`จาก ${update.updatedBy}`}
+                                      className="w-full h-auto max-h-48 rounded-md border object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                      onClick={() => handleImageClick(update.imageUrl!)}
+                                    />
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md flex items-center justify-center">
+                                      <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Withdrawn Materials Section */}
+                    {task.materials && task.materials.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <Package className="h-3.5 w-3.5 text-green-600" />
+                          <h4 className="text-xs font-semibold">วัสดุที่เบิก ({task.materials.length})</h4>
+                        </div>
+                        <div className="space-y-1">
+                          {task.materials.map((material, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
+                              <div className="flex-1">
+                                <p className="text-xs font-medium">{getMaterialName(material.materialId)}</p>
+                                <p className="text-[10px] text-muted-foreground">รหัส: {material.materialId}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  จำนวน: {material.quantity} | เบิกเมื่อ: {format(material.withdrawnAt, 'dd/MM/yyyy HH:mm', { locale: th })} | โดย: {material.withdrawnBy}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </ScrollArea>
               ) : (
                 <div className="space-y-1">
-                  <div className="text-xs text-muted-foreground">
-                    {task.updates[task.updates.length - 1].updatedBy}:{" "}
-                    {task.updates[task.updates.length - 1].message.slice(0, 80)}
-                    {task.updates[task.updates.length - 1].message.length > 80 ? "..." : ""}
-                  </div>
+                  {task.updates && task.updates.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {task.updates[task.updates.length - 1].updatedBy}:{" "}
+                      {task.updates[task.updates.length - 1].message.slice(0, 80)}
+                      {task.updates[task.updates.length - 1].message.length > 80 ? "..." : ""}
+                    </div>
+                  )}
+                  {task.materials && task.materials.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      เบิกวัสดุแล้ว {task.materials.length} รายการ
+                    </div>
+                  )}
                   <div className="text-center py-2 text-muted-foreground">
                     <MessageSquare className="h-4 w-4 mx-auto mb-1 opacity-40" />
                     <p className="text-xs">คลิก "แสดง" เพื่อดูรายละเอียดทั้งหมด</p>
@@ -371,7 +432,16 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
               )}
             </div>
 
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-between pt-1">
+              <Button
+                onClick={() => setMaterialDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 h-8 text-xs"
+              >
+                <Plus className="h-3 w-3" />
+                เบิกวัสดุ
+              </Button>
               <Button
                 onClick={handleUpdate}
                 disabled={!message.trim()}
@@ -408,6 +478,14 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Material Selection Dialog */}
+      <MaterialSelectionDialog
+        open={materialDialogOpen}
+        onOpenChange={setMaterialDialogOpen}
+        job={job}
+        task={task}
+      />
     </>
   );
 }

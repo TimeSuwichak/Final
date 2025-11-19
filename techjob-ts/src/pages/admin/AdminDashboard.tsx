@@ -1,84 +1,146 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react"; 
+
+import { Zap, Users, TrendingUp, Package, BarChartBig, Gauge, Calendar, Crown } from 'lucide-react'; 
+
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { JobStatusChart } from "@/components/admin/charts/JobStatusChart";
-import { TeamStatusPieChart } from "@/components/admin/charts/TeamStatusPieChart";
+import { JobStatusChart } from "@/components/admin/charts/JobStatusChart"; 
+import { TeamStatusPieChart } from "@/components/admin/charts/TeamStatusPieChart"; 
 
-// --- ✨ Import กราฟที่เราเพิ่งสร้าง ✨ ---
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-// (Import กราฟอื่นๆ ที่นี่)
+// ... (MetricCard และ CustomLineTooltip components) ...
+
+const MetricCard = ({ icon, title, value, description, colorClass = "text-indigo-400" }) => (
+  <Card className="shadow-xl transition-transform duration-300 hover:scale-[1.02] dark:bg-card dark:border-border">
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardTitle className="text-sm font-medium text-muted-foreground dark:text-gray-300">{title}</CardTitle>
+      {React.cloneElement(icon, { className: `h-6 w-6 ${colorClass}` })}
+    </CardHeader>
+    <CardContent>
+      <div className="text-3xl font-bold dark:text-foreground">{value}</div>
+      <p className="text-xs text-muted-foreground pt-1 dark:text-gray-400">{description}</p>
+    </CardContent>
+  </Card>
+);
+
+const CustomLineTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const lineStrokeColor = payload[0].stroke || '#38BDF8';
+    return (
+      <div className="p-3 border rounded-lg shadow-md 
+        dark:bg-card dark:border-border text-foreground bg-card" 
+      >
+        <p className="font-bold text-lg mb-1" style={{ color: lineStrokeColor }}>{label}</p>
+        <p>
+          <span className="text-muted-foreground">จำนวน:</span> 
+          <span className="font-bold" style={{ color: lineStrokeColor }}> {payload[0].value} งาน</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 // ==========================================================
-// ✨ ADMIN DASHBOARD PAGE (ฉบับกราฟ) ✨
+// ✨ ADMIN DASHBOARD PAGE (ใช้ Dark/Light Mode มาตรฐาน) ✨
 // ==========================================================
 export default function AdminDashboardPage() {
-  const { jobs } = useJobs();
-  const { user } = useAuth();
-
-  // --- 1. LOGIC การเตรียมข้อมูลสำหรับกราฟ ---
+  const { jobs } = useJobs(); 
+  const { user } = useAuth(); 
   
-  // กราฟที่ 1: ข้อมูลสถานะงานในเดือนนี้
-  const jobStatusData = useMemo(() => {
-    const now = new Date();
-    const currentMonthJobs = jobs.filter(job => {
-        const jobDate = new Date(job.createdAt);
-        return jobDate.getMonth() === now.getMonth() && jobDate.getFullYear() === now.getFullYear();
-    });
+  // 💡 Hook สำหรับตรวจจับ Dark Mode จริงๆ
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-    const newCount = currentMonthJobs.filter(j => j.status === 'new' && !j.acknowledgedByLeader).length;
-    const inProgressCount = currentMonthJobs.filter(j => (j.status === 'new' && j.acknowledgedByLeader) || j.status === 'in-progress').length;
-    const completedCount = currentMonthJobs.filter(j => j.status === 'completed').length;
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const checkTheme = () => {
+        // ตรวจสอบ class 'dark' บน html element เป็นหลัก
+        setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
 
-    // Recharts ต้องการข้อมูลในรูปแบบ Array of Objects
-    return [
-      { name: 'สถานะ', "งานใหม่": newCount, "กำลังทำ": inProgressCount, "เสร็จสิ้น": completedCount },
-    ];
-  }, [jobs]);
-
-
-  // กราฟที่ 2: ข้อมูลสถานะทีมช่าง (จำลอง)
-  const teamStatusData = useMemo(() => {
-    // ในอนาคต คุณสามารถดึงข้อมูลจริงของ 'users' มา filter ตาม status ได้
-    return [
-        { name: 'พร้อมรับงาน', value: 12 }, // สมมติว่ามีช่างว่าง 12 คน
-        { name: 'กำลังทำงาน', value: 8 },  // สมมติว่ากำลังทำงาน 8 คน
-        { name: 'ลาพักร้อน', value: 2 },   // สมมติว่าลา 2 คน
-    ];
-  }, []); // `[]` หมายถึงให้คำนวณแค่ครั้งแรก
-
-
-  // กราฟที่ 3: ประเภทงานยอดนิยม (ดึงข้อมูลจริง)
-  const popularJobTypesData = useMemo(() => {
-    const now = new Date();
-    const typeCounts: { [key: string]: number } = {};
+    checkTheme();
     
-    jobs.forEach(job => {
-        const jobDate = new Date(job.createdAt);
-        if (jobDate.getMonth() === now.getMonth() && jobDate.getFullYear() === now.getFullYear()) {
-            typeCounts[job.jobType] = (typeCounts[job.jobType] || 0) + 1;
-        }
-    });
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    return Object.entries(typeCounts)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5); // เอาแค่ 5 อันดับแรก
-  }, [jobs]);
+    mediaQuery.addEventListener('change', checkTheme); 
+
+    return () => {
+        observer.disconnect();
+        mediaQuery.removeEventListener('change', checkTheme);
+    };
+  }, []);
+
+  // 💡 ฟังก์ชันใหม่: คืนค่าสีข้อความที่ชัดเจนที่สุดในทุกโหมด
+  const getAxisTextColor = () => {
+      // Dark Mode (พื้นหลังเข้ม): ใช้สีขาว
+      if (isDarkMode) {
+          return '#E0E0E0'; 
+      }
+      // Light Mode (พื้นหลังสว่าง): ใช้สีดำ
+      return '#000000'; // 💡 แก้ไข: ใช้สีดำล้วนเพื่อให้คมชัดสูงสุดใน Light Mode
+  };
+
+  // 💡 ฟังก์ชันใหม่: คืนค่าสีเส้นแกน (Grid และ Axis Lines)
+  const getAxisLineColor = () => {
+    if (isDarkMode) {
+        return 'hsl(var(--border))'; // สี border ใน Dark Mode
+    }
+    return '#D0D0D0'; // สีเทาอ่อนมากสำหรับเส้นแกนใน Light Mode
+  };
+  
+  // --- 1. LOGIC การเตรียมข้อมูลสำหรับกราฟ (ใช้ค่าจำลอง) ---
+  const jobStatusData = useMemo(() => {
+    const totalCount = 200;
+    const newCount = 15;
+    const inProgressCount = 80;
+    const completedCount = 105;
+    return { total: totalCount, new: newCount, inProgress: inProgressCount, completed: completedCount };
+  }, []);
+
+  const teamStatusData = useMemo(() => {
+    return [
+        { name: 'พร้อมรับงาน', value: 12 }, 
+        { name: 'กำลังทำงาน', value: 8 },  
+        { name: 'ลาพักร้อน', value: 2 },   
+    ];
+  }, []); 
+
+  const popularJobTypesData = useMemo(() => {
+    const data = [
+      { name: 'ม.ค.', count: 45 }, 
+      { name: 'ก.พ.', count: 32 },
+      { name: 'มี.ค.', count: 50 },
+      { name: 'เม.ย.', count: 28 },
+      { name: 'พ.ค.', count: 38 },
+      { name: 'มิ.ย.', count: 65 },
+    ];
+    
+    return {
+        list: data,
+        maxCount: data.reduce((max, item) => Math.max(max, item.count), 0)
+    };
+  }, []);
 
 
-  // กราฟที่ 4: การเบิกวัสดุ (จำลอง)
   const materialUsageData = useMemo(() => {
     return [
-        { name: 'สาย LAN Cat6', requested: 25, unit: 'เมตร' },
-        { name: 'ท่อ PVC', requested: 10, unit: 'เส้น' },
-        { name: 'Access Point WiFi 6', requested: 8, unit: 'ตัว' },
-        { name: 'น็อต', requested: 50, unit: 'ตัว' },
+        { name: 'สาย LAN Cat6', requested: 25, unit: 'เมตร', lastUsed: '3 วันที่แล้ว' },
+        { name: 'ท่อ PVC', requested: 10, unit: 'เส้น', lastUsed: 'เมื่อวาน' },
+        { name: 'Access Point WiFi 6', requested: 8, unit: 'ตัว', lastUsed: '5 ชั่วโมงที่แล้ว' },
+        { name: 'น็อต', requested: 50, unit: 'ตัว', lastUsed: '1 สัปดาห์ที่แล้ว' },
     ];
   }, []);
+
+  const totalStaff = teamStatusData.reduce((sum, d) => sum + d.value, 0);
+  const availableStaff = teamStatusData.find(d => d.name === 'พร้อมรับงาน')?.value || 0;
+  const availableSupervisor = '2/5'; 
 
   if (!user) {
     return <div>Loading...</div>;
@@ -86,61 +148,155 @@ export default function AdminDashboardPage() {
   
   // --- 2. JSX (ส่วนแสดงผล) ---
   return (
-    <div className="flex-1 space-y-8 p-4 md:p-8">
-      <h2 className="text-3xl font-bold tracking-tight">Dashboard ภาพรวม</h2>
+    <div 
+        className="flex-1 space-y-10 p-4 md:p-8 bg-background dark:bg-background"
+    >
+      
+      {/* HEADER SECTION */}
+      <Card className="shadow-2xl dark:bg-card dark:border-border">
+        <CardHeader className="p-4 md:p-5">
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col">
+              <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2"> 
+                  <Gauge size={50} className="text-pink-500" /> 
+                  Admin Dashboard: ภาพรวมระบบงาน
+              </CardTitle>
+              <CardDescription className="pt-1 text-sm text-muted-foreground">
+                  ภาพรวมข้อมูลและสถิติสำคัญสำหรับการจัดการระบบ
+              </CardDescription>
+            </div>
+            
+            <div className="flex items-center space-x-1 text-right pt-1">
+              <Calendar size={16} className="text-muted-foreground" />
+              <p className="text-xxs font-semibold text-muted-foreground">
+                ข้อมูลล่าสุด ณ {new Date().toLocaleDateString('th-TH', { dateStyle: 'medium' })}
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-        {/* กราฟสถานะงาน */}
+
+      {/* KEY METRICS (แถวสรุปสถานะงานและบุคลากร) */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <MetricCard icon={<Zap />} title="งานทั้งหมด" value={jobStatusData.total} description="รวมทุกสถานะ" colorClass="text-indigo-400" />
+        <MetricCard icon={<TrendingUp />} title="งานใหม่" value={jobStatusData.new} description="งานใหม่ / มอบหมาย" colorClass="text-red-400" />
+        <MetricCard icon={<TrendingUp />} title="กำลังทำ" value={jobStatusData.inProgress} description="อยู่ระหว่างการปฏิบัติงาน" colorClass="text-yellow-400" />
+        <MetricCard icon={<TrendingUp />} title="เสร็จสิ้น" value={jobStatusData.completed} description="สำเร็จในเดือนนี้" colorClass="text-emerald-400" />
+        <MetricCard 
+            icon={<Users />} 
+            title="ช่างที่ว่าง" 
+            value={`${availableStaff}/${totalStaff}`} 
+            description={`พร้อมรับงาน (${((availableStaff / totalStaff) * 100).toFixed(0)}%)`} 
+            colorClass="text-blue-400" 
+        />
+        <MetricCard 
+            icon={<Crown />} 
+            title="หัวหน้างานว่าง" 
+            value={availableSupervisor} 
+            description="หัวหน้างานพร้อมดูแลทีม" 
+            colorClass="text-pink-400" 
+        />
+      </div>
+
+      {/* CHART ROW 1 (JobStatusChart และ TeamStatusPieChart) */}
+      <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
         <JobStatusChart data={jobStatusData} />
-        {/* กราฟสถานะทีมช่าง */}
         <TeamStatusPieChart data={teamStatusData} />
       </div>
 
-      <div className="grid gap-6">
-        {/* กราฟประเภทงานยอดนิยม (ใช้ Card + Table ธรรมดา) */}
-        <Card>
+      {/* CHART/LIST ROW 2 */}
+      <div className="grid gap-8 lg:grid-cols-2">
+        
+        {/* 1. 💡 LINE CHART: แนวโน้มจำนวนงานรายเดือน (แก้ไขสีข้อความแกน) */}
+        <Card className="shadow-2xl dark:bg-card dark:border-border">
           <CardHeader>
-            <CardTitle>5 ประเภทงานยอดนิยมในเดือนนี้</CardTitle>
+            <CardTitle className="flex items-center text-xl font-bold dark:text-foreground">
+                <BarChartBig className="mr-3 h-5 w-5 text-indigo-400" /> 
+                แนวโน้มจำนวนงานรายเดือน
+            </CardTitle>
+            <CardDescription className="dark:text-muted-foreground">แสดงปริมาณงานที่ถูกร้องขอในรอบ 6 เดือนล่าสุด</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {popularJobTypesData.map(item => (
-                <div key={item.name} className="flex items-center">
-                  <div className="flex-1 text-sm font-medium">{item.name}</div>
-                  <div className="w-16 text-right font-semibold">{item.count} งาน</div>
-                  <div className="w-1/2 ml-4">
-                    {/* ใช้ div เป็น Progress bar ง่ายๆ */}
-                    <div className="h-2 rounded-full bg-secondary">
-                        <div 
-                          className="h-2 rounded-full bg-primary" 
-                          style={{ width: `${(item.count / (popularJobTypesData[0]?.count || 1)) * 100}%`}} 
-                        />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <CardContent className="pt-4 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={popularJobTypesData.list} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                
+                {/* 🌙 Grid: ใช้ getAxisLineColor() */}
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke={getAxisLineColor()} // 💡 ใช้ฟังก์ชันสำหรับสีเส้น Grid
+                  strokeOpacity={0.5} 
+                  vertical={false} 
+                />
+                
+                {/* X-Axis: ใช้ getAxisTextColor() */}
+                <XAxis 
+                  dataKey="name" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={{ stroke: getAxisLineColor() }} // 💡 ใช้ฟังก์ชันสำหรับสีเส้นแกน
+                  stroke={getAxisLineColor()} // 💡 ใช้ฟังก์ชันสำหรับสีเส้นแกน
+                  tick={{ fill: getAxisTextColor() }} // 💡 ใช้ฟังก์ชันสำหรับสีข้อความ
+                  angle={-15} 
+                  textAnchor="end" 
+                  height={40} 
+                />
+                
+                {/* Y-Axis: ใช้ getAxisTextColor() */}
+                <YAxis 
+                  dataKey="count"
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  stroke={getAxisLineColor()} // 💡 ใช้ฟังก์ชันสำหรับสีเส้นแกน
+                  tick={{ fill: getAxisTextColor() }} // 💡 ใช้ฟังก์ชันสำหรับสีข้อความ
+                  tickFormatter={(value) => `${value} งาน`}
+                />
+                
+                <Tooltip
+                  content={<CustomLineTooltip />}
+                  cursor={{ stroke: '#38BDF8', strokeWidth: 1, strokeDasharray: '5 5' }}
+                />
+                
+                {/* Line: ปรับสีและรูปแบบ */}
+                <Line 
+                  type="monotone" 
+                  dataKey="count" 
+                  name="จำนวนงาน"
+                  stroke="#38BDF8" // Sky Blue
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: '#38BDF8', stroke: 'hsl(var(--card))', strokeWidth: 2 }} 
+                  activeDot={{ r: 7, stroke: '#38BDF8', fill: 'hsl(var(--card))', strokeWidth: 3 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
-
-       <div className="grid gap-6">
-        {/* ตารางการเบิกวัสดุ */}
-        <Card>
-            <CardHeader><CardTitle>รายการเบิกวัสดุล่าสุด (จำลอง)</CardTitle></CardHeader>
+        
+        {/* 2. ตารางการเบิกวัสดุ */}
+        <Card className="shadow-2xl dark:bg-card dark:border-border">
+            <CardHeader>
+                <CardTitle className="flex items-center text-xl dark:text-foreground">
+                    <Package className="mr-3 h-5 w-5 text-amber-400" />
+                    รายการเบิกวัสดุล่าสุด (Material Usage)
+                </CardTitle>
+                <CardDescription className="dark:text-muted-foreground">การเคลื่อนไหวของวัสดุคงคลังที่ถูกเบิกล่าสุด</CardDescription>
+            </CardHeader>
             <CardContent>
                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>ชื่อวัสดุ</TableHead>
-                            <TableHead className="text-right">จำนวนที่เบิก</TableHead>
+                    <TableHeader className="bg-muted/50 dark:bg-muted">
+                        <TableRow className="dark:border-border">
+                            <TableHead className="w-[60%] dark:text-muted-foreground">ชื่อวัสดุ</TableHead>
+                            <TableHead className="text-center dark:text-muted-foreground">จำนวนที่เบิก</TableHead>
+                            <TableHead className="text-right dark:text-muted-foreground">ใช้ล่าสุด</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {materialUsageData.map(item => (
-                            <TableRow key={item.name}>
-                                <TableCell className="font-medium">{item.name}</TableCell>
-                                <TableCell className="text-right">{item.requested} {item.unit}</TableCell>
+                            <TableRow key={item.name} className="hover:bg-muted/20 dark:hover:bg-muted/50 dark:border-border">
+                                <TableCell className="font-medium dark:text-foreground">{item.name}</TableCell>
+                                <TableCell className="text-center font-bold text-lg text-primary/80 dark:text-indigo-400">{item.requested} <span className="text-sm font-normal text-muted-foreground dark:text-muted-foreground">{item.unit}</span></TableCell>
+                                <TableCell className="text-right text-sm text-muted-foreground dark:text-muted-foreground">{item.lastUsed}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

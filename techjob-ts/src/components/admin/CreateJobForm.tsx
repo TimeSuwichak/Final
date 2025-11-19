@@ -1,4 +1,4 @@
-// src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
+  // src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -62,6 +62,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [mapPosition, setMapPosition] = useState<
     [number, number] | undefined
   >();
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [pdfPreviews, setPdfPreviews] = useState<{name: string, url: string}[]>([]);
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -95,7 +97,27 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       reader.readAsDataURL(file);
     }
   };
+  
+  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setPdfFiles(files);
+    
+    const previews = files.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file)
+    }));
+    setPdfPreviews(previews);
+  };
 
+  const removePdf = (index: number) => {
+    setPdfFiles(prev => prev.filter((_, i) => i !== index));
+    setPdfPreviews(prev => {
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  
   const validateStep = (step: number): boolean => {
     if (step === 1) {
       return !!(title && jobType);
@@ -183,6 +205,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         leadId: Number(selectedLeadId),
         imageUrl: imagePreview || "",
         otherFileUrl: "",
+        pdfFiles: pdfPreviews.map(p => p.url), // Add PDF files
         assignedTechs: [],
         tasks: [],
         status: "new",
@@ -260,16 +283,37 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  
+                      <div>
                     <Label className="text-sm font-medium">
-                      ไฟล์แนบ (PDF, DOC)
+                      ไฟล์ PDF แนบเพิ่มเติม
                       <span className="text-xs text-slate-500 ml-1">(ถ้ามี)</span>
                     </Label>
                     <Input
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf"
+                      multiple
+                      onChange={handlePdfChange}
                       className="mt-1"
                     />
+                    {pdfPreviews.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {pdfPreviews.map((pdf, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-slate-800/50 rounded border border-slate-700">
+                            <span className="text-xs truncate">{pdf.name}</span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removePdf(index)}
+                              className="h-5 w-5 p-0"
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
