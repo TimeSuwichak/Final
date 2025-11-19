@@ -44,11 +44,7 @@ export default function WorkOders() {
     return jobs.filter((job) => {
       if (viewMode === "my-jobs" && job.adminCreator !== adminName) return false;
       if (filterType !== "all" && job.jobType !== filterType) return false;
-<<<<<<< HEAD
-      if (statusFilter !== 'all' && job.status !== statusFilter) return false;
-=======
       if (statusFilter !== "all" && job.status !== statusFilter) return false;
->>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
       const term = searchTerm.toLowerCase();
       if (term && !job.id.toLowerCase().includes(term) && !job.title.toLowerCase().includes(term)) return false;
       return true;
@@ -70,9 +66,6 @@ export default function WorkOders() {
     setDialogMode(null);
   };
 
-<<<<<<< HEAD
-  
-=======
   const handleUpdateStatus = (jobId: string, newStatus: 'new' | 'in-progress' | 'done') => {
     const { updateJobWithActivity } = useJobs();
     updateJobWithActivity(
@@ -84,7 +77,6 @@ export default function WorkOders() {
       'tech'
     );
   };
->>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">

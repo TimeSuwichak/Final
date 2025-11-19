@@ -65,15 +65,10 @@ export default function Sidebar() {
     ],
 
     leader: [
-<<<<<<< HEAD
-      { path: "/leader/laderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/leader/leaderworks", icon: <VscGraph />, label: "การเข้างาน" },
-=======
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
->>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
     ],
 
@@ -165,14 +160,6 @@ export default function Sidebar() {
               <Outlet />
             </main>
           </div>
-<<<<<<< HEAD
-          {/* pt มันลากข้อความเรามานะข้ะ */}
-          <main className="h-full overflow-auto p-6 pt-10">
-            <Outlet />
-          </main>
-        </div>
-=======
->>>>>>> f9fed004f166ef5456bdc8a5b6f7048ed8f9b309
 
           {/* Overlay mobile */}
           {isSidebarOpen && (
