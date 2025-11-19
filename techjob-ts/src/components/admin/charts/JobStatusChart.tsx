@@ -1,10 +1,11 @@
+// JobStatusChart.jsx (ปรับเป็น Grouped Bar Chart 3 แท่งต่อสัปดาห์: งานใหม่, กำลังดำเนินการ, งานเสร็จสิ้น)
+
 "use client";
 import React from 'react';
 import { 
   ResponsiveContainer, 
   ComposedChart, 
   Bar, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -12,28 +13,42 @@ import {
   Legend,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { BarChartBig } from 'lucide-react'; // 💡 ใช้ BarChartBig เพื่อสื่อถึง Bar Chart
 
-// ⚠️ ข้อมูลจำลองที่ถูกแก้ไข: เพิ่ม In_Progress
-const candlestickData = [
-  // Open และ Close ยังคงอยู่เพื่อความสมบูรณ์ของข้อมูล แต่จะไม่ได้ถูกใช้ใน Chart นี้แล้ว
-  { status: 'สัปดาห์ 1', Open: 20, High: 65, Low: 40, Close: 45, In_Progress: 15 },
-  { status: 'สัปดาห์ 2', Open: 45, High: 70, Low: 40, Close: 50, In_Progress: 20 },
-  { status: 'สัปดาห์ 3', Open: 50, High: 80, Low: 50, Close: 75, In_Progress: 25 },
-  { status: 'สัปดาห์ 4', Open: 75, High: 90, Low: 60, Close: 85, In_Progress: 30 },
+// ==========================================================
+// 🎨 ค่าสีที่ได้รับการปรับปรุงเพื่อให้เข้ากับ Deep Dark Mode
+// ==========================================================
+const PRIMARY_DARK_BG = '#1B182B'; // ม่วงเข้มเกือบดำ (พื้นหลัง Card)
+const DARK_BORDER_COLOR = '#2F2C41'; // สีขอบ/เส้น Grid
+const DARK_AXIS_COLOR = '#9894dd'; // สีแกน/ข้อความรอง
+
+// 💡 ข้อมูลจำลองใหม่: ใช้ 3 คีย์สำหรับ Grouped Bar Chart (งานใหม่, กำลังดำเนินการ, งานเสร็จสิ้น)
+const groupedBarData = [
+  // 💡 ปรับตัวเลขและคีย์ให้เข้ากับ: งานใหม่ (ฟ้า), กำลังดำเนินการ (เหลือง), งานเสร็จสิ้น (เขียว)
+  { status: 'สัปดาห์ 1', 'งานใหม่': 15, 'กำลังดำเนินการ': 10, 'งานเสร็จสิ้น': 40 },
+  { status: 'สัปดาห์ 2', 'งานใหม่': 20, 'กำลังดำเนินการ': 15, 'งานเสร็จสิ้น': 55 },
+  { status: 'สัปดาห์ 3', 'งานใหม่': 25, 'กำลังดำเนินการ': 20, 'งานเสร็จสิ้น': 60 },
+  { status: 'สัปดาห์ 4', 'งานใหม่': 30, 'กำลังดำเนินการ': 25, 'งานเสร็จสิ้น': 75 },
 ];
 
-// Custom Tooltip สำหรับ Candlestick (ปรับปรุงให้รองรับคีย์ In_Progress)
-const CustomCandlestickTooltip = ({ active, payload, label }) => {
+// Custom Tooltip สำหรับ Grouped Bar Chart
+const CustomGroupedTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
+    const totalJob = payload.reduce((sum, entry) => sum + entry.value, 0);
     return (
+      // 🌙 ใช้สีพื้นหลัง Card ใหม่ และสีขอบใหม่
       <div className="p-3 border rounded-lg shadow-md 
-        bg-white dark:bg-slate-800 
-        border-gray-200 dark:border-slate-700"
+        bg-[var(--primary-dark-bg)] border-[var(--dark-border-color)] 
+        text-gray-50"
+        style={{ '--primary-dark-bg': PRIMARY_DARK_BG, '--dark-border-color': DARK_BORDER_COLOR }}
       >
-        <p className="font-bold text-lg text-primary dark:text-indigo-400 mb-1">{label}</p>
+        <p className="font-bold text-lg text-indigo-400 mb-1">{label}</p>
+        <p className="font-bold text-sm">งานรวมในสัปดาห์: {totalJob} งาน</p>
+        <hr className="my-1 border-gray-700"/>
+        
         {payload.map((p, index) => (
-          <p key={index} style={{ color: p.color }} className="text-gray-900 dark:text-gray-100">
+          // 🌙 ปรับสีข้อความใน Tooltip
+          <p key={index} style={{ color: p.color }} className="dark:text-gray-100">
             {p.name}: **{p.value}** งาน
           </p>
         ))}
@@ -43,102 +58,96 @@ const CustomCandlestickTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// 🎨 สีที่ใช้ใน Recharts (สี Hex Code ต้องคงที่)
-const COLORS = {
-    AXIS: '#94a3b8',      // Slate-400
-    GRID_LIGHT: '#e2e8f0', // Slate-200
-    GRID_DARK: '#334155',  // Slate-700
-};
-
 
 export function JobStatusChart({ data }) {
   return (
     
-<Card className="shadow-2xl dark:bg-slate-900 dark:border-slate-700">
-  <CardHeader>
-    <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2 dark:text-gray-50"> 
-        <TrendingUp size={24} className="text-red-500" />
-        ภาพรวมสถานะงาน (Work status overview)
-    </CardTitle>
-    <CardDescription className="text-md text-gray-500 dark:text-gray-300"> 
-        แสดงความผันผวนของงานที่เข้ามา (High) และงานที่เสร็จสิ้น (Low) เทียบกับงานที่กำลังดำเนินการ
-    </CardDescription>
-  </CardHeader>
-  <CardContent>
-    <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart 
-        data={candlestickData}
-        margin={{
-          top: 10,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke={COLORS.GRID_LIGHT} 
-            strokeOpacity={0.5} 
-            vertical={false} 
-          />
-        
-        <XAxis 
-          dataKey="status" 
-          stroke={COLORS.AXIS} 
-          fontSize={12} 
-          tickLine={false} 
-          axisLine={false} 
-          tick={{ fill: COLORS.AXIS }} 
-        />
-        
-        <YAxis 
-          stroke={COLORS.AXIS} 
-          fontSize={12} 
-          tickLine={false} 
-          axisLine={false} 
-          allowDecimals={false}
-          label={{ value: 'จำนวนงาน', angle: -90, position: 'insideLeft', fill: COLORS.AXIS, fontSize: 12, offset: 5 }}
-          tick={{ fill: COLORS.AXIS }} 
-        />
-        
-        <Tooltip
-            content={<CustomCandlestickTooltip />}
-            cursor={false} 
-        />
-        <Legend 
-            wrapperStyle={{ paddingTop: '10px', color: COLORS.AXIS }} 
-        />
-        
-        {/* Bar Chart: คงเดิม */}
-        <Bar 
-          dataKey="High" 
-          name="งานทั้งหมด"
-          fill="#4f46e5" // Indigo-600
-          barSize={5} 
-          radius={[4, 4, 0, 0]}
-        />
-        <Bar 
-          dataKey="Low" 
-          name="งานเสร็จสิ้น"
-          fill="#10B981" // Emerald-500
-          barSize={5} 
-          radius={[4, 4, 0, 0]}
-        />
+    <Card className="shadow-2xl dark:bg-[var(--primary-dark-bg)] dark:border-[var(--dark-border-color)]"
+        style={{ '--primary-dark-bg': PRIMARY_DARK_BG, '--dark-border-color': DARK_BORDER_COLOR }}
+    >
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2 dark:text-gray-50"> 
+            <BarChartBig size={24} className="text-indigo-500" /> {/* เปลี่ยนสี Icon */}
+            ภาพรวมสถานะงาน (Work Status Overview)
+        </CardTitle>
+        <CardDescription className="text-md text-gray-500 dark:text-gray-400"> 
+            แสดงจำนวนงานใหม่, งานที่กำลังดำเนินการ, และงานที่เสร็จสิ้น ในแต่ละสัปดาห์
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          {/* 💡 ใช้ ComposedChart แต่ใส่แต่ Bar เพื่อให้ได้ Grouped Bar Chart */}
+          <ComposedChart 
+            data={groupedBarData}
+            margin={{
+              top: 10,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            {/* 🌙 ปรับสีเส้นตาราง */}
+            <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke={DARK_BORDER_COLOR} 
+                strokeOpacity={0.8} 
+                vertical={false} 
+              />
+            
+            <XAxis 
+              dataKey="status" 
+              stroke={DARK_AXIS_COLOR} 
+              fontSize={12} 
+              tickLine={false} 
+              axisLine={false} 
+              tick={{ fill: DARK_AXIS_COLOR }} 
+            />
+            
+            <YAxis 
+              stroke={DARK_AXIS_COLOR} 
+              fontSize={12} 
+              tickLine={false} 
+              axisLine={false} 
+              allowDecimals={false}
+              label={{ value: 'จำนวนงาน', angle: -90, position: 'insideLeft', fill: DARK_AXIS_COLOR, fontSize: 12, offset: 5 }}
+              tick={{ fill: DARK_AXIS_COLOR }} 
+            />
+            
+            <Tooltip
+                content={<CustomGroupedTooltip />}
+                cursor={{ fill: DARK_BORDER_COLOR, fillOpacity: 0.3 }}
+            />
+            <Legend 
+                wrapperStyle={{ paddingTop: '10px', color: DARK_AXIS_COLOR }} 
+            />
+            
+            {/* Bar 1: งานใหม่ (สีน้ำเงิน) - เรียงลำดับที่ 1 */}
+            <Bar 
+              dataKey="งานใหม่" 
+              fill="#60A5FA" // Blue-400
+              barSize={10} 
+              radius={[4, 4, 0, 0]}
+            />
+            
+            {/* Bar 2: กำลังดำเนินการ (สีเหลือง/ส้ม) - เรียงลำดับที่ 2 */}
+            <Bar 
+              dataKey="กำลังดำเนินการ" 
+              fill="#FBBF24" // Amber-400
+              barSize={10} 
+              radius={[4, 4, 0, 0]}
+            />
 
-        {/* 🚀 Line Chart: เปลี่ยน type เป็น smoothstep */}
-        <Line 
-            type="smoothstep" // ✨ ปรับให้เส้นโค้งมน ไม่เป็นมุมหักหรือเส้นตรงทื่อ ๆ
-            dataKey="In_Progress" 
-            name="งานที่กำลังดำเนินการ"
-            stroke="#F97316" 
-            strokeWidth={2} 
-            dot={{ r: 5, fill: '#F97316', stroke: '#fff', strokeWidth: 2 }} 
-            activeDot={{ r: 8, fill: '#F97316', stroke: '#fff', strokeWidth: 2 }} 
-        />
+            {/* Bar 3: งานเสร็จสิ้น (สีเขียว) - เรียงลำดับที่ 3 */}
+            <Bar 
+              dataKey="งานเสร็จสิ้น" 
+              fill="#10B981" // Emerald-500
+              barSize={10} 
+              radius={[4, 4, 0, 0]}
+            />
 
-      </ComposedChart>
-    </ResponsiveContainer>
-  </CardContent>
-</Card>
+          </ComposedChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 }
