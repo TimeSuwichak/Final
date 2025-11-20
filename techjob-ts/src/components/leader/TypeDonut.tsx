@@ -115,7 +115,7 @@ export function JobTypePieChart({
         {/* [UPGRADE] 2. ปรับ CardTitle โดยเพิ่ม Icon */}
         <CardTitle className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <Wrench size={20} className="text-indigo-500" /> {/* เพิ่ม Icon */}
-          ประเภทงานที่เชี่ยวชาญ
+          ประเภทงานที่เชี่ยวชาญ Expertise
         </CardTitle>
         <CardDescription className="text-slate-500 dark:text-slate-400">
           สัดส่วนประเภทงานทั้งหมดที่คุณเคยทำสำเร็จ

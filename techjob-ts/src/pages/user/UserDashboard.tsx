@@ -38,12 +38,12 @@ export default function UserDashboard() {
     [myJobs]
   );
   const pendingJobsCount = useMemo(
-    () => myJobs.filter((j) => j.status === "pending").length,
+    () => myJobs.filter((j) => j.status === "new").length,
     [myJobs]
   );
   // [!!] เพิ่ม Logic สำหรับงาน Approved (สมมติว่ามี status 'approved')
   const approvedJobsCount = useMemo(
-    () => myJobs.filter((j) => j.status === "approved").length,
+    () => myJobs.filter((j) => j.status === "done").length,
     [myJobs]
   );
 
@@ -112,32 +112,7 @@ export default function UserDashboard() {
 
   const navigate = useNavigate();
 
-  const openChat = async () => {
-  if (!user) return;
-
-  // 1) ตรวจสอบว่า chat doc ที่มี id = user.id มีอยู่หรือยัง
-  const chatRef = doc(db, "chats", String(user.id));
-  const chatSnap = await getDoc(chatRef);
-
-  if (chatSnap.exists()) {
-    // ถ้ามีแล้ว ให้ไปหน้าแชท (ผู้ใช้ใช้ auth user id ใน ChatPage)
-    navigate(`/chat`);
-    return;
-  }
-
-  // 2) ถ้ายังไม่มี ให้สร้าง doc โดยใช้ user.id เป็น doc id (เพื่อให้ AdminChatList หา user ได้)
-  await setDoc(chatRef, {
-    userId: user.id,
-    userName: `${user.fname} ${user.lname}`,
-    lastMessage: "",
-    lastSender: "user",
-    updatedAt: serverTimestamp(),
-    adminSeen: true,
-    userSeen: true,
-  }, { merge: true });
-
-  navigate(`/chat`);
-};
+  // ลบ openChat function ที่เก่า
 
 
   // --- หน้า Loading ---
@@ -256,6 +231,23 @@ export default function UserDashboard() {
         <div className="lg:col-span-3">
           <MonthlyPerformanceChart data={finalMonthlyPerformanceData} />
         </div>
+      </div>
+
+      {/* Recent Chats Section */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">แชทล่าสุด</h3>
+          <button
+            onClick={() => navigate("/chat")}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            ดูทั้งหมด
+          </button>
+        </div>
+        <Card className="p-4">
+          <RecentChats currentUserId={String(user?.id ?? "guest")} />
+        </Card>
       </div>
 
       {/* CompletedJobsLineChart removed from this page */}

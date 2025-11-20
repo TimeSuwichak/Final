@@ -163,7 +163,6 @@ export default function UserDetailPage() {
               {person.address && <p><strong>ที่อยู่:</strong> {person.address}</p>}
               {person.idCard && <p><strong>บัตรประชาชน:</strong> {person.idCard}</p>}
               {person.startDate && <p><strong>เริ่มงาน:</strong> {person.startDate}</p>}
-
               <p>
                 <strong>สถานะ:</strong>
                 <span
