@@ -39,12 +39,6 @@ import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
-<<<<<<< HEAD
-
-// PROTECTED
-import ProtectedRoute from "./components/ProtectedRoute";
-=======
->>>>>>> 5d10eb873482fcffcd32d5c2535c6c17b3b30920
 
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
@@ -105,11 +99,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />,
       },
 
-<<<<<<< HEAD
-      // LEADER
-=======
       // ──────── LEADER ────────
->>>>>>> 5d10eb873482fcffcd32d5c2535c6c17b3b30920
       {
         path: "leader/leaderdashboard",
         element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />
