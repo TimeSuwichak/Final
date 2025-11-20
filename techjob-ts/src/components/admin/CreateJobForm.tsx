@@ -13,16 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from 'lucide-react';
 import { useJobs } from "@/contexts/JobContext";
 import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { leader as ALL_LEADERS } from "@/data/leader";
+import { leader as ALL_LEADERS } from "@/Data/leader";
 import { AdminMap } from "./AdminMap";
+
+
 
 
 // "ประเภทงาน" ที่ Admin จะเลือก
@@ -49,8 +49,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerContactOther, setCustomerContactOther] = useState("");
+  const [assignmentMode, setAssignmentMode] = useState<"self" | "leader">("self")
 
-  // Form state
+
   const [title, setTitle] = useState("");
   const [jobType, setJobType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -118,68 +119,28 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   };
 
   
-  const validateStep = (step: number): boolean => {
-    if (step === 1) {
-      return !!(title && jobType);
+  const validateForm = (): boolean => {
+    if (!title || !jobType) {
+      alert("กรุณากรอกหัวข้องานและประเภทงาน")
+      return false
     }
-    if (step === 2) {
-      return !!(startDate && endDate && selectedLeadId);
+    if (!startDate || !endDate || !selectedLeadId) {
+      alert("กรุณาระบุวันที่และเลือกหัวหน้างาน")
+      return false
     }
-    if (step === 3) {
-      return !!customerName;
+    if (!customerName) {
+      alert("กรุณากรอกชื่อลูกค้า")
+      return false
     }
-    if (step === 4) {
-      return true;
-    }
-    return false;
-  };
-
-  const handleNextStep = (e?: React.MouseEvent | React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      if ('stopPropagation' in e) {
-        e.stopPropagation();
-      }
-    }
-
-    if (!validateStep(currentStep)) {
-      alert(`กรุณากรอกข้อมูล * ให้ครบถ้วนในขั้นตอนที่ ${currentStep}`);
-      return;
-    }
-
-    if (currentStep < 4) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+    return true
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // หยุดการ submit แบบ default ของ browser
+    e.preventDefault(); 
 
-    // --- นี่คือส่วนสำคัญที่เพิ่มเข้ามา ---
-    // ตรวจสอบว่า "เฮ้! เราอยู่ขั้นตอนสุดท้าย (ที่ 4) แล้วหรือยัง?"
-    if (currentStep !== 4) {
-      // ถ้ายัง (เช่น อยู่ที่ 1, 2, หรือ 3)
-      // ให้ไปเรียกฟังก์ชัน 'ถัดไป' แทน
-      handleNextStep(e);
-      // แล้ว "หยุด" การทำงานของ handleSubmit ทันที
-      return;
-    }
-    // --- สิ้นสุดส่วนที่เพิ่มเข้ามา ---
-
-
-    // ถ้าโค้ดวิ่งมาถึงตรงนี้ได้... 
-    // แปลว่า currentStep === 4 จริง (อยู่หน้าสุดท้าย)
-    // ให้ทำงานตามปกติ (ส่งข้อมูล)
-
-    if (!validateStep(4)) {
-      alert("กรุณากรอกข้อมูล * ให้ครบถ้วน");
-      return;
+    
+    if (!validateForm()) {
+      return
     }
 
     if (!user) {
@@ -210,51 +171,27 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         tasks: [],
         status: "new",
       },
-      adminName
-    );
+     adminName,
+    )
 
-    onFinished();
-  };
+    onFinished()
+  }
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-2 mb-8 flex-wrap px-4">
-      {STEPS.map((step, index) => (
-        <div key={step.id} className="flex items-center gap-2">
-          <Button
-            className={`px-3 py-1.5 cursor-pointer transition-all ${currentStep === step.id
-                ? "bg-purple-500 text-white"
-                : currentStep > step.id
-                  ? "bg-green-500/20 text-green-700"
-                  : "bg-slate-700 text-slate-300"
-              }`}
-          >
-            {step.id}.{step.label}
-          </Button>
-          {index < STEPS.length - 1 && (
-             <ChevronRight
-              className={`w-4 h-4 ${currentStep > step.id ? "text-green-500" : "text-slate-600"}`}
-
-
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  return (
-       <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
+   return (
+    <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         <div className="w-full p-6">
-          <div className="max-w-6xl mx-auto">
-            {renderStepIndicator()}
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 font-semibold text-sm">
+                  1
+                </div>
+                <h2 className="text-xl font-semibold">ข้อมูลพื้นฐาน</h2>
+              </div>
 
-            {/* STEP 1 */}
-            {currentStep === 1 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">ข้อมูลพื้นฐาน</h2>
                   <div>
                     <Label className="text-sm font-medium">
                       หัวข้องาน <span className="text-red-500">*</span>
@@ -283,23 +220,20 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                      <div>
+
+                  <div>
                     <Label className="text-sm font-medium">
                       ไฟล์ PDF แนบเพิ่มเติม
                       <span className="text-xs text-slate-500 ml-1">(ถ้ามี)</span>
                     </Label>
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      multiple
-                      onChange={handlePdfChange}
-                      className="mt-1"
-                    />
+                    <Input type="file" accept=".pdf" multiple onChange={handlePdfChange} className="mt-1" />
                     {pdfPreviews.length > 0 && (
                       <div className="mt-3 space-y-2">
                         {pdfPreviews.map((pdf, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-slate-800/50 rounded border border-slate-700">
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-slate-800/50 rounded border border-slate-700"
+                          >
                             <span className="text-xs truncate">{pdf.name}</span>
                             <Button
                               type="button"
@@ -317,20 +251,13 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   </div>
                 </div>
 
-                {/* Right - Image Preview */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">รูปภาพหน้างาน</h2>
                   <div>
                     <Label className="text-sm font-medium">
                       อัปโหลดรูปภาพ
                       <span className="text-xs text-slate-500 ml-1">(ถ้ามี)</span>
                     </Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="mt-1 mb-3"
-                    />
+                    <Input type="file" accept="image/*" onChange={handleImageChange} className="mt-1 mb-3" />
                     {imagePreview ? (
                       <div className="border rounded-lg overflow-hidden">
                         <img
@@ -347,14 +274,18 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* STEP 2 */}
-            {currentStep === 2 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 font-semibold text-sm">
+                  2
+                </div>
+                <h2 className="text-xl font-semibold">กำหนดการและการมอบหมาย</h2>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">กำหนดการและการมอบหมาย</h2>
                   <div>
                     <Label className="text-sm font-medium">
                       วันเริ่มงาน <span className="text-red-500">*</span>
@@ -373,9 +304,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">หัวหน้างาน</h2>
                   <div>
                     <Label className="text-sm font-medium">
                       เลือกหัวหน้างาน <span className="text-red-500">*</span>
@@ -388,39 +317,23 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         disabled={!startDate || !endDate}
                       />
                     </div>
-                    {(!startDate || !endDate) && (
-                      <p className="text-xs text-slate-500 mt-2">
-                        กรุณาเลือกช่วงเวลางานก่อน
-                      </p>
-                    )}
+                    {(!startDate || !endDate) && <p className="text-xs text-slate-500 mt-2">กรุณาเลือกช่วงเวลางานก่อน</p>}
                     {selectedLeadId && availableLeads.length > 0 && (
                       <div className="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                         {availableLeads.find((l) => String(l.id) === selectedLeadId) && (
                           <div className="flex items-center gap-3">
                             <img
-                              src={
-                                availableLeads.find((l) => String(l.id) === selectedLeadId)
-                                  ?.avatarUrl || ""
-                              }
+                              src={availableLeads.find((l) => String(l.id) === selectedLeadId)?.avatarUrl || ""}
                               alt="Leader"
                               className="w-12 h-12 rounded-full object-cover"
                             />
                             <div>
                               <p className="font-medium text-sm">
-                                {
-                                  availableLeads.find((l) => String(l.id) === selectedLeadId)
-                                    ?.fname
-                                }{" "}
-                                {
-                                  availableLeads.find((l) => String(l.id) === selectedLeadId)
-                                    ?.lname
-                                }
+                                {availableLeads.find((l) => String(l.id) === selectedLeadId)?.fname}{" "}
+                                {availableLeads.find((l) => String(l.id) === selectedLeadId)?.lname}
                               </p>
                               <p className="text-xs text-slate-400">
-                                {
-                                  availableLeads.find((l) => String(l.id) === selectedLeadId)
-                                    ?.position
-                                }
+                                {availableLeads.find((l) => String(l.id) === selectedLeadId)?.position}
                               </p>
                             </div>
                           </div>
@@ -430,14 +343,18 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* STEP 3 */}
-            {currentStep === 3 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 font-semibold text-sm">
+                  3
+                </div>
+                <h2 className="text-xl font-semibold">ข้อมูลลูกค้า</h2>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">ข้อมูลลูกค้า</h2>
                   <div>
                     <Label className="text-sm font-medium">
                       ชื่อลูกค้า <span className="text-red-500">*</span>
@@ -459,9 +376,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                     />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">
-                      ช่องทางติดต่ออื่น (Line, Email)
-                    </Label>
+                    <Label className="text-sm font-medium">ช่องทางติดต่ออื่น (Line, Email)</Label>
                     <Input
                       value={customerContactOther}
                       onChange={(e) => setCustomerContactOther(e.target.value)}
@@ -471,9 +386,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-6">สถานที่ปฏิบัติงาน</h2>
+                  <Label className="text-sm font-medium">สถานที่ปฏิบัติงาน</Label>
                   <AdminMap
                     initialAddress={location}
                     initialPosition={mapPosition}
@@ -482,58 +396,40 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   />
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* STEP 4 */}
-            {currentStep === 4 && (
-              <div className="max-w-2xl mx-auto">
-                <h2 className="text-xl font-semibold mb-3">รายละเอียดงาน</h2>
-                <p className="text-sm text-slate-400 mb-4">
-                  ใส่รายละเอียดงานเพิ่มเติมเพื่อให้ทีมเข้าใจตรงกัน
-                </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 pb-3 border-b">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/10 text-purple-500 font-semibold text-sm">
+                  4
+                </div>
+                <h2 className="text-xl font-semibold">รายละเอียดงาน</h2>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">
+                  รายละเอียดเพิ่มเติม
+                  <span className="text-xs text-slate-500 ml-1">(ถ้ามี)</span>
+                </Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="รายละเอียด, เงื่อนไข, หมายเหตุ หรือสิ่งที่ต้องเตรียม..."
-                  className="h-[300px] overflow-y-auto resize-none" 
+                  className="h-32 resize-none"
                 />
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
-          
 
       <div className="border-t bg-background p-4">
-        <div className="mx-auto max-w-6xl flex justify-between">
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePreviousStep}
-            disabled={currentStep === 1}
-          >
-            ย้อนกลับ
+        <div className="mx-auto max-w-6xl flex justify-end">
+          <Button type="submit" className="bg-purple-500 hover:bg-purple-600 text-white px-8">
+            สร้างใบงาน
           </Button>
-
-          {currentStep < 4 ? (
-            <Button
-              type="button"
-              onClick={(e) => handleNextStep(e)}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              ถัดไป
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              สร้างใบงาน
-            </Button>
-          )}
         </div>
       </div>
     </form>
-  );
+  )
 }

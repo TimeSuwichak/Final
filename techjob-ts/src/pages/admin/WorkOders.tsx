@@ -1,44 +1,34 @@
-// src/pages/admin/WorkOrders.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue, 
 } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { CreateJobDialog } from "@/components/admin/CreateJobDialog";
 import { JobTable } from "@/components/admin/JobTable";
-import { EditJobDialog } from "@/components/admin/EditJobDialog";
 import type { Job } from "@/types/index";
-
-import { Label } from "@/components/ui/label";
-
+import { useNavigate } from "react-router-dom";
 
 export default function WorkOders() {
-  const { jobs } = useJobs();
+  const navigate = useNavigate()
+  const { jobs, updateJobWithActivity } = useJobs()
   const { user } = useAuth();
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [viewMode, setViewMode] = useState("all");
-  const [dialogMode, setDialogMode] = useState<"view" | "edit" | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
 
-  if (!user) {
-    return <div>Loading user data...</div>;
-  }
-  const adminName = user.fname;
+  const adminName = user ? user.fname : ""
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
@@ -52,37 +42,22 @@ export default function WorkOders() {
   }, [jobs, searchTerm, filterType, viewMode, adminName, statusFilter]);
 
   const handleViewDetails = (job: Job) => {
-    setSelectedJob(job);
-    setDialogMode("view");
+    navigate(`/admin/job/${job.id}`)
   };
 
   const handleEditJob = (job: Job) => {
-    setSelectedJob(job);
-    setDialogMode("edit");
-  };
+    navigate(`/admin/job/${job.id}/edit`)
+  }
 
-  const handleCloseDialog = () => {
-    setSelectedJob(null);
-    setDialogMode(null);
-  };
-
-  const handleUpdateStatus = (jobId: string, newStatus: 'new' | 'in-progress' | 'done') => {
-    const { updateJobWithActivity } = useJobs();
-    updateJobWithActivity(
-      jobId,
-      { status: newStatus },
-      'status_changed',
-      `สถานะงานเปลี่ยนเป็น ${newStatus === 'new' ? 'งานใหม่' : newStatus === 'in-progress' ? 'กำลังทำ' : 'เสร็จแล้ว'}`,
-      user.fname,
-      'tech'
-    );
-  };
+  if (!user) {
+    return <div>Loading user data...</div>
+  }
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">ระบบใบงาน</h2>
-        <CreateJobDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+        <Button onClick={() => navigate("/admin/create-job")}>+ สร้างใบงานใหม่</Button>
       </div>
 
       {/* (ส่วน Filter ... เหมือนเดิม) */}
@@ -122,58 +97,41 @@ export default function WorkOders() {
           </Select>
         </div>
 
-<ToggleGroup
-  type="single"
-  value={viewMode}
-  onValueChange={(val) => val && setViewMode(val)}
-  className="justify-start"
->
-  <ToggleGroupItem 
-    value="all" 
-    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-l-md rounded-r-none border border-r-0 
-             hover:bg-gray-50 dark:hover:bg-[#2d2d2d] 
-             data-[state=on]:bg-primary data-[state=on]:text-white
-             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
-             transition-colors"
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(val) => val && setViewMode(val)}
+          className="justify-start"
+        >
+          <ToggleGroupItem
+            value="all"
+            className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-l-md rounded-r-none border border-r-0 
+                     hover:bg-gray-50 dark:hover:bg-[#2d2d2d] 
+                     data-[state=on]:bg-primary data-[state=on]:text-white
+                     dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+                     transition-colors"
 
-  >
-    งานทั้งหมด
-  </ToggleGroupItem>
-  
-  <ToggleGroupItem 
-    value="my-jobs" 
-    className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-r-md rounded-l-none border 
-             hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
-             data-[state=on]:bg-primary data-[state=on]:text-white
-             dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
-             transition-colors"
-  >
-    งานของฉัน
-  </ToggleGroupItem>
-</ToggleGroup>
+          >
+            งานทั้งหมด
+          </ToggleGroupItem>
+
+          <ToggleGroupItem
+            value="my-jobs"
+            className="bg-white dark:bg-[#1e1e1e] text-gray-900 dark:text-white rounded-r-md rounded-l-none border 
+                     hover:bg-gray-50 dark:hover:bg-[#2d2d2d]
+                     data-[state=on]:bg-primary data-[state=on]:text-white
+                     dark:data-[state=on]:bg-[#5f5aff] dark:data-[state=on]:text-white
+                     transition-colors"
+          >
+            งานของฉัน
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-
+      
 
       {/* (ส่ง "ฟังก์ชันใหม่" (Props) ไปให้ "รีโมต") */}
-      <JobTable
-        jobs={filteredJobs}
-        onViewDetails={handleViewDetails}
-        onEditJob={handleEditJob}
-      />
-
-      <EditJobDialog
-        job={selectedJob}
-        open={dialogMode !== null}
-        mode={dialogMode}
-        onModeChange={setDialogMode}
-        onOpenChange={(open) => { // <--- ✨ แก้ไขเป็น onOpenChange ✨
-          // ถ้า `open` เป็น `false` (หมายถึงมีการพยายามจะปิด Dialog)
-          if (!open) {
-            handleCloseDialog(); // ให้เรียกฟังก์ชันปิดของเรา
-          }
-        }}
-      />
+      <JobTable jobs={filteredJobs} onViewDetails={handleViewDetails} onEditJob={handleEditJob} />
     </div>
-  );
+  )
 }

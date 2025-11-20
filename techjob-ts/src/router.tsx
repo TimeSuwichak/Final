@@ -17,6 +17,9 @@ import MaterialPage from "./pages/admin/Material";
 import Settings from "./pages/admin/Settings";
 import UserDetail from "./pages/admin/UserDetail";
 import UserDetailPage from "./pages/admin/UserDetailPage";
+import CreateJobPage from "./pages/admin/CreateJobPage";
+import JobViewPage from "./components/admin/JobViewPage" 
+import JobEditPage from "./components/admin/JobEditPage" 
 
 // USER
 import UserDashboard from "./pages/user/UserDashboard";
@@ -83,6 +86,18 @@ const router = createBrowserRouter([
       {
         path: "admin/setting",
         element: <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />,
+      },
+      {
+        path: "admin/create-job",
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<CreateJobPage />} />,
+      },
+           {
+        path: "admin/job/:jobId",
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<JobViewPage />} />,
+      },
+      {
+        path: "admin/job/:jobId/edit",
+        element: <ProtectedRoute allowedRoles={["admin"]} element={<JobEditPage />} />,
       },
 
       // ──────── USER ────────
