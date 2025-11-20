@@ -167,7 +167,7 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานที่เสร็จสิ้น (Completed Tasks)
+                งานทั้งหมด (All Tasks)
               </p>
               <div className="text-3xl font-extrabold text-green-600 dark:text-green-400">
                 {finalCompletedCount} งาน
@@ -185,13 +185,13 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานที่กำลังดำเนินการ (Working)
+                งานใหม่ (New Jobs)
               </p>
               <div className="text-3xl font-extrabold text-yellow-600 dark:text-yellow-400">
                 {finalInProgressCount} งาน
               </div>
               <p className="text-sm text-muted-foreground">
-                จำนวนงานที่คุณกำลังดำเนินการอยู่
+                งานใหม่ที่รอรับ
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
@@ -205,7 +205,7 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานค้าง (Pending Tasks)
+                งานที่เสร็จเเล้ว (Completed Tasks)
               </p>
               <div className="text-3xl font-extrabold text-orange-600 dark:text-orange-400">
                 {finalPendingCount} งาน

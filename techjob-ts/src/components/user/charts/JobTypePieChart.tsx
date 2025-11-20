@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Pie, PieChart, ResponsiveContainer, Cell, Sector } from "recharts";
+import { Pie, PieChart, ResponsiveContainer, Cell, Sector, Legend, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
@@ -10,7 +10,9 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-// --- [FIX] useThemeVars Hook (ที่คอยดักฟังการสลับธีม - ตัวนี้ถูกต้องแล้ว) ---
+// ======================================================================
+// 🎨 HOOKS: useThemeVars - สำหรับจัดการสีตามธีม (Dark/Light Mode)
+// ======================================================================
 function useThemeVars() {
   const [vars, setVars] = React.useState({
     card: "hsl(0 0% 100%)",
@@ -24,7 +26,6 @@ function useThemeVars() {
   React.useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // ฟังก์ชันสำหรับดึงค่าสี CSS
     const updateVars = () => {
       const s = getComputedStyle(document.documentElement);
       setVars({
@@ -37,24 +38,20 @@ function useThemeVars() {
       });
     };
 
-    updateVars(); // เรียกครั้งแรก
+    updateVars();
 
-    // [สำคัญ] ใช้ MutationObserver คอยฟังการเปลี่ยนแปลง class บน <html>
     const observer = new MutationObserver((mutations) => {
       mutations.forEach(mutation => {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          updateVars(); // อัปเดตสีเมื่อ class เปลี่ยน (สลับธีม)
+          updateVars();
         }
       });
     });
 
     observer.observe(document.documentElement, { attributes: true });
-
-    // (เผื่อไว้) คอยฟังการเปลี่ยนแปลงธีมจาก System
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     mediaQuery.addEventListener('change', updateVars);
 
-    // Cleanup: หยุดฟังเมื่อ component ปิดตัว
     return () => {
       observer.disconnect();
       mediaQuery.removeEventListener('change', updateVars);
@@ -64,9 +61,30 @@ function useThemeVars() {
   return vars;
 }
 
-// (COLORS, isColorDark, renderActiveShape - ไม่เปลี่ยนแปลง)
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AF19FF"];
+// ======================================================================
+// 🎨 CONFIG: สีสำหรับ 6 ประเภทงาน (ใช้เป็นค่าคงที่)
+// ======================================================================
+// สีจากภาพแรก: เขียว, เหลือง, น้ำเงิน, ม่วง, ชมพู/แดง, เทา
+const COLORS_IMAGE_1 = ["#39CC97", "#FFB63B", "#68A5FF", "#9C6ADE", "#F36E8B", "#666666"]; 
 
+// สีสำหรับภาพที่สอง (ปรับปรุงให้ใช้ 6 สี)
+const COLORS_IMAGE_2 = ["#007FFF", "#00C49F", "#FFBB28", "#8884d8", "#ff7300", "#d0ed57"]; 
+
+// 💡 DATA: ข้อมูลตัวอย่าง 6 งาน สำหรับ TotalCountPieChart (เพื่อการทดสอบ)
+const DATA_SIX_JOBS_EXAMPLE = [
+  { name: "งานไฟฟ้า", value: 40, percentage: 25.0 },
+  { name: "งานประปา", value: 30, percentage: 18.7 },
+  { name: "งานเน็ตเวิร์ค", value: 50, percentage: 31.3 },
+  { name: "งานโครงสร้าง", value: 15, percentage: 9.4 },
+  { name: "งานตกแต่ง", value: 10, percentage: 6.2 },
+  { name: "งานทั่วไป", value: 15, percentage: 9.4 },
+];
+
+const TOTAL_SIX_JOBS_COUNT = DATA_SIX_JOBS_EXAMPLE.reduce((sum, item) => sum + item.value, 0); // 160
+
+// ======================================================================
+// 💡 UTILITY: ตรวจสอบโหมดมืด
+// ======================================================================
 const isColorDark = (color: string) => {
   if (color.startsWith("hsl")) {
     const lightnessMatch = color.match(/hsl\(\d+\s\d+%\s(\d+)%\)/);
@@ -77,11 +95,138 @@ const isColorDark = (color: string) => {
   return false;
 };
 
+// ======================================================================
+// 🖋️ RENDERER: Active Shape (สำหรับ TotalCountPieChart)
+// ======================================================================
+const renderTotalCountActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  
+  return (
+    <g>
+      <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} stroke="none" />
+    </g>
+  );
+};
+
+
+// ======================================================================
+// 📦 COMPONENT: TotalCountPieChart (ตามภาพแรก)
+// ======================================================================
+export function TotalCountPieChart({
+  data = DATA_SIX_JOBS_EXAMPLE, // ใช้ข้อมูล 6 งานเริ่มต้น
+  totalCount = TOTAL_SIX_JOBS_COUNT, // ใช้ Total Count 160
+  title = "สถิติรวมประเภทงาน",
+  description = "จำนวนงานที่สำเร็จทั้งหมด แบ่งตามประเภทงาน",
+}: {
+  data?: { name: string; value: number; percentage: number }[];
+  totalCount?: number;
+  title?: string;
+  description?: string;
+}) {
+  const theme = useThemeVars();
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const AnyPie: any = Pie;
+  
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const onPieLeave = () => {
+    setActiveIndex(-1);
+  };
+
+  const isDarkMode = isColorDark(theme.background);
+  const legendTextColor = isDarkMode ? "hsl(0 0% 90%)" : theme.foreground;
+  const textColor = isDarkMode ? "hsl(0 0% 90%)" : theme.foreground;
+
+  // ส่วนแสดง Legend ที่กำหนดเอง 
+  const renderCustomLegend = () => (
+    <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2">
+      {data.map((entry, index) => (
+        <div key={`legend-${index}`} className="flex items-center gap-2">
+          <span
+            className="h-3 w-3 shrink-0 rounded-full"
+            style={{ backgroundColor: COLORS_IMAGE_1[index % COLORS_IMAGE_1.length] }}
+          />
+          <span className="text-base" style={{ color: legendTextColor }}>
+            {entry.name} ({entry.percentage.toFixed(1)}%)
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl tracking-tight">
+          {title}
+        </CardTitle>
+        <CardDescription className="text-base">
+          {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={320}>
+          <PieChart>
+            <AnyPie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={90}
+              outerRadius={130}
+              paddingAngle={2}
+              isAnimationActive={true}
+              animationDuration={500}
+              activeIndex={activeIndex}
+              activeShape={renderTotalCountActiveShape}
+              onMouseEnter={onPieEnter}
+              onMouseLeave={onPieLeave}
+              label={false}
+              labelLine={false}
+            >
+              {data.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS_IMAGE_1[index % COLORS_IMAGE_1.length]}
+                  stroke="none"
+                />
+              ))}
+            </AnyPie>
+            
+            {/* 💡 ส่วนที่เพิ่มเข้ามา: แสดงตัวเลขตรงกลาง Donut Chart 💡 */}
+            <text x="50%" y="45%" textAnchor="middle" dominantBaseline="middle" fill={textColor}>
+                <tspan x="50%" dy="-0.5em" style={{ fontSize: "2rem", fontWeight: 700 }}>
+                    {totalCount}
+                </tspan>
+                <tspan x="50%" dy="1.5em" style={{ fontSize: "1.1rem" }} fill={theme.muted}>
+                    งานทั้งหมด
+                </tspan>
+            </text>
+
+            <Tooltip formatter={(value, name) => [`${value} งาน`, name]} />
+
+          </PieChart>
+        </ResponsiveContainer>
+        
+        {/* Legend ที่กำหนดเอง (แสดง % ตามภาพแรก) */}
+        {renderCustomLegend()}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ======================================================================
+// 📦 COMPONENT: JobTypePieChart (ตามภาพที่สอง - ใช้โครงสร้างเดิม)
+// ======================================================================
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
   const theme = useThemeVars();
   const isDarkMode = isColorDark(theme.background);
   const textColor = isDarkMode ? "hsl(0 0% 90%)" : theme.foreground;
+  
   return (
     <g>
       <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill={textColor} style={{ fontSize: "2rem", fontWeight: 700 }}>
@@ -95,7 +240,6 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-
 export function JobTypePieChart({
   data,
 }: {
@@ -104,6 +248,7 @@ export function JobTypePieChart({
   const theme = useThemeVars();
   const [activeIndex, setActiveIndex] = useState(0);
   const AnyPie: any = Pie;
+  
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
   };
@@ -115,6 +260,7 @@ export function JobTypePieChart({
     ? "text-gray-400"
     : "text-muted-foreground";
 
+  // กรณีไม่มีข้อมูล
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -123,7 +269,7 @@ export function JobTypePieChart({
             ประเภทงานที่เชี่ยวชาญ
           </CardTitle>
           <CardDescription className="text-base">
-            สัดส่วนประเภทงานทั้งหมดที่คุณเคยทำสำเร็จ
+            สัดส่วนของงานที่ทำสำเร็จ แยกตามหมวดหมู่ความเชี่ยวชาญ
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[350px] flex items-center justify-center">
@@ -135,6 +281,7 @@ export function JobTypePieChart({
     );
   }
 
+  // กรณีมีข้อมูล
   return (
     <Card>
       <CardHeader>
@@ -142,7 +289,7 @@ export function JobTypePieChart({
           ประเภทงานที่เชี่ยวชาญ
         </CardTitle>
         <CardDescription className="text-base">
-          สัดส่วนประเภทงานทั้งหมดที่คุณเคยทำสำเร็จ
+          สัดส่วนของงานที่ทำสำเร็จ แยกตามหมวดหมู่ความเชี่ยวชาญ
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -168,7 +315,8 @@ export function JobTypePieChart({
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
+                  // ใช้ COLORS_IMAGE_2 (6 สี)
+                  fill={COLORS_IMAGE_2[index % COLORS_IMAGE_2.length]}
                   stroke="none"
                 />
               ))}
@@ -176,12 +324,14 @@ export function JobTypePieChart({
           </PieChart>
         </ResponsiveContainer>
 
+        {/* Legend (คำอธิบายสี) */}
         <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2">
           {data.map((entry, index) => (
             <div key={`legend-${index}`} className="flex items-center gap-2">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                // แสดงสีตาม COLORS_IMAGE_2 (6 สี)
+                style={{ backgroundColor: COLORS_IMAGE_2[index % COLORS_IMAGE_2.length] }}
               />
               <span className="text-base" style={{ color: legendTextColor }}>
                 {entry.name}
