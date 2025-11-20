@@ -54,6 +54,7 @@ const TechnicianTracking: React.FC = () => {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showMapPopup, setShowMapPopup] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  
 
   if (!user) return null;
 

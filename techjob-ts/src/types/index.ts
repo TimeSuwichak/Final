@@ -80,6 +80,7 @@ export interface Job {
   endDate: Date;
   
   // การมอบหมาย
+  assignmentMode: "direct" | "leader" // 'direct' = admin selects techs, 'leader' = leader selects techs
   leadId: string | null; // ID ของหัวหน้าที่ได้รับงาน
   assignedTechs: string[]; // Array ของ ID ช่างที่ถูกเลือก
   tasks: Task[];

@@ -123,7 +123,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       editHistory: [],
       activityLog: [],
       tasks: [],
-      assignedTechs: [],
+      assignedTechs: newJobData.assignedTechs || [],
       completionSummary: undefined,
       completionIssues: undefined,
       completionIssueImage: undefined,
