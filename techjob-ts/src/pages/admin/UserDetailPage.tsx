@@ -47,10 +47,13 @@ const normalizePerson = (p: any) => ({
   startDate: p.startDate || "",
   status: p.status || "available",
   urlImage: p.urlImage || p.avatarUrl || "",
+  religion: p.religion || "",
+  nationality: p.nationality || "",
 });
 
 export default function UserDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id?: string; userId?: string }>();
+  const id = params.id || params.userId;
   const [person, setPerson] = useState<any>(null);
 
   // โหลดข้อมูลผู้ใช้ตาม id (รับมาจาก route parameter)
@@ -132,9 +135,9 @@ export default function UserDetailPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <Button asChild variant="outline">
-        <Link to="/admin/datauser">
+        <Link to={person.role === "admin" ? "/admin/datauser" : "/"}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          กลับไปหน้ารายชื่อ
+          {person.role === "admin" ? "กลับไปหน้ารายชื่อ" : "กลับ"}
         </Link>
       </Button>
 
@@ -155,32 +158,81 @@ export default function UserDetailPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg space-y-2">
-              <p><strong>แผนก:</strong> {departmentMap[person.department] || person.department}</p>
-              <p><strong>Email:</strong> {person.email}</p>
-              <p><strong>ตำแหน่ง:</strong> {person.position}</p>
-              {person.phone && <p><strong>เบอร์โทร:</strong> {person.phone}</p>}
-              {person.address && <p><strong>ที่อยู่:</strong> {person.address}</p>}
-              {person.idCard && <p><strong>บัตรประชาชน:</strong> {person.idCard}</p>}
-              {person.startDate && <p><strong>เริ่มงาน:</strong> {person.startDate}</p>}
-              <p>
-                <strong>สถานะ:</strong>
-                <span
-                  className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
-                    ? "bg-green-400 text-gray-700"
-                    : "bg-red-400 text-gray-200"
-                    }`}
-                >
-                  {person.status}
-                </span>
-              </p>
+            <div className="p-4 bg-muted rounded-lg space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">แผนก</p>
+                  <p className="font-medium">{departmentMap[person.department] || person.department}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">ตำแหน่ง</p>
+                  <p className="font-medium">{person.position}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-sm text-muted-foreground mb-1">อีเมล</p>
+                  <p className="font-medium">{person.email}</p>
+                </div>
+                {person.address && (
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground mb-1">ที่อยู่</p>
+                    <p className="font-medium">{person.address}</p>
+                  </div>
+                )}
+                {person.idCard && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">เลขบัตรประชาชน</p>
+                    <p className="font-medium">{person.idCard}</p>
+                  </div>
+                )}
+                {person.religion && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">ศาสนา</p>
+                    <p className="font-medium">{person.religion}</p>
+                  </div>
+                )}
+                {person.nationality && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">สัญชาติ</p>
+                    <p className="font-medium">{person.nationality}</p>
+                  </div>
+                )}
+                {person.phone && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">เบอร์โทรศัพท์</p>
+                    <p className="font-medium">{person.phone}</p>
+                  </div>
+                )}
+                {person.startDate && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">วันที่เข้าทำงาน</p>
+                    <p className="font-medium">{new Date(person.startDate).toLocaleDateString('th-TH', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}</p>
+                  </div>
+                )}
+              </div>
 
-              <p>
-                <strong>Role:</strong>
-                <span className="capitalize px-2 py-1 bg-secondary rounded-full text-xs ml-2">
-                  {person.role}
-                </span>
-              </p>
+              <div className="pt-3 border-t space-y-2">
+                <p>
+                  <strong>สถานะ:</strong>
+                  <span
+                    className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
+                      ? "bg-green-400 text-gray-700"
+                      : "bg-red-400 text-gray-200"
+                      }`}
+                  >
+                    {person.status}
+                  </span>
+                </p>
+                <p>
+                  <strong>บทบาท:</strong>
+                  <span className="capitalize px-2 py-1 bg-secondary rounded-full text-xs ml-2">
+                    {person.role}
+                  </span>
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

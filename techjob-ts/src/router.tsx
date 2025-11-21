@@ -37,6 +37,7 @@ import ExDashboard from "./pages/executive/ExDashboard";
 
 // COMMON
 import Profile from "./pages/commom/Profile";
+import MyProfile from "./pages/commom/MyProfile";
 import Notification from "./pages/commom/Notification";
 import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
@@ -207,6 +208,7 @@ const router = createBrowserRouter([
       // ──────── COMMON ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
       { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
+      { path: "my-profile", element: <ProtectedRoute element={<MyProfile />} /> },
       {
         path: "notification",
         element: <ProtectedRoute element={<Notification />} />,
