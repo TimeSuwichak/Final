@@ -1,23 +1,27 @@
 // src/contexts/JobContext.tsx (ฉบับอัปเกรดให้ "จำเก่ง")
 "use client";
 
-import type { EditHistory, ActivityLog, Job, Task } from '@/types/index';
-import React, { createContext, useContext, useState, type ReactNode, useEffect } from 'react'; // 1. Import useEffect
-import { useNotifications } from '@/contexts/NotificationContext';
-import { leader as LEADER_DIRECTORY } from '@/data/leader';
-
+import type { EditHistory, ActivityLog, Job, Task } from "@/types/index";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+  useEffect,
+} from "react"; // 1. Import useEffect
+import { useNotifications } from "@/contexts/NotificationContext";
+import { leader as LEADER_DIRECTORY } from "@/Data/leader";
 
 // --- ชื่อกุญแจสำหรับเก็บข้อมูล ---
-const STORAGE_KEY = 'techJobData_v2'; // (v2 สำหรับระบบใหม่)
+const STORAGE_KEY = "techJobData_v2"; // (v2 สำหรับระบบใหม่)
 
 // --- (ใหม่!) ฟังก์ชันสร้าง Task มาตรฐาน 4 ขั้นตอนต่อ 1 ใบงาน ---
 // โครงหลักของระบบใหม่: ทุกใบงานจะมี Task ตามลำดับนี้เสมอ
 // 1) ตรวจสอบและวางแผน
 // 2) จัดเตรียมวัสดุอุปกรณ์
 // 3) กำลังดำเนินการ
-// 4) เสร็จสิ้น
+// 4) ตรวจสอบความเรียบร้อย (เดิม: เสร็จสิ้น)
 const createDefaultTasks = (): Task[] => {
-  const now = new Date().toISOString();
   return [
     {
       id: "STEP-1",
@@ -48,7 +52,7 @@ const createDefaultTasks = (): Task[] => {
     },
     {
       id: "STEP-4",
-      title: "เสร็จสิ้น",
+      title: "ตรวจสอบความเรียบร้อย",
       description: "",
       status: "pending",
       imageUrl: undefined,
@@ -98,13 +102,16 @@ const reviveDates = (job: any): Job => {
     revivedTasks[0]?.title === "ตรวจสอบและวางแผน" &&
     revivedTasks[1]?.title === "จัดเตรียมวัสดุอุปกรณ์" &&
     revivedTasks[2]?.title === "กำลังดำเนินการ" &&
-    revivedTasks[3]?.title === "เสร็จสิ้น";
+    (revivedTasks[3]?.title === "เสร็จสิ้น" ||
+      revivedTasks[3]?.title === "ตรวจสอบความเรียบร้อย");
 
   if (isValidNewPipeline) {
     // ใช้ task เดิม (แต่แปลงวันที่แล้ว) ถ้าเป็นรูปแบบใหม่อยู่แล้ว
     revivedJob = {
       ...revivedJob,
-      tasks: revivedTasks,
+      tasks: revivedTasks.map((t) =>
+        t.title === "เสร็จสิ้น" ? { ...t, title: "ตรวจสอบความเรียบร้อย" } : t
+      ),
     };
   } else {
     // ใบงานเก่า / task รูปแบบเดิม -> เปลี่ยนมาใช้ pipeline 4 ขั้นตอนใหม่
@@ -143,24 +150,32 @@ const findLeaderName = (leaderId?: string | number | null) => {
 // --- สร้าง Context (เหมือนเดิม) ---
 interface JobContextType {
   jobs: Job[];
-  addJob: (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator'>, adminName: string) => void;
-  updateJob: (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => void;
+  addJob: (
+    newJobData: Omit<Job, "id" | "createdAt" | "adminCreator">,
+    adminName: string
+  ) => void;
+  updateJob: (
+    jobId: string,
+    updatedData: Partial<Job>,
+    editReason: string,
+    adminName: string
+  ) => void;
   deleteJob: (jobId: string, reason: string, deletedByName: string) => void;
   addActivityLog: (
-    jobId: string, 
-    activityType: ActivityLog['activityType'],
+    jobId: string,
+    activityType: ActivityLog["activityType"],
     message: string,
     actorName: string,
-    actorRole: 'leader' | 'tech',
+    actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => void;
   updateJobWithActivity: (
     jobId: string,
     updatedData: Partial<Job>,
-    activityType: ActivityLog['activityType'],
+    activityType: ActivityLog["activityType"],
     message: string,
     actorName: string,
-    actorRole: 'leader' | 'tech',
+    actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => void;
 }
@@ -169,7 +184,6 @@ const JobContext = createContext<JobContextType | undefined>(undefined);
 
 // --- สร้าง "ผู้ให้บริการ" (Provider) ---
 export const JobProvider = ({ children }: { children: ReactNode }) => {
-  
   // ▼▼▼ 2. (แก้ไข!) เปลี่ยน useState ให้ "โหลด" ข้อมูลตอนเริ่ม ▼▼▼
   // (นี่คือการอ่าน "แผ่นหิน" ตอนเปิดออฟฟิศ)
   const [jobs, setJobs] = useState<Job[]>(loadJobsFromStorage);
@@ -186,8 +200,10 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   }, [jobs]); // <-- "ยาม" ที่คอยเฝ้าดู 'jobs'
 
   // --- ฟังก์ชัน "เพิ่มใบงานใหม่" (เหมือนเดิม) ---
-  const addJob = (newJobData: Omit<Job, 'id' | 'createdAt' | 'adminCreator'>, adminName: string) => {
-    
+  const addJob = (
+    newJobData: Omit<Job, "id" | "createdAt" | "adminCreator">,
+    adminName: string
+  ) => {
     // (โค้ดสร้าง Job ID เหมือนเดิม)
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
@@ -199,7 +215,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       id: newId,
       adminCreator: adminName,
       createdAt: date,
-      status: 'new',
+      status: "new",
       editHistory: [],
       activityLog: [],
       // ในระบบใหม่ ทุกใบงานจะเริ่มต้นด้วย Task 4 ขั้นตอนที่กำหนดไว้แล้ว
@@ -216,26 +232,32 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     // ======================== ขั้นตอนการส่ง Notification ========================
     // 1. สร้าง array เปล่าเก็บ notification ที่จะส่ง
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
-    
+
     // 2. ตรวจสอบว่า leadId มีค่าหรือไม่ (leadId คือ ID ของหัวหน้างาน)
     //    leadId อาจเป็น null, undefined, หรือมีค่าจริง (เช่น 101, 104 เป็นต้น)
-    if (newJobData.leadId && newJobData.leadId !== null && newJobData.leadId !== undefined) {
+    if (
+      newJobData.leadId &&
+      newJobData.leadId !== null &&
+      newJobData.leadId !== undefined
+    ) {
       // 3. ค้นหาชื่อของหัวหน้างานจากฟังก์ชัน findLeaderName()
       //    findLeaderName() จะหา ID ใน database leader มา
       const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
-      
+
       // 4. เพิ่ม log เพื่อตรวจสอบว่าจะส่งให้ leader ID ไหน
-      console.log(`[addJob] Adding notification for leadId: ${newJobData.leadId}, leaderName: ${leaderName}`);
-      
+      console.log(
+        `[addJob] Adding notification for leadId: ${newJobData.leadId}, leaderName: ${leaderName}`
+      );
+
       // 5. สร้าง object notification
       //    object นี้จะถูกเก็บไว้ใน notificationsToSend array
       //    แล้วจึงส่งไปให้ NotificationContext จัดการลงใน localStorage
       notificationsToSend.push({
         title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
         message: `คุณได้รับมอบหมายให้ดูแลงาน "${newJobData.title}" จาก ${adminName}`,
-        recipientRole: "leader",  // ← บอก NotificationContext ว่า "ส่งให้ Leader"
-        recipientId: String(newJobData.leadId),  // ← แปลง leadId (Number) เป็น String เพื่อเก็บสม่ำเสมอ
-        relatedJobId: newId,  // ← บอก Job ID เพื่อให้ Leader คลิกไปดูงาน
+        recipientRole: "leader", // ← บอก NotificationContext ว่า "ส่งให้ Leader"
+        recipientId: String(newJobData.leadId), // ← แปลง leadId (Number) เป็น String เพื่อเก็บสม่ำเสมอ
+        relatedJobId: newId, // ← บอก Job ID เพื่อให้ Leader คลิกไปดูงาน
         metadata: {
           type: "leader_assignment_new",
           jobId: newId,
@@ -244,16 +266,21 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     }
     // =====================================================================
 
-    setJobs(prevJobs => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
-    
+    setJobs((prevJobs) => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
+
     // 🔥 ส่ง notification ทั้งหมดที่เตรียมไว้ให้ NotificationContext จัดการ
     // ลูป forEach จะเรียก addNotification() หลายครั้ง (ครั้งละ 1 notification)
     notificationsToSend.forEach(addNotification);
   };
 
   // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---
-  const updateJob = (jobId: string, updatedData: Partial<Job>, editReason: string, adminName: string) => {
-    const targetJob = jobs.find(job => job.id === jobId);
+  const updateJob = (
+    jobId: string,
+    updatedData: Partial<Job>,
+    editReason: string,
+    adminName: string
+  ) => {
+    const targetJob = jobs.find((job) => job.id === jobId);
     if (!targetJob) {
       console.warn(`updateJob: ไม่พบใบงานรหัส ${jobId}`);
       return;
@@ -263,10 +290,11 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       adminName,
       editedAt: new Date(),
       reason: editReason,
-      changes: Object.keys(updatedData).join(', ')
+      changes: Object.keys(updatedData).join(", "),
     };
 
-    const nextAssignedTechs = updatedData.assignedTechs ?? targetJob.assignedTechs;
+    const nextAssignedTechs =
+      updatedData.assignedTechs ?? targetJob.assignedTechs;
     const updatedJob: Job = {
       ...targetJob,
       ...updatedData,
@@ -275,13 +303,14 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
 
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
 
-    if (Object.prototype.hasOwnProperty.call(updatedData, 'leadId')) {
+    if (Object.prototype.hasOwnProperty.call(updatedData, "leadId")) {
       const previousLeaderId = targetJob.leadId;
       const nextLeaderId = updatedData.leadId ?? null;
 
       if (previousLeaderId !== nextLeaderId) {
         const newLeaderName = findLeaderName(nextLeaderId) ?? "หัวหน้างานใหม่";
-        const oldLeaderName = findLeaderName(previousLeaderId) ?? "หัวหน้างานเดิม";
+        const oldLeaderName =
+          findLeaderName(previousLeaderId) ?? "หัวหน้างานเดิม";
         const reasonMessage = editReason || "ไม่ระบุเหตุผล";
 
         nextAssignedTechs.forEach((techId) => {
@@ -329,8 +358,8 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    setJobs(prevJobs =>
-      prevJobs.map(job => (job.id === jobId ? updatedJob : job))
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => (job.id === jobId ? updatedJob : job))
     );
 
     notificationsToSend.forEach(addNotification);
@@ -339,14 +368,14 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   // --- ฟังก์ชัน "เพิ่ม Activity Log" (สำหรับ Leader/Tech เท่านั้น) ---
   const addActivityLog = (
     jobId: string,
-    activityType: ActivityLog['activityType'],
+    activityType: ActivityLog["activityType"],
     message: string,
     actorName: string,
-    actorRole: 'leader' | 'tech',
+    actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => {
-    setJobs(prevJobs =>
-      prevJobs.map(job => {
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => {
         if (job.id === jobId) {
           const newActivity: ActivityLog = {
             actorName,
@@ -359,7 +388,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
 
           return {
             ...job,
-            activityLog: [...(job.activityLog || []), newActivity]
+            activityLog: [...(job.activityLog || []), newActivity],
           };
         }
         return job;
@@ -419,14 +448,14 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   const updateJobWithActivity = (
     jobId: string,
     updatedData: Partial<Job>,
-    activityType: ActivityLog['activityType'],
+    activityType: ActivityLog["activityType"],
     message: string,
     actorName: string,
-    actorRole: 'leader' | 'tech',
+    actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => {
-    setJobs(prevJobs =>
-      prevJobs.map(job => {
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => {
         if (job.id === jobId) {
           const newActivity: ActivityLog = {
             actorName,
@@ -440,7 +469,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           return {
             ...job,
             ...updatedData,
-            activityLog: [...(job.activityLog || []), newActivity]
+            activityLog: [...(job.activityLog || []), newActivity],
           };
         }
         return job;
@@ -449,7 +478,16 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <JobContext.Provider value={{ jobs, addJob, updateJob, deleteJob, addActivityLog, updateJobWithActivity }}>
+    <JobContext.Provider
+      value={{
+        jobs,
+        addJob,
+        updateJob,
+        deleteJob,
+        addActivityLog,
+        updateJobWithActivity,
+      }}
+    >
       {children}
     </JobContext.Provider>
   );
@@ -459,7 +497,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
 export const useJobs = () => {
   const context = useContext(JobContext);
   if (!context) {
-    throw new Error('useJobs ต้องถูกเรียกใช้ภายใน JobProvider');
+    throw new Error("useJobs ต้องถูกเรียกใช้ภายใน JobProvider");
   }
   return context;
 };
