@@ -44,6 +44,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -263,7 +264,7 @@ const UserWorkOrderDetail: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/user/works")}
+                onClick={() => navigate("/user/userworks")}
                 className="gap-1"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -317,7 +318,7 @@ const UserWorkOrderDetail: React.FC = () => {
                 สถานที่
               </p>
               <div className="flex items-start gap-2">
-                <MapPin className="h-3 w-3 mt-0.5 text-primary flex-shrink-0" />
+                <MapPin className="h-3 w-3 mt-0.5 text-primary shrink-0" />
                 <span className="text-muted-foreground">
                   {currentJob.location}
                 </span>
@@ -426,35 +427,13 @@ const UserWorkOrderDetail: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto space-y-4">
-            {/* Assigned Team (Read Only) */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground">
-                ทีมช่าง ({assignedTechs.length})
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {assignedTechs.map((tech: any) => (
-                  <div
-                    key={tech.id}
-                    className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-muted/50 border"
-                  >
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={tech.avatarUrl} />
-                      <AvatarFallback className="text-[10px]">
-                        {tech.fname[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs font-medium">
-                      {tech.fname} {tech.lname}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Task Management Board */}
+            <TaskManagement job={currentJob} mode="user" />
 
             <Separator />
 
-            {/* Task Management Board */}
-            <TaskManagement job={currentJob} mode="user" />
+            {/* Assigned Team (Detailed View) */}
+            <JobTeamDisplay job={currentJob} />
           </CardContent>
         </Card>
       </div>

@@ -53,6 +53,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
+import { user as ALL_USERS } from "@/Data/user";
+import { Users } from "lucide-react";
 
 interface TaskManagementProps {
   job: Job;
@@ -807,39 +809,46 @@ export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="px-6 py-4 space-y-4">
+            <Textarea
+              placeholder="ระบุเหตุผล..."
+              value={pendingRejectTask?.reason || ""}
+              onChange={(e) =>
+                setPendingRejectTask((prev) =>
+                  prev ? { ...prev, reason: e.target.value } : null
+                )
+              }
+            />
             <div className="space-y-2">
-              <Label>เหตุผล</Label>
-              <Textarea
-                value={pendingRejectTask?.reason || ""}
-                onChange={(e) =>
-                  setPendingRejectTask((prev) =>
-                    prev ? { ...prev, reason: e.target.value } : null
-                  )
-                }
-                placeholder="เช่น รูปภาพไม่ชัดเจน, งานยังไม่เรียบร้อย..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>แนบรูป (ถ้ามี)</Label>
+              <Label>แนบรูปภาพ (ถ้ามี)</Label>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <ImageIcon className="h-4 w-4 mr-2" /> เลือกรูป
-                </Button>
-                <input
+                <Input
                   type="file"
-                  ref={fileInputRef}
-                  className="hidden"
                   accept="image/*"
                   onChange={handleFileSelect}
+                  className="text-xs"
                 />
-                {pendingRejectTask?.imageUrl && (
-                  <span className="text-xs text-green-600">แนบรูปแล้ว</span>
-                )}
               </div>
+              {pendingRejectTask?.imageUrl && (
+                <div className="relative w-full h-32 rounded-md overflow-hidden border">
+                  <img
+                    src={pendingRejectTask.imageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={() =>
+                      setPendingRejectTask((prev) =>
+                        prev ? { ...prev, imageUrl: undefined } : null
+                      )
+                    }
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <AlertDialogFooter>
@@ -856,78 +865,69 @@ export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
 
       {/* --- User Dialogs --- */}
 
-      {/* Update Progress Dialog */}
+      {/* Update Task Dialog */}
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>ส่งอัปเดตความคืบหน้า</DialogTitle>
+            <DialogTitle>อัปเดตความคืบหน้า</DialogTitle>
           </DialogHeader>
-
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>รายละเอียดการทำงาน</Label>
               <Textarea
+                placeholder="ระบุรายละเอียดสิ่งที่ทำ..."
                 value={updateMessage}
                 onChange={(e) => setUpdateMessage(e.target.value)}
-                placeholder="อธิบายงานที่ทำ หรือปัญหาที่พบ..."
-                rows={4}
               />
             </div>
-
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2">
-                  <Camera className="h-4 w-4" /> แนบรูปภาพ
-                </Label>
-                {updateImageName && (
-                  <span className="text-xs text-blue-600 truncate max-w-[150px]">
-                    {updateImageName}
-                  </span>
-                )}
-              </div>
-
-              {!updateImagePreview ? (
-                <div
-                  className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+              <Label>รูปภาพประกอบ (ถ้ามี)</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => updateFileInputRef.current?.click()}
                 >
-                  <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    คลิกเพื่อเลือกรูปภาพ
-                  </p>
-                  <input
-                    type="file"
-                    ref={updateFileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleUpdateFileChange}
-                  />
-                </div>
-              ) : (
-                <div className="relative group">
+                  <Camera className="h-4 w-4 mr-2" />
+                  เลือกรูปภาพ
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {updateImageName || "ยังไม่ได้เลือกไฟล์"}
+                </span>
+                <input
+                  type="file"
+                  ref={updateFileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleUpdateFileChange}
+                />
+              </div>
+              {updateImagePreview && (
+                <div className="relative w-full h-48 rounded-md overflow-hidden border mt-2">
                   <img
                     src={updateImagePreview}
                     alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg border"
+                    className="w-full h-full object-cover"
                   />
                   <Button
                     variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2 h-8 w-8 p-0"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6"
                     onClick={() => {
                       setUpdateImagePreview(null);
                       setUpdateImageName("");
-                      if (updateFileInputRef.current)
+                      if (updateFileInputRef.current) {
                         updateFileInputRef.current.value = "";
+                      }
                     }}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </Button>
                 </div>
               )}
             </div>
           </div>
-
           <DialogFooter>
             <Button
               variant="outline"
@@ -935,20 +935,17 @@ export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
             >
               ยกเลิก
             </Button>
-            <Button onClick={submitUpdate} disabled={!updateMessage.trim()}>
-              ส่งอัปเดต
-            </Button>
+            <Button onClick={submitUpdate}>บันทึกอัปเดต</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Material Selection Dialog */}
       {selectedTask && (
         <MaterialSelectionDialog
           open={materialDialogOpen}
           onOpenChange={setMaterialDialogOpen}
-          job={job}
           task={selectedTask}
+          job={job}
         />
       )}
     </div>
