@@ -169,12 +169,6 @@
 
     return (
       <div className="space-y-6">
-        {/* Status Summary Pills */}
-        <div className="grid grid-cols-3 gap-4">
-          <StatusPill status="pending" count={pendingTasks.length} />
-          <StatusPill status="in-progress" count={inProgressTasks.length} />
-          <StatusPill status="completed" count={completedTasks.length} />
-        </div>
 
         {/* Task Blocks - เรียงจากบนลงล่าง */}
         <div className="space-y-4">

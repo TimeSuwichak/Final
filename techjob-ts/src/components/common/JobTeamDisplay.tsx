@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck } from "lucide-react";
 import { user as ALL_USERS } from "@/Data/user";
 import { leader as ALL_LEADERS } from "@/Data/leader";
+import { departmentMap } from "@/Data/departmentMapping";
 
 interface JobTeamDisplayProps {
   job: {
@@ -87,7 +88,7 @@ export const JobTeamDisplay: React.FC<JobTeamDisplayProps> = ({ job }) => {
                 variant="outline"
                 className="text-[10px] font-normal bg-gray-50"
               >
-                แผนก {dept}
+                {departmentMap[dept] || dept}
               </Badge>
             </div>
 

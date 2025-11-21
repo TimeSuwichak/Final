@@ -59,9 +59,14 @@ import { Users } from "lucide-react";
 interface TaskManagementProps {
   job: Job;
   mode?: "leader" | "user";
+  onFinishJob?: () => void;
 }
 
-export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
+export function TaskManagement({
+  job,
+  mode = "leader",
+  onFinishJob,
+}: TaskManagementProps) {
   const { updateJobWithActivity } = useJobs();
   const { user } = useAuth();
   const { addNotification } = useNotifications();
@@ -385,6 +390,18 @@ export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
           <MessageSquare className="h-5 w-5 text-primary" />
           <h4 className="text-lg font-semibold">กระดานงาน (Pipeline)</h4>
         </div>
+        {mode === "leader" &&
+          onFinishJob &&
+          job.tasks.length > 0 &&
+          job.tasks.every((t) => t.status === "completed") && (
+            <Button
+              onClick={onFinishJob}
+              className="bg-green-600 hover:bg-green-700 gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              จบงาน
+            </Button>
+          )}
       </div>
 
       {/* Trello-like Grid */}

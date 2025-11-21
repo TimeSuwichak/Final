@@ -68,6 +68,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
+import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
+import { JobSummaryView } from "@/components/leader/JobSummaryView";
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -272,6 +274,7 @@ const WorkOrderDetail: React.FC = () => {
   const [initialMapCenter, setInitialMapCenter] = useState<[number, number]>([
     13.7563, 100.5018,
   ]);
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
 
   useEffect(() => {
     const job = jobs.find((j) => j.id === jobId);
@@ -396,6 +399,65 @@ const WorkOrderDetail: React.FC = () => {
       (person) => String(person.id) === String(techId)
     );
     return tech ? `${tech.fname} ${tech.lname}` : `ช่างรหัส ${techId}`;
+  };
+
+  const handleFinishJob = () => {
+    setCompletionDialogOpen(true);
+  };
+
+  const handleSubmitCompletion = (data: {
+    summary: string;
+    issues: string;
+    issueImage: string | null;
+    pdfFile: string | null;
+  }) => {
+    updateJobWithActivity(
+      currentJob.id,
+      {
+        status: "done",
+        completionSummary: data.summary,
+        completionIssues: data.issues,
+        completionIssueImage: data.issueImage || undefined,
+        completionPdfUrl: data.pdfFile || undefined,
+        completedAt: new Date(),
+        leaderCloser: user.fname,
+      },
+      "status_changed",
+      "หัวหน้าสรุปและปิดงานเรียบร้อย",
+      user.fname,
+      "leader",
+      {
+        summary: data.summary,
+        issues: data.issues,
+      }
+    );
+
+    addNotification({
+      title: "หัวหน้าปิดงานเรียบร้อย",
+      message: `งาน ${currentJob.title} ถูกปิดโดย ${user.fname}`,
+      recipientRole: "admin",
+      relatedJobId: currentJob.id,
+      metadata: {
+        type: "job_completed",
+        jobId: currentJob.id,
+      },
+    });
+
+    currentJob.assignedTechs.forEach((techId: string) => {
+      addNotification({
+        title: "งานที่คุณอยู่เสร็จสิ้นแล้ว",
+        message: `หัวหน้า ${user.fname} ปิดงาน ${currentJob.title}`,
+        recipientRole: "user",
+        recipientId: techId,
+        relatedJobId: currentJob.id,
+        metadata: {
+          type: "job_completed",
+          jobId: currentJob.id,
+        },
+      });
+    });
+
+    alert("ปิดงานเรียบร้อย!");
   };
 
   // ... existing helper functions ...
@@ -672,17 +734,28 @@ const WorkOrderDetail: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Task Management */}
-                  <div className="pt-4">
-                    <TaskManagement job={currentJob} />
-                    <br />
-                    <TaskDetailsLocked tasks={currentJob.tasks} />
-                  </div>
+                  {currentJob.status === "done" ? (
+                    /* Show Summary View for Completed Jobs */
+                    <JobSummaryView job={currentJob} />
+                  ) : (
+                    /* Show Task Management for Active Jobs */
+                    <>
+                      {/* Task Management */}
+                      <div className="pt-4">
+                        <TaskManagement
+                          job={currentJob}
+                          onFinishJob={handleFinishJob}
+                        />
+                        <br />
+                        <TaskDetailsLocked tasks={currentJob.tasks} />
+                      </div>
 
-                  <Separator />
+                      <Separator />
 
-                  {/* Assigned Team List (Detailed View) */}
-                  <JobTeamDisplay job={currentJob} />
+                      {/* Assigned Team List (Detailed View) */}
+                      <JobTeamDisplay job={currentJob} />
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -851,6 +924,14 @@ const WorkOrderDetail: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Job Completion Form Dialog */}
+      <JobCompletionForm
+        job={currentJob}
+        open={completionDialogOpen}
+        onOpenChange={setCompletionDialogOpen}
+        onSubmit={handleSubmitCompletion}
+      />
     </>
   );
 };
