@@ -1,10 +1,12 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { user } from "@/Data/user";
 import { leader } from "@/Data/leader";
 import { executive } from "@/Data/executive";
 import { admin } from "@/Data/admin";
 import { MdEmail } from "react-icons/md";
 import { HiPhone } from "react-icons/hi";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 // ----------------------------
 // โหลดข้อมูลจาก localStorage
@@ -66,6 +68,14 @@ const UserDetail = () => {
 
   return (
     <div className="border p-6 rounded-lg shadow-md">
+      <div className="mb-4">
+        <Button asChild variant="outline">
+          <Link to="/admin/datauser">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            กลับไปหน้าจัดการข้อมูลบัญชี
+          </Link>
+        </Button>
+      </div>
       <h2 className="text-2xl font-bold mb-4">รายละเอียดผู้ใช้</h2>
 
       <div className="flex gap-5">

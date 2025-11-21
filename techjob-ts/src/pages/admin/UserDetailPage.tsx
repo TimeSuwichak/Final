@@ -135,9 +135,9 @@ export default function UserDetailPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <Button asChild variant="outline">
-        <Link to={person.role === "admin" ? "/admin/datauser" : "/"}>
+        <Link to="/admin/datauser">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {person.role === "admin" ? "กลับไปหน้ารายชื่อ" : "กลับ"}
+          กลับไปหน้าจัดการข้อมูลบัญชี
         </Link>
       </Button>
 
