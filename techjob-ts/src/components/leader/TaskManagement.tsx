@@ -358,6 +358,7 @@ export function TaskManagement({
       { taskId: selectedTask.id, taskTitle: selectedTask.title }
     );
 
+    // Notify leader
     if (job.leadId) {
       addNotification({
         title: "ช่างอัปเดตงาน",
@@ -374,6 +375,26 @@ export function TaskManagement({
         },
       });
     }
+
+    // Notify other team members (excluding the user who made the update)
+    job.assignedTechs?.forEach((techId) => {
+      if (String(techId) !== String(user.id)) {
+        addNotification({
+          title: "ช่างในทีมอัปเดตงาน",
+          message: `${user.fname} อัปเดตงาน "${selectedTask.title}" ในงาน "${job.title}"`,
+          recipientRole: "user",
+          recipientId: String(techId),
+          relatedJobId: job.id,
+          metadata: {
+            type: "task_update_from_teammate",
+            taskId: selectedTask.id,
+            taskTitle: selectedTask.title,
+            jobTitle: job.title,
+            techName: user.fname,
+          },
+        });
+      }
+    });
 
     setUpdateDialogOpen(false);
     setUpdateMessage("");

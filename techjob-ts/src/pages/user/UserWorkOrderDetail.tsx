@@ -182,13 +182,14 @@ const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
 const UserWorkOrderDetail: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
-  const { jobs } = useJobs();
+  const { jobs, updateJobWithActivity } = useJobs();
   const { user } = useAuth();
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
   const [initialMapCenter, setInitialMapCenter] = useState<[number, number]>([
     13.7563, 100.5018,
   ]);
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   useEffect(() => {
     const job = jobs.find((j) => j.id === jobId);
@@ -196,7 +197,20 @@ const UserWorkOrderDetail: React.FC = () => {
     if (job && job.latitude && job.longitude) {
       setInitialMapCenter([job.latitude, job.longitude]);
     }
-  }, [jobId, jobs]);
+
+    // Auto-change status to in-progress when user views job for the first time
+    if (job && job.status === "new" && user && !hasAutoStarted) {
+      updateJobWithActivity(
+        job.id,
+        { status: "in-progress" },
+        "status_changed",
+        `ช่าง "${user.fname}" เข้าดูงานและเริ่มดำเนินการ`,
+        user.fname,
+        "tech"
+      );
+      setHasAutoStarted(true);
+    }
+  }, [jobId, jobs, user, hasAutoStarted, updateJobWithActivity]);
 
   if (!user) return null;
 

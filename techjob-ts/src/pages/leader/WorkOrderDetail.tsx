@@ -275,6 +275,7 @@ const WorkOrderDetail: React.FC = () => {
     13.7563, 100.5018,
   ]);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   useEffect(() => {
     const job = jobs.find((j) => j.id === jobId);
@@ -284,11 +285,24 @@ const WorkOrderDetail: React.FC = () => {
       if (job.latitude && job.longitude) {
         setInitialMapCenter([job.latitude, job.longitude]);
       }
+
+      // Auto-change status to in-progress when leader views job for the first time
+      if (job.status === "new" && user && !hasAutoStarted) {
+        updateJobWithActivity(
+          job.id,
+          { status: "in-progress" },
+          "acknowledge",
+          `หัวหน้างาน "${user.fname}" เข้าดูงานและรับทราบ`,
+          user.fname,
+          "leader"
+        );
+        setHasAutoStarted(true);
+      }
     }
     setJobsWithLocation(
       job ? [job].filter((job) => job.latitude && job.longitude) : []
     );
-  }, [jobId, jobs]);
+  }, [jobId, jobs, user, hasAutoStarted, updateJobWithActivity]);
 
   if (!user) return null;
 
