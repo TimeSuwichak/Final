@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,10 +18,15 @@ import { th } from "date-fns/locale";
 // --- Import Component ที่เราสร้างไว้ ---
 import { JobCalendar } from "@/components/leader/JobCalendar";
 import { UserJobTable } from "@/components/user/UserJobTable";
-import { UserJobDetailDialog } from "@/components/user/UserJobDetailDialog";
 import type { Job } from "@/types/index";
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function UserWorks() {
   // (หรือชื่อ function ที่คุณใช้)
@@ -30,7 +36,9 @@ export default function UserWorks() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in-progress' | 'done'>('all');
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "new" | "in-progress" | "done"
+  >("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   // --- "สมอง" กรองงาน (แก้ไข!) ---
@@ -49,19 +57,29 @@ export default function UserWorks() {
   const filteredJobs = useMemo(() => {
     return myJobs.filter((job) => {
       // status filter
-      if (statusFilter !== 'all' && job.status !== statusFilter) return false;
+      if (statusFilter !== "all" && job.status !== statusFilter) return false;
 
       // date filter (if selectedDate is set)
       if (selectedDate) {
         const start = startOfDay(selectedDate);
         const end = endOfDay(selectedDate);
-        if (!isWithinInterval(selectedDate, { start: job.startDate, end: job.endDate })) return false;
+        if (
+          !isWithinInterval(selectedDate, {
+            start: job.startDate,
+            end: job.endDate,
+          })
+        )
+          return false;
       }
 
       // text search
       const term = (searchTerm || "").trim().toLowerCase();
       if (term) {
-        if (!job.id.toLowerCase().includes(term) && !(job.title || "").toLowerCase().includes(term)) return false;
+        if (
+          !job.id.toLowerCase().includes(term) &&
+          !(job.title || "").toLowerCase().includes(term)
+        )
+          return false;
       }
 
       return true;
@@ -74,15 +92,11 @@ export default function UserWorks() {
     return jobs.find((j) => j.id === selectedJobId) || null;
   }, [jobs, selectedJobId]);
 
-  // --- Handlers (อัปเกรดให้ใช้ ID) ---
-  const handleViewJob = (job: Job) => {
-    setSelectedJobId(job.id);
-    setIsDetailOpen(true);
-  };
+  const navigate = useNavigate();
 
-  const handleCloseDialog = () => {
-    setSelectedJobId(null);
-    setIsDetailOpen(false);
+  // --- Handlers ---
+  const handleViewJob = (job: Job) => {
+    navigate(`/user/works/${job.id}`);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -131,13 +145,20 @@ export default function UserWorks() {
               <Input
                 placeholder="ค้นหาโดยรหัสหรือหัวข้อ"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                onChange={(e) =>
+                  setSearchTerm((e.target as HTMLInputElement).value)
+                }
                 className="w-full sm:w-72 bg-white border"
               />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground">สถานะ:</label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'new' | 'in-progress' | 'done')}>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) =>
+                  setStatusFilter(v as "all" | "new" | "in-progress" | "done")
+                }
+              >
                 <SelectTrigger className="w-40 bg-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -154,13 +175,6 @@ export default function UserWorks() {
           <UserJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
         </div>
       </div>
-
-      {/* (Pop-up ... อัปเกรดให้ใช้ "ใบงานสด") */}
-      <UserJobDetailDialog
-        job={liveSelectedJob}
-        open={isDetailOpen}
-        onOpenChange={handleCloseDialog}
-      />
     </div>
   );
 }

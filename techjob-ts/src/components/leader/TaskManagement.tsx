@@ -12,21 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -47,22 +43,23 @@ import {
   X,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  Maximize2,
-  ChevronDown,
-  ChevronUp,
-  Package,
   Lock,
   ArrowRight,
-  MoreVertical,
+  Maximize2,
+  Package,
+  Plus,
+  Send,
+  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
 
 interface TaskManagementProps {
   job: Job;
+  mode?: "leader" | "user";
 }
 
-export function TaskManagement({ job }: TaskManagementProps) {
+export function TaskManagement({ job, mode = "leader" }: TaskManagementProps) {
   const { updateJobWithActivity } = useJobs();
   const { user } = useAuth();
   const { addNotification } = useNotifications();
@@ -71,7 +68,8 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
-  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+
+  // Leader State
   const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     taskId: string;
@@ -83,7 +81,18 @@ export function TaskManagement({ job }: TaskManagementProps) {
     reason: string;
     imageUrl?: string;
   } | null>(null);
+
+  // User State
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [updateImagePreview, setUpdateImagePreview] = useState<string | null>(
+    null
+  );
+  const [updateImageName, setUpdateImageName] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const updateFileInputRef = useRef<HTMLInputElement>(null);
 
   const { materials: inventoryMaterials } = useMaterials();
 
@@ -136,6 +145,8 @@ export function TaskManagement({ job }: TaskManagementProps) {
     setSelectedTask(task);
     setTaskDialogOpen(true);
   };
+
+  // --- Leader Actions ---
 
   const handleAdvanceTaskStep = (taskId: string) => {
     setPendingStatusChange({ taskId, newStatus: "completed" });
@@ -240,13 +251,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
 
     const updatedTask: Task = {
       ...task,
-      status: "pending", // Reset to pending? Or keep in-progress but flagged? Usually reject means "Redo", so maybe keep in-progress or reset.
-      // Requirement says "Reject" -> usually means go back to previous state or just add comment.
-      // But here let's assume it stays "in-progress" but gets a flag, OR if it was "completed" (unlikely here) it goes back.
-      // For this flow, "Reject" on an active task usually means "Needs Correction".
-      // Let's keep it 'in-progress' but add the update.
-      // Wait, if I reject, does it lock the next step? It's already locked.
-      // Let's just add the update for now.
+      status: "pending",
       updates: [...task.updates, newUpdate],
     };
 
@@ -277,6 +282,96 @@ export function TaskManagement({ job }: TaskManagementProps) {
 
     setPendingRejectTask(null);
     setRejectTaskDialogOpen(false);
+  };
+
+  // --- User Actions ---
+
+  const handleOpenUpdateDialog = (task: Task) => {
+    setSelectedTask(task);
+    setUpdateMessage("");
+    setUpdateImagePreview(null);
+    setUpdateImageName("");
+    setUpdateDialogOpen(true);
+  };
+
+  const handleOpenMaterialDialog = (task: Task) => {
+    setSelectedTask(task);
+    setMaterialDialogOpen(true);
+  };
+
+  const handleUpdateFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setUpdateImagePreview(null);
+      setUpdateImageName("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUpdateImagePreview(reader.result as string);
+      setUpdateImageName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const submitUpdate = () => {
+    if (!selectedTask || !updateMessage.trim()) {
+      alert("กรุณากรอกข้อความอัปเดต");
+      return;
+    }
+
+    const newUpdate = {
+      message: updateMessage.trim(),
+      imageUrl: updateImagePreview || undefined,
+      updatedBy: user.fname,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedTask: Task = {
+      ...selectedTask,
+      updates: [...(selectedTask.updates || []), newUpdate],
+      // If it was pending (which shouldn't happen for active task actions, but just in case), set to in-progress
+      status:
+        selectedTask.status === "pending" ? "in-progress" : selectedTask.status,
+    };
+
+    const updatedTasks = job.tasks.map((t) =>
+      t.id === selectedTask.id ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      "task_updated",
+      `อัปเดต Task: ${selectedTask.title} - ${updateMessage}`,
+      user.fname,
+      "tech",
+      { taskId: selectedTask.id, taskTitle: selectedTask.title }
+    );
+
+    if (job.leadId) {
+      addNotification({
+        title: "ช่างอัปเดตงาน",
+        message: `${user.fname} มีการอัปเดตในงาน "${job.title}" - "${selectedTask.title}"`,
+        recipientRole: "leader",
+        recipientId: String(job.leadId),
+        relatedJobId: job.id,
+        metadata: {
+          type: "task_update_from_tech",
+          taskId: selectedTask.id,
+          taskTitle: selectedTask.title,
+          jobTitle: job.title,
+          techName: user.fname,
+        },
+      });
+    }
+
+    setUpdateDialogOpen(false);
+    setUpdateMessage("");
+    setUpdateImagePreview(null);
+    setUpdateImageName("");
   };
 
   // --- Render Logic ---
@@ -408,23 +503,47 @@ export function TaskManagement({ job }: TaskManagementProps) {
                 </Button>
 
                 {isInProgress && (
-                  <div className="grid grid-cols-2 gap-2 w-full pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-                      onClick={() => handleRejectTask(task.id)}
-                    >
-                      ตีกลับ
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="text-xs bg-green-600 hover:bg-green-700 text-white gap-1"
-                      onClick={() => handleAdvanceTaskStep(task.id)}
-                    >
-                      อนุมัติ
-                      <ArrowRight className="h-3 w-3" />
-                    </Button>
+                  <div className="w-full pt-2 border-t">
+                    {mode === "leader" ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                          onClick={() => handleRejectTask(task.id)}
+                        >
+                          ตีกลับ
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="text-xs bg-green-600 hover:bg-green-700 text-white gap-1"
+                          onClick={() => handleAdvanceTaskStep(task.id)}
+                        >
+                          อนุมัติ
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => handleOpenMaterialDialog(task)}
+                        >
+                          <Plus className="h-3 w-3" />
+                          เบิกของ
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => handleOpenUpdateDialog(task)}
+                        >
+                          <Send className="h-3 w-3" />
+                          อัปเดต
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardFooter>
@@ -433,7 +552,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
         })}
       </div>
 
-      {/* --- Dialogs (Keep existing logic) --- */}
+      {/* --- Dialogs --- */}
 
       {/* Image Preview Dialog */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
@@ -616,8 +735,35 @@ export function TaskManagement({ job }: TaskManagementProps) {
               </div>
             </ScrollArea>
           )}
+
+          {/* User Mode: Quick Actions in Detail Dialog */}
+          {mode === "user" &&
+            selectedTask &&
+            selectedTask.status === "in-progress" && (
+              <DialogFooter className="border-t pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTaskDialogOpen(false);
+                    handleOpenMaterialDialog(selectedTask);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> เบิกวัสดุ
+                </Button>
+                <Button
+                  onClick={() => {
+                    setTaskDialogOpen(false);
+                    handleOpenUpdateDialog(selectedTask);
+                  }}
+                >
+                  <Send className="h-4 w-4 mr-2" /> อัปเดตงาน
+                </Button>
+              </DialogFooter>
+            )}
         </DialogContent>
       </Dialog>
+
+      {/* --- Leader Dialogs --- */}
 
       {/* Confirm Status Change Dialog */}
       <AlertDialog
@@ -707,6 +853,104 @@ export function TaskManagement({ job }: TaskManagementProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* --- User Dialogs --- */}
+
+      {/* Update Progress Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>ส่งอัปเดตความคืบหน้า</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>รายละเอียดการทำงาน</Label>
+              <Textarea
+                value={updateMessage}
+                onChange={(e) => setUpdateMessage(e.target.value)}
+                placeholder="อธิบายงานที่ทำ หรือปัญหาที่พบ..."
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" /> แนบรูปภาพ
+                </Label>
+                {updateImageName && (
+                  <span className="text-xs text-blue-600 truncate max-w-[150px]">
+                    {updateImageName}
+                  </span>
+                )}
+              </div>
+
+              {!updateImagePreview ? (
+                <div
+                  className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => updateFileInputRef.current?.click()}
+                >
+                  <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    คลิกเพื่อเลือกรูปภาพ
+                  </p>
+                  <input
+                    type="file"
+                    ref={updateFileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleUpdateFileChange}
+                  />
+                </div>
+              ) : (
+                <div className="relative group">
+                  <img
+                    src={updateImagePreview}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg border"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 h-8 w-8 p-0"
+                    onClick={() => {
+                      setUpdateImagePreview(null);
+                      setUpdateImageName("");
+                      if (updateFileInputRef.current)
+                        updateFileInputRef.current.value = "";
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateDialogOpen(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button onClick={submitUpdate} disabled={!updateMessage.trim()}>
+              ส่งอัปเดต
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Material Selection Dialog */}
+      {selectedTask && (
+        <MaterialSelectionDialog
+          open={materialDialogOpen}
+          onOpenChange={setMaterialDialogOpen}
+          job={job}
+          task={selectedTask}
+        />
+      )}
     </div>
   );
 }
