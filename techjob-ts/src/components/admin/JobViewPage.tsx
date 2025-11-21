@@ -209,10 +209,11 @@ export default function JobViewPage() {
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{job.location || "ไม่ระบุ"}</p>
+                  
                 </div>
-                {mapPosition && (
+                {mapPosition && (  
                   <div className="rounded-lg overflow-hidden border">
-                    <AdminMap initialAddress={job.location} initialPosition={mapPosition} readOnly={true} />
+                    <AdminMap  initialPosition={mapPosition} readOnly={true} />
                   </div>
                 )}
                 {!job.location && !mapPosition && <p className="text-sm text-muted-foreground">ไม่มีข้อมูลสถานที่</p>}
@@ -365,9 +366,6 @@ export default function JobViewPage() {
             </CardContent>
           </Card>
           
-               <TaskDetailsLocked tasks={job.tasks} />
-
-
         
           {/* Subtasks */}
           {job.tasks && job.tasks.length > 0 && (
