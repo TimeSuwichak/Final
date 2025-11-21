@@ -45,7 +45,7 @@ const normalizePerson = (p: any) => ({
   address: p.address || "",
   idCard: p.idCard || "",
   startDate: p.startDate || "",
-  status: p.status || "available",
+  status: (p.role === "admin" || p.role === "executive") ? undefined : (p.status || "available"),
   urlImage: p.urlImage || p.avatarUrl || "",
   religion: p.religion || "",
   nationality: p.nationality || "",
@@ -142,7 +142,7 @@ export default function UserDetailPage() {
       </Button>
 
       {/* ส่วนบน: ข้อมูลโปรไฟล์และสถิติงาน */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${person.role !== "executive" ? "lg:grid-cols-2" : ""} gap-6`}>
         {/* กล่องด้านซ้าย: รายละเอียดโปรไฟล์ */}
         <Card>
           <CardHeader className="text-center">
@@ -215,17 +215,19 @@ export default function UserDetailPage() {
               </div>
 
               <div className="pt-3 border-t space-y-2">
-                <p>
-                  <strong>สถานะ:</strong>
-                  <span
-                    className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
-                      ? "bg-green-400 text-gray-700"
-                      : "bg-red-400 text-gray-200"
-                      }`}
-                  >
-                    {person.status}
-                  </span>
-                </p>
+                {person.status && person.role !== "admin" && person.role !== "executive" && (
+                  <p>
+                    <strong>สถานะ:</strong>
+                    <span
+                      className={`capitalize px-2 py-1 rounded-full text-xs ml-2 ${person.status === "available"
+                        ? "bg-green-400 text-gray-700"
+                        : "bg-red-400 text-gray-200"
+                        }`}
+                    >
+                      {person.status}
+                    </span>
+                  </p>
+                )}
                 <p>
                   <strong>บทบาท:</strong>
                   <span className="capitalize px-2 py-1 bg-secondary rounded-full text-xs ml-2">
@@ -237,12 +239,16 @@ export default function UserDetailPage() {
           </CardContent>
         </Card>
 
-        {/* กล่องด้านขวา: สถิติงาน */}
-        <JobStats userId={person.originalId || person.id} />
+        {/* กล่องด้านขวา: สถิติงาน - ไม่แสดงสำหรับ executive */}
+        {person.role !== "executive" && (
+          <JobStats userId={person.originalId || person.id} />
+        )}
       </div>
 
-      {/* ส่วนล่าง: ปฏิทินงาน */}
-      <UserJobCalendar userId={person.originalId || person.id} />
+      {/* ส่วนล่าง: ปฏิทินงาน - ไม่แสดงสำหรับ executive */}
+      {person.role !== "executive" && (
+        <UserJobCalendar userId={person.originalId || person.id} />
+      )}
     </div>
   );
 }

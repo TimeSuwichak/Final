@@ -14,7 +14,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203101",
     startDate: "2010-01-10",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/50.jpg"
   },
   {
@@ -32,7 +31,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203202",
     startDate: "2011-04-11",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg"
   },
   {
@@ -50,7 +48,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203303",
     startDate: "2012-08-21",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg"
   },
   {
@@ -68,7 +65,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203404",
     startDate: "2013-02-14",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg"
   },
   {
@@ -86,7 +82,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203505",
     startDate: "2014-11-04",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/men/54.jpg"
   }
 ];

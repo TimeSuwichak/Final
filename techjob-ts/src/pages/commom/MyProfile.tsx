@@ -32,7 +32,7 @@ const normalizePerson = (p: any) => ({
   address: p.address || "",
   idCard: p.idCard || "",
   startDate: p.startDate || "",
-  status: p.status || "available",
+  status: (p.role === "admin" || p.role === "executive") ? undefined : (p.status || "available"),
   urlImage: p.urlImage || p.avatarUrl || "",
   religion: p.religion || "",
   nationality: p.nationality || "",
@@ -170,18 +170,20 @@ export default function MyProfile() {
             </div>
             
             <div className="pt-4 border-t space-y-2">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">สถานะ:</p>
-                <span
-                  className={`capitalize px-3 py-1 rounded-full text-sm font-medium ${
-                    person.status === "available"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                  }`}
-                >
-                  {person.status === "available" ? "พร้อมทำงาน" : "ไม่พร้อมทำงาน"}
-                </span>
-              </div>
+              {person.status && person.role !== "admin" && person.role !== "executive" && (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">สถานะ:</p>
+                  <span
+                    className={`capitalize px-3 py-1 rounded-full text-sm font-medium ${
+                      person.status === "available"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                    }`}
+                  >
+                    {person.status === "available" ? "พร้อมทำงาน" : "ไม่พร้อมทำงาน"}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <p className="text-sm text-muted-foreground">บทบาท:</p>
                 <span className="capitalize px-3 py-1 bg-secondary rounded-full text-sm font-medium">

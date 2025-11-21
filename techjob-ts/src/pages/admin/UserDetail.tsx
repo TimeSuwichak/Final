@@ -30,7 +30,8 @@ const normalizeUser = (p: any) => ({
   position: p.position || "พนักงาน",
   department: p.department || "",
   phone: p.phone || "",
-  status: p.status || "available",
+  role: p.role || "user",
+  status: (p.role === "admin" || p.role === "executive") ? undefined : (p.status || "available"),
   avatarUrl: p.urlImage || p.avatarUrl || "",
   idCard: p.idCard || "",
   startDate: p.startDate || "",
@@ -85,17 +86,19 @@ const UserDetail = () => {
                 {person.fname} {person.lname}
               </p>
 
-              <div className="flex items-center gap-1 justify-center border-b pb-3 border-gray-600">
-                <p>สถานะ:</p>
-                <p
-                  className={`border rounded-4xl px-3 text-center ${person.status === "available"
-                    ? "bg-green-400 text-gray-700"
-                    : "bg-red-400 text-gray-200"
-                    }`}
-                >
-                  {person.status}
-                </p>
-              </div>
+              {(person.status && person.role !== "admin" && person.role !== "executive") && (
+                <div className="flex items-center gap-1 justify-center border-b pb-3 border-gray-600">
+                  <p>สถานะ:</p>
+                  <p
+                    className={`border rounded-4xl px-3 text-center ${person.status === "available"
+                      ? "bg-green-400 text-gray-700"
+                      : "bg-red-400 text-gray-200"
+                      }`}
+                  >
+                    {person.status}
+                  </p>
+                </div>
+              )}
 
               <div className="pt-3">
                 <p><strong>ตำแหน่ง:</strong> {person.position}</p>

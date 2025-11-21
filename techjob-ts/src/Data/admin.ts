@@ -14,7 +14,6 @@ export const admin = [
     nationality: "ไทย",
     idCard: "1101700202101",
     startDate: "2019-07-01",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg"
   },
   {
@@ -32,7 +31,6 @@ export const admin = [
     nationality: "ไทย",
     idCard: "1101700202102",
     startDate: "2018-03-15",
-    status: "available",
     avatarUrl: "https://randomuser.me/api/portraits/women/51.jpg"
   }
 ];
