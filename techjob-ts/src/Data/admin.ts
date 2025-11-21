@@ -15,7 +15,7 @@ export const admin = [
     idCard: "1101700202101",
     startDate: "2019-07-01",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somying"
+    avatarUrl: "https://randomuser.me/api/portraits/women/50.jpg"
   },
   {
     id: 1022,
@@ -33,7 +33,7 @@ export const admin = [
     idCard: "1101700202102",
     startDate: "2018-03-15",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=manee"
+    avatarUrl: "https://randomuser.me/api/portraits/women/51.jpg"
   }
 ];
 
