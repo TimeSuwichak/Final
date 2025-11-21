@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import techJobLogo from "@/assets/techjob-logo.png";
 import { JobProvider } from "@/contexts/JobContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { MaterialProvider } from "@/contexts/MaterialContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { ChatBadge } from "@/components/chat/ChatBadge";
@@ -73,7 +74,8 @@ export default function Sidebar() {
 
   return (
     <NotificationProvider>
-      <JobProvider>
+      <MaterialProvider>
+        <JobProvider>
         <div className="flex h-screen bg-background">
 
           {/* 📱 Mobile Menu Button */}
@@ -190,7 +192,8 @@ export default function Sidebar() {
             />
           )}
         </div>
-      </JobProvider>
+        </JobProvider>
+      </MaterialProvider>
     </NotificationProvider>
   );
 }

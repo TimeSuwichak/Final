@@ -48,6 +48,8 @@ export interface Task {
   }[];
   materials: {
     materialId: string;
+    materialName?: string;
+    unit?: string;
     quantity: number;
     withdrawnAt: Date;
     withdrawnBy: string;

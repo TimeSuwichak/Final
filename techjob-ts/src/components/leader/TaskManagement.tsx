@@ -1,11 +1,12 @@
 // src/components/leader/TaskManagement.tsx
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { type Job, type Task } from "@/types/index";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useMaterials } from "@/contexts/MaterialContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,11 +34,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { electricalMaterials } from "@/data/materials/electrical";
-import { networkMaterials } from "@/data/materials/network";
-import { toolMaterials } from "@/data/materials/tools";
-import { multimediaMaterials } from "@/data/materials/multimedia";
-import { consumableMaterials } from "@/data/materials/consumables";
 import {
   Plus,
   MessageSquare,
@@ -56,6 +52,7 @@ import {
   ChevronDown,
   ChevronUp,
   CornerUpLeft,
+  Package,
 } from "lucide-react";
 
 interface TaskManagementProps {
@@ -67,8 +64,6 @@ export function TaskManagement({ job }: TaskManagementProps) {
   const { user } = useAuth();
   const { addNotification } = useNotifications();
 
-  const [newTitle, setNewTitle] = useState("");
-  const [newDesc, setNewDesc] = useState("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -87,53 +82,41 @@ export function TaskManagement({ job }: TaskManagementProps) {
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Combine all materials for lookup
-  const allMaterials = [
-    ...electricalMaterials,
-    ...networkMaterials,
-    ...toolMaterials,
-    ...multimediaMaterials,
-    ...consumableMaterials,
-  ];
+  const { materials: inventoryMaterials } = useMaterials();
 
-  const getMaterialName = (materialId: string) => {
-    // Extract the actual material ID by removing the category prefix (e.g., "multimedia-IOT-001" -> "IOT-001")
-    const actualId = materialId.includes('-') ? materialId.split('-').slice(1).join('-') : materialId;
-    const material = allMaterials.find(m => m.id === actualId);
-    return material ? material.name : materialId;
+  const materialDictionary = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        unit?: string;
+      }
+    >();
+    inventoryMaterials.forEach((material) => {
+      map.set(material.id, { name: material.name, unit: material.unit });
+    });
+    return map;
+  }, [inventoryMaterials]);
+
+  const normalizeMaterialId = (materialId: string) => {
+    const parts = String(materialId).split("-");
+    if (parts.length <= 2) return String(materialId);
+    return parts.slice(-2).join("-");
+  };
+
+  const resolveMaterialName = (materialId: string, fallbackName?: string) => {
+    if (fallbackName) return fallbackName;
+    const normalized = normalizeMaterialId(materialId);
+    return materialDictionary.get(normalized)?.name ?? materialId;
+  };
+
+  const resolveMaterialUnit = (materialId: string, fallbackUnit?: string) => {
+    if (fallbackUnit) return fallbackUnit;
+    const normalized = normalizeMaterialId(materialId);
+    return materialDictionary.get(normalized)?.unit ?? fallbackUnit ?? "";
   };
 
   if (!user) return null;
-
-  const handleAddTask = () => {
-    if (!newTitle.trim()) {
-      alert("กรุณาใส่หัวข้อ Task");
-      return;
-    }
-
-    const newTask: Task = {
-      id: `T-${Date.now()}`,
-      title: newTitle.trim(),
-      description: newDesc.trim(),
-      status: "pending",
-      updates: [],
-    };
-
-    const updatedTasks = [...job.tasks, newTask];
-
-    updateJobWithActivity(
-      job.id,
-      { tasks: updatedTasks },
-      "task_created",
-      `เพิ่ม Task ใหม่: ${newTitle}`,
-      user.fname,
-      "leader",
-      { taskId: newTask.id, taskTitle: newTitle }
-    );
-
-    setNewTitle("");
-    setNewDesc("");
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -189,18 +172,10 @@ export function TaskManagement({ job }: TaskManagementProps) {
     setTaskDialogOpen(true);
   };
 
-  const handleToggleTaskStatus = (taskId: string, currentStatus: string) => {
-    let newStatus: "pending" | "in-progress" | "completed";
-    if (currentStatus === "pending") {
-      newStatus = "in-progress";
-    } else if (currentStatus === "in-progress") {
-      newStatus = "completed";
-    } else {
-      newStatus = "in-progress";
-    }
-
-    // Show confirmation dialog for status changes
-    setPendingStatusChange({ taskId, newStatus });
+  // กดโดย Leader เท่านั้น: ใช้สำหรับ "อนุมัติขั้นตอนนี้ และไปสู่ขั้นถัดไป"
+  const handleAdvanceTaskStep = (taskId: string) => {
+    // เก็บ task ที่จะอนุมัติไว้ใน state เพื่อแสดงใน Dialog ยืนยัน
+    setPendingStatusChange({ taskId, newStatus: "completed" });
     setStatusChangeDialogOpen(true);
   };
 
@@ -211,26 +186,51 @@ export function TaskManagement({ job }: TaskManagementProps) {
     const task = job.tasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    const updatedTask: Task = {
-      ...task,
-      status: newStatus,
-    };
+    // หา index ของ task ปัจจุบันใน pipeline 4 ขั้นตอน
+    const currentIndex = job.tasks.findIndex((t) => t.id === taskId);
+    if (currentIndex === -1) return;
 
-    const updatedTasks = job.tasks.map((t) =>
-      t.id === taskId ? updatedTask : t
-    );
+    // ตรวจสอบว่าทุกขั้นตอนก่อนหน้า "เสร็จสิ้น" แล้วหรือยัง
+    const hasUnfinishedPreviousStep = job.tasks
+      .slice(0, currentIndex)
+      .some((t) => t.status !== "completed");
+
+    if (hasUnfinishedPreviousStep) {
+      alert("ไม่สามารถข้ามขั้นตอนได้ กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน");
+      setStatusChangeDialogOpen(false);
+      setPendingStatusChange(null);
+      return;
+    }
+
+    // อนุมัติขั้นตอนปัจจุบันให้เป็น "completed"
+    const updatedTasks: Task[] = job.tasks.map((t, index) => {
+      if (t.id === taskId) {
+        return {
+          ...t,
+          status: newStatus,
+        };
+      }
+
+      // ถ้ามีขั้นถัดไป ให้เปลี่ยนจาก pending -> in-progress อัตโนมัติ
+      if (
+        index === currentIndex + 1 &&
+        t.status === "pending" &&
+        newStatus === "completed"
+      ) {
+        return {
+          ...t,
+          status: "in-progress",
+        };
+      }
+
+      return t;
+    });
 
     updateJobWithActivity(
       job.id,
       { tasks: updatedTasks },
       "task_updated",
-      `เปลี่ยนสถานะ Task "${task.title}" เป็น ${
-        newStatus === "completed"
-          ? "เสร็จสิ้น"
-          : newStatus === "in-progress"
-          ? "กำลังทำ"
-          : "รอดำเนินการ"
-      }`,
+      `หัวหน้า "${user.fname}" อนุมัติขั้นตอน "${task.title}" และไปสู่ขั้นถัดไป`,
       user.fname,
       "leader",
       { taskId: task.id, taskTitle: task.title, newStatus }
@@ -285,10 +285,11 @@ export function TaskManagement({ job }: TaskManagementProps) {
     const task = job.tasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    const newUpdate = {
+    const newUpdate: Task["updates"][number] = {
       message: `งานถูกตีกลับโดยหัวหน้า: ${reason}`,
       updatedBy: user.fname,
-      updatedAt: new Date(),
+      // เก็บเป็น string เพื่อให้ตรงกับ type ของ Task['updates'][].updatedAt
+      updatedAt: new Date().toISOString(),
       imageUrl: imageUrl || undefined,
     };
 
@@ -335,7 +336,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
           <h4 className="text-lg font-semibold">
-            งานย่อย ({job.tasks.length})
+            ขั้นตอนงานมาตรฐาน ({job.tasks.length})
           </h4>
         </div>
       </div>
@@ -445,7 +446,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
                                           : "bg-muted/50"
                                       }`}
                                     >
-                                      <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">
+                                  <p className="text-xs leading-relaxed whitespace-pre-wrap">
                                         {update.message}
                                       </p>
                                       {update.imageUrl && (
@@ -490,6 +491,51 @@ export function TaskManagement({ job }: TaskManagementProps) {
                         </div>
                       )}
                     </div>
+                    {task.materials && task.materials.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-1.5">
+                          <Package className="h-3.5 w-3.5 text-green-600" />
+                          <h4 className="text-xs font-semibold">
+                            วัสดุที่เบิก ({task.materials.length})
+                          </h4>
+                        </div>
+                        <div className="space-y-1">
+                          {task.materials.map((material, idx) => {
+                            const displayName = resolveMaterialName(
+                              material.materialId,
+                              material.materialName
+                            );
+                            const unit = resolveMaterialUnit(
+                              material.materialId,
+                              material.unit
+                            );
+                            return (
+                              <div
+                                key={`${material.materialId}-${idx}`}
+                                className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800"
+                              >
+                                <div className="flex-1">
+                                  <p className="text-xs font-medium">
+                                    {displayName}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    รหัส: {material.materialId} • หน่วย:{" "}
+                                    {unit || "-"}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    จำนวน: {material.quantity} | เบิกเมื่อ:{" "}
+                                    {format(material.withdrawnAt, "dd/MM/yyyy HH:mm", {
+                                      locale: th,
+                                    })}{" "}
+                                    | โดย: {material.withdrawnBy}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-1 shrink-0">
@@ -498,11 +544,12 @@ export function TaskManagement({ job }: TaskManagementProps) {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleToggleTaskStatus(task.id, task.status);
+                        handleAdvanceTaskStep(task.id);
                       }}
                       className="text-xs px-2"
+                      disabled={task.status === "completed"}
                     >
-                      จบงานย่อย
+                      ไปสู่ขั้นถัดไป
                     </Button>
                     <Button
                       variant="outline"
@@ -540,45 +587,6 @@ export function TaskManagement({ job }: TaskManagementProps) {
           </CardContent>
         </Card>
       )}
-
-      {/* Create New Task Form */}
-      <Card className="border-primary/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            เพิ่ม Task ใหม่
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">หัวข้อ Task *</Label>
-            <Input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="เช่น: ตรวจสอบอุปกรณ์ไฟฟ้า"
-              className="text-sm"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">รายละเอียด Task</Label>
-            <Textarea
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              placeholder="อธิบายขั้นตอนการทำงาน หรือสิ่งที่ต้องเตรียมให้ทีมช่าง"
-              rows={3}
-              className="text-sm resize-none"
-            />
-          </div>
-          <Button
-            onClick={handleAddTask}
-            className="w-full gap-2"
-            disabled={!newTitle.trim()}
-          >
-            <Plus className="h-4 w-4" />
-            เพิ่ม Task
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Image Preview Dialog - Full Screen */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
@@ -621,7 +629,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
             <div className="flex items-start justify-between gap-4 pr-6">
               <DialogTitle className="flex items-center gap-2 flex-1">
                 <MessageSquare className="h-5 w-5 shrink-0" />
-                <span className="break-words">{selectedTask?.title}</span>
+                <span>{selectedTask?.title}</span>
               </DialogTitle>
               {selectedTask && (
                 <Badge
@@ -678,7 +686,7 @@ export function TaskManagement({ job }: TaskManagementProps) {
                               </span>
                             </div>
                             <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">
                                 {update.message}
                               </p>
                               {update.imageUrl && (
@@ -721,22 +729,16 @@ export function TaskManagement({ job }: TaskManagementProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>ยืนยันการเปลี่ยนสถานะงาน</AlertDialogTitle>
+            <AlertDialogTitle>ยืนยันการไปสู่ขั้นตอนถัดไป</AlertDialogTitle>
             <AlertDialogDescription>
-              คุณต้องการเปลี่ยนสถานะงาน "
+              คุณต้องการอนุมัติขั้นตอน "
               {
                 job.tasks.find((t) => t.id === pendingStatusChange?.taskId)
                   ?.title
               }
-              " เป็น "
-              {pendingStatusChange?.newStatus === "completed"
-                ? "เสร็จสิ้น"
-                : pendingStatusChange?.newStatus === "in-progress"
-                ? "กำลังทำ"
-                : "รอดำเนินการ"}
-              " ใช่หรือไม่?
+              " และไปยังขั้นตอนถัดไปใช่หรือไม่?
               <br />
-              การเปลี่ยนสถานะนี้จะส่งการแจ้งเตือนไปยังทีมช่างทั้งหมด
+              การยืนยันนี้จะบันทึกในประวัติงานและส่งการแจ้งเตือนไปยังทีมช่าง
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

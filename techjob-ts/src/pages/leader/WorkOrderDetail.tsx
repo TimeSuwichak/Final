@@ -256,7 +256,13 @@ const WorkOrderDetail: React.FC = () => {
     );
   }
 
+  const canManageTeam = currentJob.assignmentMode === "leader";
+
   const handleSaveTeam = () => {
+    if (!canManageTeam) {
+      alert("งานนี้ถูกกำหนดทีมช่างโดยแอดมิน หัวหน้าไม่สามารถแก้ไขได้");
+      return;
+    }
     const normalizedDraft = [...draftTechs].sort()
     const normalizedCurrent = [...currentJob.assignedTechs].sort()
 
@@ -541,26 +547,39 @@ const WorkOrderDetail: React.FC = () => {
                   </div>
 
                   {/* Tech Selection */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold">เลือกทีมช่าง</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleSaveTeam}
-                        className="h-7 text-xs gap-1 bg-transparent"
-                      >
-                        <Save className="h-3 w-3" />
-                        บันทึก
-                      </Button>
+                  {canManageTeam ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleSaveTeam}
+                          className="h-7 text-xs gap-1 bg-transparent"
+                        >
+                          <Save className="h-3 w-3" />
+                          บันทึก
+                        </Button>
+                      </div>
+                      <TechSelectMultiDept
+                        jobStartDate={currentJob.startDate}
+                        jobEndDate={currentJob.endDate}
+                        selectedTechIds={draftTechs}
+                        onTechsChange={setDraftTechs}
+                      />
                     </div>
-                    <TechSelectMultiDept
-                      jobStartDate={currentJob.startDate}
-                      jobEndDate={currentJob.endDate}
-                      selectedTechIds={draftTechs}
-                      onTechsChange={setDraftTechs}
-                    />
-                  </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-yellow-300 bg-yellow-50/60 p-4 text-xs text-yellow-800 space-y-1">
+                      <p className="font-semibold flex items-center gap-1">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        โหมดกำหนดทีมโดยแอดมิน
+                      </p>
+                      <p>
+                        แอดมินได้เลือกทีมช่างไว้เรียบร้อยแล้ว หัวหน้าไม่สามารถแก้ไขรายชื่อทีมได้ในงานนี้
+                      </p>
+                      <p>คุณยังสามารถตรวจสอบความคืบหน้าและอนุมัติแต่ละขั้นตอนได้ตามปกติ</p>
+                    </div>
+                  )}
 
                   {/* Assigned Team List */}
                   <Card className="border-primary/20">

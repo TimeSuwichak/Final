@@ -1,7 +1,7 @@
 // src/contexts/JobContext.tsx (ฉบับอัปเกรดให้ "จำเก่ง")
 "use client";
 
-import type { EditHistory, ActivityLog, Job } from '@/types/index';
+import type { EditHistory, ActivityLog, Job, Task } from '@/types/index';
 import React, { createContext, useContext, useState, type ReactNode, useEffect } from 'react'; // 1. Import useEffect
 import { useNotifications } from '@/contexts/NotificationContext';
 import { leader as LEADER_DIRECTORY } from '@/data/leader';
@@ -10,10 +10,71 @@ import { leader as LEADER_DIRECTORY } from '@/data/leader';
 // --- ชื่อกุญแจสำหรับเก็บข้อมูล ---
 const STORAGE_KEY = 'techJobData_v2'; // (v2 สำหรับระบบใหม่)
 
+// --- (ใหม่!) ฟังก์ชันสร้าง Task มาตรฐาน 4 ขั้นตอนต่อ 1 ใบงาน ---
+// โครงหลักของระบบใหม่: ทุกใบงานจะมี Task ตามลำดับนี้เสมอ
+// 1) ตรวจสอบและวางแผน
+// 2) จัดเตรียมวัสดุอุปกรณ์
+// 3) กำลังดำเนินการ
+// 4) เสร็จสิ้น
+const createDefaultTasks = (): Task[] => {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: "STEP-1",
+      title: "ตรวจสอบและวางแผน",
+      description: "",
+      status: "in-progress", // เริ่มต้นให้ขั้นตอนแรกอยู่ในสถานะกำลังทำ
+      imageUrl: undefined,
+      updates: [],
+      materials: [],
+    },
+    {
+      id: "STEP-2",
+      title: "จัดเตรียมวัสดุอุปกรณ์",
+      description: "",
+      status: "pending",
+      imageUrl: undefined,
+      updates: [],
+      materials: [],
+    },
+    {
+      id: "STEP-3",
+      title: "กำลังดำเนินการ",
+      description: "",
+      status: "pending",
+      imageUrl: undefined,
+      updates: [],
+      materials: [],
+    },
+    {
+      id: "STEP-4",
+      title: "เสร็จสิ้น",
+      description: "",
+      status: "pending",
+      imageUrl: undefined,
+      updates: [],
+      materials: [],
+    },
+  ];
+};
+
 // --- (ใหม่!) ฟังก์ชันสำหรับ "ฟื้นคืนชีพ" Date Objects ---
 // (localStorage จะแปลง Date เป็น string, เราต้องแปลงกลับ)
 const reviveDates = (job: any): Job => {
-  return {
+  // แปลง field ที่เป็นวันที่ให้กลับมาเป็น Date object
+  const revivedTasks: Task[] = (job.tasks || []).map((task: any) => ({
+    ...task,
+    updates: (task.updates || []).map((update: any) => ({
+      ...update,
+      updatedAt: new Date(update.updatedAt),
+    })),
+    materials: (task.materials || []).map((material: any) => ({
+      ...material,
+      withdrawnAt: new Date(material.withdrawnAt),
+    })),
+  }));
+
+  let revivedJob: Job = {
     ...job,
     startDate: new Date(job.startDate),
     endDate: new Date(job.endDate),
@@ -27,14 +88,33 @@ const reviveDates = (job: any): Job => {
       ...entry,
       timestamp: new Date(entry.timestamp),
     })),
-    tasks: (job.tasks || []).map((task: any) => ({
-      ...task,
-      updates: (task.updates || []).map((update: any) => ({
-        ...update,
-        updatedAt: new Date(update.updatedAt),
-      })),
-    })),
   };
+
+  // ถ้าใบงานเดิมยังไม่มี task หรือ task ไม่ได้อยู่ในรูปแบบ pipeline ใหม่
+  // ให้ "รีเซ็ต" เป็น task มาตรฐาน 4 ขั้นตอนเสมอ
+  const isValidNewPipeline =
+    Array.isArray(revivedTasks) &&
+    revivedTasks.length === 4 &&
+    revivedTasks[0]?.title === "ตรวจสอบและวางแผน" &&
+    revivedTasks[1]?.title === "จัดเตรียมวัสดุอุปกรณ์" &&
+    revivedTasks[2]?.title === "กำลังดำเนินการ" &&
+    revivedTasks[3]?.title === "เสร็จสิ้น";
+
+  if (isValidNewPipeline) {
+    // ใช้ task เดิม (แต่แปลงวันที่แล้ว) ถ้าเป็นรูปแบบใหม่อยู่แล้ว
+    revivedJob = {
+      ...revivedJob,
+      tasks: revivedTasks,
+    };
+  } else {
+    // ใบงานเก่า / task รูปแบบเดิม -> เปลี่ยนมาใช้ pipeline 4 ขั้นตอนใหม่
+    revivedJob = {
+      ...revivedJob,
+      tasks: createDefaultTasks(),
+    };
+  }
+
+  return revivedJob;
 };
 
 // --- (ใหม่!) ฟังก์ชันสำหรับ "โหลดข้อมูล" จาก "แผ่นหิน" ---
@@ -122,7 +202,8 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       status: 'new',
       editHistory: [],
       activityLog: [],
-      tasks: [],
+      // ในระบบใหม่ ทุกใบงานจะเริ่มต้นด้วย Task 4 ขั้นตอนที่กำหนดไว้แล้ว
+      tasks: createDefaultTasks(),
       assignedTechs: newJobData.assignedTechs || [],
       completionSummary: undefined,
       completionIssues: undefined,
