@@ -79,6 +79,7 @@ export default function MaterialDashboard() {
     addMaterial: addMaterialRecord,
     updateMaterial,
     restockMaterial,
+    withdrawMaterials,
   } = useMaterials();
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -260,20 +261,29 @@ export default function MaterialDashboard() {
     // Simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const newOrder: PendingOrder = {
-      id: `ORD${Date.now()}`,
-      materialId: withdrawMat!.id,
-      quantity: withdrawQuantity,
-      orderedAt: new Date(),
-      status: "processing_documents",
-      estimatedDays: Math.floor(Math.random() * 15) + 1, // Random 1-15 days
-    };
-    setPendingOrders([...pendingOrders, newOrder]);
-    restockMaterial(withdrawMat!.id, withdrawQuantity);
+    // const newOrder: PendingOrder = {
+    //   id: `ORD${Date.now()}`,
+    //   materialId: withdrawMat!.id,
+    //   quantity: withdrawQuantity,
+    //   orderedAt: new Date(),
+    //   status: "processing_documents",
+    //   estimatedDays: Math.floor(Math.random() * 15) + 1, // Random 1-15 days
+    // };
+    // setPendingOrders([...pendingOrders, newOrder]);
+
+    const result = withdrawMaterials([
+      { materialId: withdrawMat!.id, quantity: withdrawQuantity },
+    ]);
+
     setIsProcessing(false);
-    setWithdrawMat(null);
-    setWithdrawQuantity(0);
-    alert("สั่งซื้อ/เพิ่มสต็อกสำเร็จ");
+
+    if (result.success) {
+      setWithdrawMat(null);
+      setWithdrawQuantity(0);
+      alert("เบิกวัสดุสำเร็จ");
+    } else {
+      alert(result.errors ? result.errors.join("\n") : "เกิดข้อผิดพลาด");
+    }
   };
 
   return (
@@ -409,32 +419,55 @@ export default function MaterialDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <span
-                              className={
-                                material.minStock !== undefined &&
-                                material.stock <= material.minStock
-                                  ? "text-red-600 font-bold"
-                                  : ""
-                              }
-                            >
-                              {material.stock}
-                            </span>
+                            <div className="flex items-center justify-end gap-2">
+                              <span
+                                className={
+                                  material.minStock !== undefined &&
+                                  material.stock <= material.minStock
+                                    ? "text-red-600 font-bold"
+                                    : ""
+                                }
+                              >
+                                {material.stock}
+                              </span>
+                              {material.minStock !== undefined &&
+                                material.stock <= material.minStock && (
+                                  <AlertTriangle
+                                    className="w-4 h-4 text-red-500 animate-pulse"
+                                    title="สินค้าใกล้หมดสต็อก"
+                                  />
+                                )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
                             {material.unit}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-blue-600"
-                              onClick={() => {
-                                setEditMat(material);
-                                setOpenEdit(true);
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title="เบิกวัสดุ"
+                                onClick={() => {
+                                  setWithdrawMat(material);
+                                  setOpenWithdraw(true);
+                                }}
+                              >
+                                <ShoppingCart className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-blue-600"
+                                onClick={() => {
+                                  setEditMat(material);
+                                  setOpenEdit(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -874,8 +907,6 @@ export default function MaterialDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-
     </div>
   );
 }
