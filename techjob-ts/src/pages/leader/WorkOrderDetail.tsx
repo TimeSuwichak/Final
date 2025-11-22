@@ -24,14 +24,6 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  Circle,
-  useMap,
-} from "react-leaflet";
 import { user as ALL_USERS } from "@/Data/user";
 import {
   MapPin,
@@ -50,8 +42,6 @@ import {
   ExternalLink,
   Save,
 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { TaskDetailsLocked } from "@/components/leader/TaskDetailsLocked";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { TechSelectMultiDept } from "@/components/leader/TechSelectMultiDept";
@@ -70,15 +60,7 @@ import { Separator } from "@/components/ui/separator";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
 import { JobSummaryView } from "@/components/leader/JobSummaryView";
-
-// Fix for default marker icons in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+import TechnicianTracking from "@/pages/leader/TechnicianTracking";
 
 // Declare missing functions
 const getStatusColor = (status: string) => {
@@ -114,30 +96,6 @@ const getStatusText = (status: string) => {
   }
 };
 
-interface MapControllerProps {
-  jobId: string | null;
-  jobs: any[];
-}
-
-const MapController: React.FC<MapControllerProps> = ({ jobId, jobs }) => {
-  const map = useMap();
-  const prevJobId = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (jobId && jobId !== prevJobId.current) {
-      const job = jobs.find((j) => j.id === jobId);
-      if (job && job.latitude && job.longitude) {
-        map.setView([job.latitude, job.longitude], 16, {
-          animate: true,
-          duration: 1,
-        });
-      }
-      prevJobId.current = jobId;
-    }
-  }, [jobId, jobs, map]);
-
-  return null;
-};
 
 const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
   pdfFiles = [],
@@ -270,10 +228,6 @@ const WorkOrderDetail: React.FC = () => {
   } | null>(null);
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
-  const [jobsWithLocation, setJobsWithLocation] = useState<any[]>([]);
-  const [initialMapCenter, setInitialMapCenter] = useState<[number, number]>([
-    13.7563, 100.5018,
-  ]);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
@@ -282,9 +236,6 @@ const WorkOrderDetail: React.FC = () => {
     setCurrentJob(job);
     if (job) {
       setDraftTechs(job.assignedTechs); // sync draft techs with current job
-      if (job.latitude && job.longitude) {
-        setInitialMapCenter([job.latitude, job.longitude]);
-      }
 
       // Auto-change status to in-progress when leader views job for the first time
       if (job.status === "new" && user && !hasAutoStarted) {
@@ -299,9 +250,6 @@ const WorkOrderDetail: React.FC = () => {
         setHasAutoStarted(true);
       }
     }
-    setJobsWithLocation(
-      job ? [job].filter((job) => job.latitude && job.longitude) : []
-    );
   }, [jobId, jobs, user, hasAutoStarted, updateJobWithActivity]);
 
   if (!user) return null;
@@ -474,50 +422,7 @@ const WorkOrderDetail: React.FC = () => {
     alert("ปิดงานเรียบร้อย!");
   };
 
-  // ... existing helper functions ...
-
-  const createCustomIcon = (status: string) => {
-    const color =
-      status === "done"
-        ? "#22c55e"
-        : status === "in-progress"
-        ? "#3b82f6"
-        : "#f97316";
-    return L.divIcon({
-      className: "custom-marker",
-      html: `
-        <div style="
-          background-color: ${color};
-          width: 32px;
-          height: 32px;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        ">
-          <div style="
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-            transform: rotate(45deg);
-          "></div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    });
-  };
-
   const workAreaRadius = 150;
-
-  const assignedTechs = currentJob.assignedTechs
-    .map((techId) => ALL_USERS.find((u) => String(u.id) === techId))
-    .filter((tech) => tech !== undefined);
 
   return (
     <>
@@ -710,29 +615,7 @@ const WorkOrderDetail: React.FC = () => {
                     </Badge>
                   </div>
 
-                  {/* Tech Selection */}
-                  {canManageTeam ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-semibold">เลือกทีมช่าง</p>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleSaveTeam}
-                          className="h-7 text-xs gap-1 bg-transparent"
-                        >
-                          <Save className="h-3 w-3" />
-                          บันทึก
-                        </Button>
-                      </div>
-                      <TechSelectMultiDept
-                        jobStartDate={currentJob.startDate}
-                        jobEndDate={currentJob.endDate}
-                        selectedTechIds={draftTechs}
-                        onTechsChange={setDraftTechs}
-                      />
-                    </div>
-                  ) : (
+                  {canManageTeam ? null : (
                     <div className="rounded-lg border border-dashed border-yellow-300 bg-yellow-50/60 p-4 text-xs text-yellow-800 space-y-1">
                       <p className="font-semibold flex items-center gap-1">
                         <AlertCircle className="h-3.5 w-3.5" />
@@ -770,128 +653,45 @@ const WorkOrderDetail: React.FC = () => {
                       <JobTeamDisplay job={currentJob} />
                     </>
                   )}
+
+                  {/* Tech Selection - ย้ายมาด้านล่าง */}
+                  {canManageTeam ? (
+                    <>
+                      <Separator />
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleSaveTeam}
+                            className="h-7 text-xs gap-1 bg-transparent"
+                          >
+                            <Save className="h-3 w-3" />
+                            บันทึก
+                          </Button>
+                        </div>
+                        <TechSelectMultiDept
+                          jobStartDate={currentJob.startDate}
+                          jobEndDate={currentJob.endDate}
+                          selectedTechIds={draftTechs}
+                          onTechsChange={setDraftTechs}
+                        />
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>
           </div>
         ) : (
           /* View 2: Technician Tracking */
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 min-h-0">
-            {/* Technician List */}
-            <Card className="lg:col-span-1 flex flex-col overflow-hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  ช่างทีม ({assignedTechs.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 min-h-0 p-0">
-                <ScrollArea className="h-full px-4 pb-4">
-                  <div className="space-y-2">
-                    {assignedTechs.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Users className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                        <p className="text-sm">ยังไม่มีช่างที่มอบหมาย</p>
-                      </div>
-                    ) : (
-                      assignedTechs.map((tech) => (
-                        <Card
-                          key={tech?.id}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedTechId === tech?.id.toString()
-                              ? "ring-2 ring-primary"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            setSelectedTechId(tech?.id.toString() || null)
-                          }
-                        >
-                          <CardContent className="p-3 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage
-                                  src={tech?.avatarUrl || "/placeholder.svg"}
-                                />
-                                <AvatarFallback className="text-xs">
-                                  {tech?.fname[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-sm line-clamp-1">
-                                  {tech?.fname} {tech?.lname}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {tech?.position}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-xs text-muted-foreground space-y-1 px-10">
-                              <p>📱 {tech?.phone}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            {/* Map View */}
-            <Card className="lg:col-span-3 flex flex-col overflow-hidden">
-              <CardContent className="p-0 h-full flex-1">
-                <div className="w-full h-full rounded-lg overflow-hidden">
-                  {jobsWithLocation.length > 0 ? (
-                    <MapContainer
-                      center={initialMapCenter}
-                      zoom={16}
-                      style={{ height: "100%", width: "100%" }}
-                      className="z-0"
-                    >
-                      <MapController
-                        jobId={jobId || null}
-                        jobs={[currentJob]}
-                      />
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      <Circle
-                        center={[currentJob.latitude!, currentJob.longitude!]}
-                        radius={workAreaRadius}
-                        pathOptions={{
-                          color:
-                            currentJob.status === "done"
-                              ? "#22c55e"
-                              : currentJob.status === "in-progress"
-                              ? "#3b82f6"
-                              : "#f97316",
-                          fillColor:
-                            currentJob.status === "done"
-                              ? "#22c55e"
-                              : currentJob.status === "in-progress"
-                              ? "#3b82f6"
-                              : "#f97316",
-                          fillOpacity: 0.1,
-                          weight: 2,
-                          opacity: 0.5,
-                        }}
-                      />
-                      <Marker
-                        position={[currentJob.latitude!, currentJob.longitude!]}
-                        icon={createCustomIcon(currentJob.status)}
-                      />
-                    </MapContainer>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center bg-muted text-muted-foreground gap-2">
-                      <MapPin className="h-8 w-8" />
-                      <p className="text-sm">ไม่มีพิกัดสำหรับแผนที่</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <TechnicianTracking
+            job={currentJob}
+            selectedTechId={selectedTechId}
+            onTechSelect={setSelectedTechId}
+            workAreaRadius={workAreaRadius}
+          />
         )}
       </div>
 
