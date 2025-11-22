@@ -17,12 +17,9 @@ import { JobProvider } from "@/contexts/JobContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MaterialProvider } from "@/contexts/MaterialContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-<<<<<<< HEAD
 import ChatNotificationPopup from "@/components/notifications/ChatNotificationPopup";
 
 // ⭐ ADD CHAT BADGE SYSTEM
-=======
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { ChatBadge } from "@/components/chat/ChatBadge";
 
@@ -52,7 +49,6 @@ export default function Sidebar() {
 
   const menuConfig = {
     user: [
-<<<<<<< HEAD
       { path: "/user/userdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
@@ -62,14 +58,6 @@ export default function Sidebar() {
 
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
-=======
-      { path: "/user/UserDashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
-      { path: "/user/userworks", icon: <MdEngineering className="w-5 h-5" />, label: "การเข้างานช่าง" },
-      { path: "/user/report-problem", icon: <TbAlertHexagon className="w-5 h-5" />, label: "แจ้งปัญหา" },
-      { path: "/chat", icon: <IoChatbubbleEllipsesOutline className="w-5 h-5" />, label: "แชทสนทนา", isChat: true },
-      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
-      { path: "/user/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
     ],
     admin: [
       { path: "/admin/admindashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
@@ -82,19 +70,11 @@ export default function Sidebar() {
       { path: "/admin/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
     ],
     leader: [
-<<<<<<< HEAD
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
-=======
-      { path: "/leader/leaderdashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
-      { path: "/leader/leaderworks", icon: <MdEngineering className="w-5 h-5" />, label: "การเข้างานช่าง" },
-      { path: "/leader/report-problem", icon: <TbAlertHexagon className="w-5 h-5" />, label: "แจ้งปัญหา" },
-      { path: "/leader/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
-      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
     ],
     executive: [
       { path: "/executive/exdashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
@@ -236,22 +216,8 @@ export default function Sidebar() {
               </main>
             </div>
 
-<<<<<<< HEAD
             {/* Chat notification popup (in-app toast) */}
             <ChatNotificationPopup />
-
-            <main className="h-full overflow-auto p-6 pt-20">
-              <Outlet />
-            </main>
-=======
-            {/* 🌑 Mobile Overlay */}
-            {isSidebarOpen && (
-              <div
-                onClick={() => setIsSidebarOpen(false)}
-                className="fixed inset-0 bg-black/50 dark:bg-background/80 backdrop-blur-sm md:hidden z-30 animate-in fade-in duration-300"
-              />
-            )}
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
           </div>
         </JobProvider>
       </MaterialProvider>

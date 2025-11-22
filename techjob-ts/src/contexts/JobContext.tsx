@@ -243,18 +243,9 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       // 3. ค้นหาชื่อของหัวหน้างานจากฟังก์ชัน findLeaderName()
       //    findLeaderName() จะหา ID ใน database leader มา
       const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
-<<<<<<< HEAD
       
       // no debug log
       
-=======
-
-      // 4. เพิ่ม log เพื่อตรวจสอบว่าจะส่งให้ leader ID ไหน
-      console.log(
-        `[addJob] Adding notification for leadId: ${newJobData.leadId}, leaderName: ${leaderName}`
-      );
-
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
       // 5. สร้าง object notification
       //    object นี้จะถูกเก็บไว้ใน notificationsToSend array
       //    แล้วจึงส่งไปให้ NotificationContext จัดการลงใน localStorage

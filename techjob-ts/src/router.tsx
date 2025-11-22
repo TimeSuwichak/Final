@@ -43,11 +43,8 @@ import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
 
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
@@ -164,11 +161,7 @@ const router = createBrowserRouter([
         ),
       },
 
-<<<<<<< HEAD
       // LEADER
-=======
-      // ──────── LEADER ────────
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
       {
         path: "leader/leaderdashboard",
         element: (

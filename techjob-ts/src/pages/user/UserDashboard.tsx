@@ -16,15 +16,9 @@ import {
 } from "lucide-react";
 import { JobTypePieChart } from "@/components/user/charts/JobTypePieChart";
 import { MonthlyPerformanceChart } from "@/components/user/charts/MonthlyPerformanceChart";
-<<<<<<< HEAD
 import { collection, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { MessageCircle } from "lucide-react";
 import { RecentChats } from "@/components/chat/RecentChats";
-=======
-import UserWorkStatus from "@/components/user/UserWorkStatus";
-// 🚨 แก้ไข: สมมติว่าคอมโพเนนต์ RecentChats อยู่ใน path นี้ (โปรดปรับตามโครงสร้างจริงของคุณ)
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
 
 
 // ==========================================================
@@ -148,7 +142,6 @@ export default function UserDashboard() {
   // --- 4. JSX (ส่วนแสดงผลที่ปรับ Font แล้ว) ---
   return (
     <div className="flex-1 space-y-8 p-4 md:p-8">
-<<<<<<< HEAD
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">ผลงานของคุณ, {user.fname}</h2>
         <button
@@ -158,23 +151,6 @@ export default function UserDashboard() {
           <MessageCircle className="w-5 h-5" />
           แชท
         </button>
-=======
-      {/* 🚨 ปรับปรุง Title ให้ดูดีขึ้น */}
-      <div className="flex items-center justify-between">
-        <div className="border-l-4 border-primary pl-4">
-          <h2 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-gray-100">
-            👋 สวัสดี, {user.fname}
-          </h2>
-          <p className="text-lg text-muted-foreground mt-1">
-            ภาพรวมผลงานและความคืบหน้าของคุณ
-          </p>
-        </div>
-      </div>
-
-      {/* User Work Status (new) */}
-      <div>
-        <UserWorkStatus />
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
       </div>
 
       {/* ================================================== */}
@@ -257,15 +233,7 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
       </div>
-<<<<<<< HEAD
       
-=======
-      {/* ================================================== */}
-      {/* ✨ จบส่วนของ Card Dashboard ✨ */}
-      {/* ================================================== */}
-
-      {/* Charts Section */}
->>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <JobTypePieChart data={finalJobTypeData} />
@@ -276,22 +244,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Recent Chats Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            ✉️ แชทล่าสุด
-          </h3>
-          <button
-            onClick={() => navigate("/chat")}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-md hover:bg-indigo-700 transition font-medium text-sm"
-          >
-            <MessageCircle className="w-4 h-4" />
-            ดูแชททั้งหมด
-          </button>
-        </div>
-        <Card className="p-4 shadow-xl dark:bg-gray-800">
-        </Card>
-      </div>
+      
     </div>
   );
 }
