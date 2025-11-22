@@ -74,6 +74,7 @@ export default function Sidebar() {
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
+      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     executive: [
