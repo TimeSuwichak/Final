@@ -1,3 +1,5 @@
+// ... (ThemeProvider and useTheme code remains unchanged, omitted here for brevity)
+
 import React from 'react'
 import KpiCard from './KpiCard'
 import { CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react'
@@ -10,16 +12,19 @@ import {
   AreaChart, Area
 } from 'recharts'
 
-// Custom Tooltip Component (เพิ่มเข้ามาเพื่อให้ Tooltip ดูเป็นมืออาชีพขึ้น)
+// Custom Tooltip Component (ปรับปรุงสำหรับ Dark/Light Mode)
 const CustomBarChartTooltip = ({ active, payload, label, COLORS }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="p-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl text-sm">
+        // 💡 Light: bg-white, border-gray-300 | Dark: bg-[#282b3d], border-[#3d4158]
+        <div className="p-3 bg-white dark:bg-[#282b3d] border border-gray-300 dark:border-[#3d4158] rounded-lg shadow-xl text-sm">
+          {/* 💡 Light: text-gray-900 | Dark: text-white */}
           <p className="font-bold text-gray-900 dark:text-white mb-1">{`เดือน: ${label}`}</p>
           <ul className="list-none p-0 m-0 space-y-1">
             {payload.map((item: any, index: number) => (
               <li key={`item-${index}`} className="flex justify-between items-center">
                 <span style={{ color: item.fill, fontWeight: 'bold' }}>{item.name}:</span>
+                {/* 💡 Light: text-gray-800 | Dark: text-gray-200 */}
                 <span className="ml-2 font-medium text-gray-800 dark:text-gray-200">{`${item.value} งาน`}</span>
               </li>
             ))}
@@ -27,7 +32,6 @@ const CustomBarChartTooltip = ({ active, payload, label, COLORS }: any) => {
         </div>
       )
     }
-  
     return null
 }
 
@@ -51,9 +55,9 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
     { month: 'มิ.ย.', install: 60, maintenance: 30, urgent: 15 },
   ]
   
-  // ปรับสีให้ดูสวยงามและเป็นมืออาชีพยิ่งขึ้น
+  // 💡 [ปรับปรุง] เปลี่ยน install เป็นโทนม่วงเข้ม (#7c3aed)
   const COLORS = { 
-    install: '#3b82f6', // Indigo/Blue
+    install: '#7c3aed', // Violet-600 (ม่วงเข้มขึ้น)
     maintenance: '#10b981', // Emerald/Green
     urgent: '#f97316' // Orange/Amber
   }
@@ -61,53 +65,63 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
 
   return (
     <div className="space-y-8">
-      {/* --- ส่วน KpiRow 1: ภาพรวมสถิติงาน (Statistics Overview) (ตัวเลขใหม่) --- */}
+      {/* --- ส่วน KpiRow 1: ภาพรวมสถิติงาน (Statistics Overview) --- */}
       <div className="space-y-6">
+        {/* 💡 [ปรับปรุง] ตัวอักษรหัวข้อ Light: gray-700 | Dark: gray-300 */}
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">ภาพรวมสถิติงาน Statistics Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          {/* 💡 Card 1: งานทั้งหมด (พร้อม activeRange) - ตัวเลขใหม่ */}
           <KpiCard 
             title={`งานทั้งหมด (${currentRangeText})`} 
-            numericValue={120} // ปรับตัวเลข
+            numericValue={120}
             icon={<Briefcase size={22} />} 
-            color="default" 
-            change="+5.0% จากช่วงก่อนหน้า" // ปรับข้อความ
+            color="default" // จะถูกตีความเป็น Violet/Purple Accent
+            change="+5.0% จากช่วงก่อนหน้า"
           />
           
-          {/* 💡 Card 2: กำลังดำเนินงาน (พร้อม activeRange) - ตัวเลขใหม่ */}
           <KpiCard 
             title={`กำลังดำเนินงาน (${currentRangeText})`} 
-            numericValue={35} // ปรับตัวเลข
+            numericValue={35}
             icon={<Clock size={22} />} 
-            color="blue" 
-            change="-2 งาน (เทียบกับช่วงก่อนหน้า)" // ปรับข้อความ
+            color="blue" // จะถูกตีความเป็น Cyan Accent
+            change="-2 งาน (เทียบกับช่วงก่อนหน้า)"
           />
           
-          {/* 💡 Card 3: งานเสร็จ (พร้อม activeRange) - ตัวเลขใหม่ */}
           <KpiCard 
             title={`งานเสร็จ (${currentRangeText})`} 
-            numericValue={45} // ปรับตัวเลข
+            numericValue={45}
             icon={<CheckCircle size={22} />} 
-            color="green" 
-            change="+10 งาน (เทียบกับช่วงก่อนหน้า)" // ปรับข้อความ
+            color="green" // จะถูกตีความเป็น Emerald Accent
+            change="+10 งาน (เทียบกับช่วงก่อนหน้า)"
           />
         </div>
 
-        {/* --- แนวโน้มงานที่เข้ามา (LineChart เดิม) --- */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
+        {/* --- แนวโน้มงานที่เข้ามา (LineChart) --- */}
+        {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-300 | Dark: #131422, border-[#2A2C40] */}
+        <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-300 dark:border-[#2A2C40]">
+          {/* 💡 [ปรับปรุง] ตัวอักษรหัวข้อ Light: gray-900 | Dark: white */}
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">แนวโน้มงานที่เข้ามา</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={jobTrendData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
-                <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} stroke="#6b7280" />
-                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} งาน`} stroke="#6b7280" />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} formatter={(value) => [`${value} งาน`, "จำนวนงาน"]} />
+                {/* 💡 ปรับปรุง: Grid Light: #e5e7eb, strokeOpacity 0.2 | Dark: #3d4158, strokeOpacity 0.15 */}
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} stroke="#e5e7eb" className="dark:stroke-[#3d4158] dark:stroke-opacity-[0.15]" vertical={false} />
+                
+                {/* 💡 [แก้ไข] ใช้ Light Mode Stroke และ className สำหรับ Dark Mode Tick/Label */}
+                <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} stroke="#6b7280" className="dark:stroke-[#9ca3af] dark:fill-[#9ca3af]" />
+                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} งาน`} stroke="#6b7280" className="dark:stroke-[#9ca3af] dark:fill-[#9ca3af]" />
+                
+                {/* 💡 [แก้ไข] ใช้ Light Mode Style ปกติสำหรับ Tooltip Style Prop */}
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', borderColor: '#e5e7eb', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333'
+                  }} 
+                  formatter={(value) => [`${value} งาน`, "จำนวนงาน"]} 
+                />
                 <Line 
                   type="monotone" 
                   dataKey="jobs" 
-                  stroke={COLORS.install} 
+                  stroke={COLORS.install} // 💡 ใช้สีม่วงเข้ม #7c3aed
                   strokeWidth={3}
                   dot={true} 
                   activeDot={{ r: 6, stroke: '#fff', fill: COLORS.install, strokeWidth: 2 }}
@@ -118,105 +132,93 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
         </div>
       </div>
 
-      {/* --- ส่วน KpiRow 2: ภาพรวมการดำเนินงาน (Operations) (ตัวเลขเดิม/ภาพรวม) --- */}
+      {/* --- ส่วน KpiRow 2: ภาพรวมการดำเนินงาน (Operations) --- */}
       <>
-        {/* 💡 ปรับปรุงหัวข้อ: ใช้ Border Bottom, Icon และสีเน้น */}
-        {/* ปรับ h2 ให้อยู่ใน div เพื่อให้สามารถใส่ Border Bottom ได้ง่ายขึ้น */}
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200 dark:border-slate-700">
-            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
-                {/* ใช้ไอคอน Clock และใช้สีเขียว/ฟ้าเพื่อให้ดูสอดคล้องกับสถานะ "กำลังดำเนินงาน" */}
-                <Clock size={20} className="inline mr-2 text-green-500 dark:text-green-400" /> 
-                ภาพรวมการดำเนินงาน (Operations)
-            </h2>
-        </div>
-        
+        {/* 💡 [ปรับปรุง] ตัวอักษรหัวข้อ Light: gray-700 | Dark: gray-300 */}
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">ภาพรวมการดำเนินงาน (Operations)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
           
-          {/* Card 1: งานทั้งหมด */}
           <KpiCard 
             title="งานทั้งหมด" 
-            numericValue={328} // ตัวเลขเดิม
+            numericValue={328} 
             icon={<Briefcase size={22} />} 
             color="default" 
             change="+2.5% จากเดือนที่แล้ว" 
           />
           
-          {/* Card 2: กำลังดำเนินงาน */}
           <KpiCard 
             title="กำลังดำเนินงาน" 
-            numericValue={85} // ตัวเลขเดิม
+            numericValue={85}
             icon={<Clock size={22} />} 
             color="blue" 
             change="+1.2% จากเดือนที่แล้ว" 
           />
           
-          {/* Card 3: งานเสร็จแล้ว */}
           <KpiCard 
             title="งานเสร็จแล้ว" 
-            numericValue={77} // ตัวเลขเดิม
+            numericValue={77}
             icon={<CheckCircle size={22} />} 
             color="green" 
             change="+3.0% จากเดือนที่แล้ว" 
           />
         </div>
 
-        {/* --- ส่วน "สถิติงาน" (Grouped Bar Chart) - ปรับปรุงหัวข้อแล้ว --- */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
+        {/* --- ส่วน "สถิติงาน" (Grouped Bar Chart) --- */}
+        {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-300 | Dark: #131422, border-[#2A2C40] */}
+        <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-300 dark:border-[#2A2C40]">
           
-          {/* 💡 หัวข้อ: ใช้ Border Bottom, Icon และสีเน้น */}
-          <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200 dark:border-slate-700">
+          {/* 💡 [ปรับปรุง] ใช้ border Light: gray-200 | Dark: #3d4158 */}
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200 dark:border-[#3d4158]">
+            {/* 💡 ปรับปรุง: ตัวอักษรหัวข้อ Light: gray-900 | Dark: white และ Icon Light: violet-500 | Dark: violet-400 */}
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                <Briefcase size={18} className="inline mr-2 text-blue-500 dark:text-blue-400" />
+                <Briefcase size={18} className="inline mr-2 text-violet-500 dark:text-violet-400" />
                 สถิติงาน (Job Type Statistics)
             </h3>
           </div>
           
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {/* ปรับ BarGap ให้ดูมีพื้นที่หายใจมากขึ้น */}
               <BarChart data={monthlyJobTypeData} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} barGap={8} barCategoryGap="20%"> 
                 
-                {/* ปรับเส้น Grid ให้จางลง และเอาเส้น Y ออก */}
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} vertical={false} /> 
+                {/* 💡 ปรับปรุง: Grid Light: gray-200, strokeOpacity 0.1 | Dark: #3d4158, strokeOpacity 0.15 */}
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} stroke="#e5e7eb" className="dark:stroke-[#3d4158] dark:stroke-opacity-[0.15]" vertical={false} /> 
                 
-                {/* เพิ่ม label ให้แกน X และปรับ tick/axis style */}
                 <XAxis 
                     dataKey="month" 
                     fontSize={12} 
                     tickLine={false} 
-                    axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }} // เส้นแกน X 
-                    stroke="#6b7280" 
-                    label={{ value: 'เดือน', position: 'bottom', offset: 0, fill: '#6b7280', fontSize: 12 }}
+                    // 💡 [แก้ไข] ใช้ Light Mode Stroke และ className
+                    axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }} 
+                    // 💡 [แก้ไข] ใช้ Light Mode Stroke และ className
+                    stroke="#6b7280" className="dark:stroke-[#9ca3af] dark:fill-[#9ca3af]"
+                    label={{ value: 'เดือน', position: 'bottom', offset: 0, fill: '#6b7280', className: 'dark:fill-[#9ca3af]', fontSize: 12 }}
                 />
                 
-                {/* ปรับ tick/axis style ของแกน Y */}
                 <YAxis 
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
                     tickFormatter={(value) => `${value} งาน`} 
-                    stroke="#6b7280" 
+                    stroke="#6b7280" className="dark:stroke-[#9ca3af] dark:fill-[#9ca3af]"
                 />
                 
-                {/* ใช้ Custom Tooltip Component ที่สร้างขึ้นใหม่ */}
-                <Tooltip 
-                    content={<CustomBarChartTooltip COLORS={COLORS} />}
-                />
+                {/* 💡 ใช้ Custom Tooltip ที่รับคลาส Tailwind CSS (จึงรองรับ Dark Mode) */}
+                <Tooltip content={<CustomBarChartTooltip COLORS={COLORS} />} />
                 
-                {/* ปรับ Legend ให้อยู่ด้านบนซ้าย และจัดรูปแบบให้ดูดีขึ้น */}
                 <Legend 
                     verticalAlign="top" 
                     align="right"
                     height={36} 
-                    iconType="square" // เปลี่ยน icon เป็นสี่เหลี่ยม
+                    iconType="square"
+                    // 💡 [แก้ไข] ลบ dark:color ที่ทำให้เกิด error และใช้ color (light mode default)
                     wrapperStyle={{ fontSize: '14px', color: '#6b7280', paddingBottom: '10px' }} 
+                    className="dark:text-[#9ca3af]" // 💡 [แก้ไข] ใช้ className เพื่อเปลี่ยนสีใน Dark Mode
                 />
                 
-                {/* ปรับสีและเพิ่ม Opacity */}
                 <Bar 
                     dataKey="install" 
                     name="ติดตั้ง" 
-                    fill={COLORS.install} 
+                    fill={COLORS.install} // 💡 ม่วงเข้ม #7c3aed
                     fillOpacity={BAR_OPACITY}
                     radius={[4, 4, 0, 0]} 
                 />
