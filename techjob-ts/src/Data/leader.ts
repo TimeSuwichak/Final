@@ -67,7 +67,8 @@ export const leader = [
     password: "lead1234",
     role: "leader",
     phone: "095-660-3421",
-    address: "12/5 ซ.เจริญสุข ถ.ลาดพร้าว ต.จรเข้บัว อ.ลาดพร้าว จ.กรุงเทพฯ 10230",
+    address:
+      "12/5 ซ.เจริญสุข ถ.ลาดพร้าว ต.จรเข้บัว อ.ลาดพร้าว จ.กรุงเทพฯ 10230",
     religion: "พุทธ",
     nationality: "ไทย",
     idCard: "1101700201106",
@@ -100,14 +101,15 @@ export const leader = [
   {
     id: 102,
     fname: "โชคชัย",
-    lname: "มณีโชติ",
+    lname: "ชัยโชติ",
     position: "หัวหน้างาน",
     department: "project_management",
     email: "chokchai@techjob.com",
     password: "lead1234",
     role: "leader",
     phone: "091-504-6632",
-    address: "55/7 หมู่บ้านสวนทอง ถ.เพชรเกษม ต.หนองค้างพลู อ.หนองแขม จ.กรุงเทพฯ 10160",
+    address:
+      "55/7 หมู่บ้านสวนทอง ถ.เพชรเกษม ต.หนองค้างพลู อ.หนองแขม จ.กรุงเทพฯ 10160",
     religion: "พุทธ",
     nationality: "ไทย",
     idCard: "1101700201102",
@@ -119,7 +121,7 @@ export const leader = [
   {
     id: 108,
     fname: "อนันต์",
-    lname: "สุขเกษม",
+    lname: "ยอดเยี่ยม",
     position: "หัวหน้างาน",
     department: "project_management",
     email: "anan@techjob.com",
@@ -145,7 +147,8 @@ export const leader = [
     password: "lead1234",
     role: "leader",
     phone: "085-112-9988",
-    address: "88/9 หมู่บ้านรุ่งทรัพย์ ถ.ประชาอุทิศ ต.ทุ่งครุ อ.ทุ่งครุ จ.กรุงเทพฯ 10140",
+    address:
+      "88/9 หมู่บ้านรุ่งทรัพย์ ถ.ประชาอุทิศ ต.ทุ่งครุ อ.ทุ่งครุ จ.กรุงเทพฯ 10140",
     religion: "พุทธ",
     nationality: "ไทย",
     idCard: "1101700201109",
@@ -204,7 +207,8 @@ export const leader = [
     password: "lead1234",
     role: "leader",
     phone: "098-766-4321",
-    address: "111/7 หมู่บ้านศิริสุข ถ.แจ้งวัฒนะ ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120",
+    address:
+      "111/7 หมู่บ้านศิริสุข ถ.แจ้งวัฒนะ ต.บางตลาด อ.ปากเกร็ด จ.นนทบุรี 11120",
     religion: "พุทธ",
     nationality: "ไทย",
     idCard: "1101700201113",
@@ -214,7 +218,7 @@ export const leader = [
     jobsThisMonth: 10,
   },
   {
-    id: 106,
+    id: 116,
     fname: "นพพร",
     lname: "ทรัพย์มั่นคง",
     position: "หัวหน้างาน",
@@ -233,7 +237,7 @@ export const leader = [
     jobsThisMonth: 4,
   },
   {
-    id: 107,
+    id: 117,
     fname: "ปัญญา",
     lname: "จิตต์สว่าง",
     position: "หัวหน้างาน",
@@ -242,7 +246,8 @@ export const leader = [
     password: "lead1234",
     role: "leader",
     phone: "084-933-2456",
-    address: "22/18 ซ.สุขสวัสดิ์ 50 ถ.สุขสวัสดิ์ ต.บางประกอก อ.ราษฎร์บูรณะ จ.กรุงเทพฯ 10140",
+    address:
+      "22/18 ซ.สุขสวัสดิ์ 50 ถ.สุขสวัสดิ์ ต.บางประกอก อ.ราษฎร์บูรณะ จ.กรุงเทพฯ 10140",
     religion: "พุทธ",
     nationality: "ไทย",
     idCard: "1101700201114",
