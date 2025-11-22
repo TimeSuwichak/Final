@@ -129,12 +129,14 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
       const messagePreview = payload.type === "text" ? payload.text : "[รูปภาพ]";
       const senderName = senderUser ? `${senderUser.fname} ${senderUser.lname}` : "ผู้ใช้";
 
+      // debug logs removed
+
       addNotification({
         title: `ข้อความใหม่จาก ${senderName}`,
         message: messagePreview.substring(0, 100),
         recipientRole,
         ...(target !== "admin" && { recipientId: target }),
-        metadata: { type: "new_chat_message", chatId },
+        metadata: { type: "new_chat_message", senderId: uid, targetId: target },
       });
     } catch (error) {
       console.error("ส่งข้อความล้มเหลว:", error);

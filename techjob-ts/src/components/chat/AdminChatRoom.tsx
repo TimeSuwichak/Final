@@ -88,12 +88,13 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       const userInfo = userData.find((u) => String(u.id) === userId);
       if (userInfo) {
         const messagePreview = payload.type === "text" ? payload.text : "[รูปภาพ]";
+        // debug logs removed
         addNotification({
           title: "ข้อความใหม่จากแอดมิน",
           message: messagePreview.substring(0, 100),
           recipientRole: "user",
           recipientId: userId,
-          metadata: { type: "new_chat_message", chatId: userId },
+          metadata: { type: "new_chat_message", senderId: "admin", targetId: userId },
         });
       }
     } catch (error) {

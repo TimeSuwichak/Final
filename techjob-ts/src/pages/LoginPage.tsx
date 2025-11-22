@@ -29,21 +29,21 @@ export default function LoginPage() {
     useEffect(() => {
         // ถ้า "สมอง" ตรวจสอบเสร็จแล้ว และ "มี" user login อยู่
         if (!loading && user) { 
-            console.log("Redirecting user:", user.fname, "Role:", user.role);
+            // redirecting user after login
 
             // เช็ค role แล้วส่งไปหน้า Dashboard ที่ถูกต้อง
             switch (user.role) {
                 case 'admin':
-                    navigate('/admin/AdminDashboard');
+                    navigate('/admin/admindashboard');
                     break;
                 case 'leader':
-                    navigate('/leader/LeaderDashboard');
+                    navigate('/leader/leaderdashboard');
                     break;
                 case 'user':
-                    navigate('/user/UserDashboard');
+                    navigate('/user/userdashboard');
                     break;
                 case 'executive':
-                    navigate('/executive/ExDashboard'); // (สมมติ path นี้)
+                    navigate('/executive/exdashboard');
                     break;
                 default:
                     navigate('/'); 

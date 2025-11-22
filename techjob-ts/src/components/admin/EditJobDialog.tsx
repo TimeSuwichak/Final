@@ -164,7 +164,6 @@ export function EditJobDialog({
 
   // --- HANDLERS ---
   const handleSave = () => {
-    console.log("--- 'บันทึกการแก้ไข' button clicked! ---");
     if (!job) return;
 
     const changes: Partial<Job> = {};

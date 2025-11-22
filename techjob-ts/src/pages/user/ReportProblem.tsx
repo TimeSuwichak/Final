@@ -89,18 +89,18 @@ const LeaderReport: React.FC = () => {
       submittedAt: new Date().toISOString(),
     }
 
-    console.log("[v0] Submitting report:", reportData)
+    // debug log removed
 
     const success = saveReportToStorage(reportData)
 
     setTimeout(() => {
       setIsSubmitting(false)
-      if (success) {
+        if (success) {
         alert("ส่งรายงานปัญหาเรียบร้อยแล้ว")
         setProblemType("")
         setDescription("")
         setAttachmentUrl("")
-        navigate("/leader/LeaderDashboard")
+        navigate("/leader/leaderdashboard")
       } else {
         alert("เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง")
       }

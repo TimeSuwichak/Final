@@ -57,7 +57,7 @@ export default function UserDetailPage() {
   const loadPersonData = useCallback(() => {
     if (!id) return;
 
-    console.log("🔍 Loading user:", id);
+    // loading user id: no debug log
 
     // 1) โหลดจาก localStorage ก่อน
     // ค้นหาทั้ง id และ originalId เพราะ Datauser.tsx ส่ง originalId มา
@@ -67,7 +67,6 @@ export default function UserDetailPage() {
     );
 
     if (fromLocal) {
-      console.log("✅ Found user in localStorage:", fromLocal);
       setPerson(normalizePerson(fromLocal));
       return;
     }
@@ -79,13 +78,12 @@ export default function UserDetailPage() {
     );
 
     if (fromInitial) {
-      console.log("📦 Found user in initial data:", fromInitial);
       setPerson(normalizePerson(fromInitial));
       return;
     }
 
     // 3) ไม่พบข้อมูล
-    console.log("❌ User not found");
+    // user not found
     setPerson("NOT_FOUND");
   }, [id]);
 
@@ -93,7 +91,7 @@ export default function UserDetailPage() {
     loadPersonData();
 
     const onStorageUpdate = () => {
-      console.log("🔄 Storage updated, reload...");
+      // storage updated, reload
       loadPersonData();
     };
 

@@ -18,6 +18,7 @@ import techJobLogo from "@/assets/techjob-logo.png";
 import { JobProvider } from "@/contexts/JobContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import ChatNotificationPopup from "@/components/notifications/ChatNotificationPopup";
 
 // ⭐ ADD CHAT BADGE SYSTEM
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
@@ -39,7 +40,7 @@ export default function Sidebar() {
 
   const menuConfig = {
     user: [
-      { path: "/user/UserDashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
+      { path: "/user/userdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
 
@@ -68,13 +69,8 @@ export default function Sidebar() {
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
-<<<<<<< HEAD
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
-=======
-      { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" }, 
-      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
->>>>>>> 5d10eb873482fcffcd32d5c2535c6c17b3b30920
     ],
 
     executive: [
@@ -160,6 +156,9 @@ export default function Sidebar() {
             <div className="absolute right-6 top-6 z-30">
               <NotificationBell />
             </div>
+
+            {/* Chat notification popup (in-app toast) */}
+            <ChatNotificationPopup />
 
             <main className="h-full overflow-auto p-6 pt-20">
               <Outlet />

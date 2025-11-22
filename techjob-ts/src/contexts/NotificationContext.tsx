@@ -125,10 +125,38 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+      // Dispatch custom event so same-tab listeners know about the change
+      window.dispatchEvent(new CustomEvent("notificationsChanged", { detail: notifications }));
     } catch (error) {
       console.error("Failed to persist notifications", error);
     }
   }, [notifications]);
+
+  // Listen for storage changes (when notifications update from other tabs or localStorage changes)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue) as NotificationItem[];
+          setNotifications(updated.map(reviveNotification));
+        } catch (error) {
+          console.error("Failed to parse storage change", error);
+        }
+      }
+    };
+
+    // Listen for custom event (same tab)
+    const handleCustomEvent = (_e: any) => {
+      // notifications changed in same tab - no debug log
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("notificationsChanged", handleCustomEvent);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("notificationsChanged", handleCustomEvent);
+    };
+  }, []);
 
   const addNotification: NotificationContextType["addNotification"] = (
     notificationInput

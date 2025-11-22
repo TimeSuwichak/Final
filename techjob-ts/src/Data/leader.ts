@@ -214,7 +214,7 @@ export const leader = [
     jobsThisMonth: 10,
   },
   {
-    id: 102,
+    id: 106,
     fname: "นพพร",
     lname: "ทรัพย์มั่นคง",
     position: "หัวหน้างาน",
@@ -233,7 +233,7 @@ export const leader = [
     jobsThisMonth: 4,
   },
   {
-    id: 103,
+    id: 107,
     fname: "ปัญญา",
     lname: "จิตต์สว่าง",
     position: "หัวหน้างาน",
