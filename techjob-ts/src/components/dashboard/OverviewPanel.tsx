@@ -1,15 +1,36 @@
 import React from 'react'
 import KpiCard from './KpiCard'
 import { CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react'
-// (Import เหมือนเดิม)
 import { 
   ResponsiveContainer, 
   LineChart, Line, 
   XAxis, YAxis, 
   CartesianGrid, Tooltip, Legend, 
-  BarChart, Bar, // ใช้ BarChart และ Bar
+  BarChart, Bar, 
   AreaChart, Area
 } from 'recharts'
+
+// Custom Tooltip Component (เพิ่มเข้ามาเพื่อให้ Tooltip ดูเป็นมืออาชีพขึ้น)
+const CustomBarChartTooltip = ({ active, payload, label, COLORS }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl text-sm">
+          <p className="font-bold text-gray-900 dark:text-white mb-1">{`เดือน: ${label}`}</p>
+          <ul className="list-none p-0 m-0 space-y-1">
+            {payload.map((item: any, index: number) => (
+              <li key={`item-${index}`} className="flex justify-between items-center">
+                <span style={{ color: item.fill, fontWeight: 'bold' }}>{item.name}:</span>
+                <span className="ml-2 font-medium text-gray-800 dark:text-gray-200">{`${item.value} งาน`}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  
+    return null
+}
+
 
 export default function OverviewPanel({ activeRange }: { activeRange: string }) {
   const rangeTextMap: Record<string, string> = { Daily: 'วันนี้', Monthly: 'เดือนนี้', Yearly: 'ปีนี้' }
@@ -29,21 +50,51 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
     { month: 'พ.ค.', install: 55, maintenance: 25, urgent: 10 },
     { month: 'มิ.ย.', install: 60, maintenance: 30, urgent: 15 },
   ]
-  const COLORS = { install: '#4f46e5', maintenance: '#10b981', urgent: '#f59e0b' }
+  
+  // ปรับสีให้ดูสวยงามและเป็นมืออาชีพยิ่งขึ้น
+  const COLORS = { 
+    install: '#3b82f6', // Indigo/Blue
+    maintenance: '#10b981', // Emerald/Green
+    urgent: '#f97316' // Orange/Amber
+  }
+  const BAR_OPACITY = 0.9;
 
   return (
     <div className="space-y-8">
-      {/* --- ส่วน KpiRow 1 (ไม่เปลี่ยน) --- */}
+      {/* --- ส่วน KpiRow 1: ภาพรวมสถิติงาน (Statistics Overview) (ตัวเลขใหม่) --- */}
       <div className="space-y-6">
-        {/* [UPGRADE] 2. ขยาย Font หัวข้อหลัก */}
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">ภาพรวมสถิติงาน Statistics Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <KpiCard title={`งานเสร็จ (${currentRangeText})`} numericValue={82} suffix=" งาน" icon={<CheckCircle size={22} />} color="green" change="+3 งาน (เทียบกับช่วงก่อนหน้า)" />
-          <KpiCard title="เวลางานเฉลี่ย" numericValue={3.2} suffix=" ชม." icon={<Clock size={22} />} color="blue" change="-0.2 ชม. (เทียบกับช่วงก่อนหน้า)" />
-          <KpiCard title="งานเกินดำหนด" numericValue={5} suffix=" งาน" icon={<AlertTriangle size={22} />} color="red" change="-0.5% จากเดือนที่แล้ว" />
+          
+          {/* 💡 Card 1: งานทั้งหมด (พร้อม activeRange) - ตัวเลขใหม่ */}
+          <KpiCard 
+            title={`งานทั้งหมด (${currentRangeText})`} 
+            numericValue={120} // ปรับตัวเลข
+            icon={<Briefcase size={22} />} 
+            color="default" 
+            change="+5.0% จากช่วงก่อนหน้า" // ปรับข้อความ
+          />
+          
+          {/* 💡 Card 2: กำลังดำเนินงาน (พร้อม activeRange) - ตัวเลขใหม่ */}
+          <KpiCard 
+            title={`กำลังดำเนินงาน (${currentRangeText})`} 
+            numericValue={35} // ปรับตัวเลข
+            icon={<Clock size={22} />} 
+            color="blue" 
+            change="-2 งาน (เทียบกับช่วงก่อนหน้า)" // ปรับข้อความ
+          />
+          
+          {/* 💡 Card 3: งานเสร็จ (พร้อม activeRange) - ตัวเลขใหม่ */}
+          <KpiCard 
+            title={`งานเสร็จ (${currentRangeText})`} 
+            numericValue={45} // ปรับตัวเลข
+            icon={<CheckCircle size={22} />} 
+            color="green" 
+            change="+10 งาน (เทียบกับช่วงก่อนหน้า)" // ปรับข้อความ
+          />
         </div>
 
-        {/* --- [ปรับปรุง] แนวโน้มงานที่เข้ามา (LineChart เดิม) --- */}
+        {/* --- แนวโน้มงานที่เข้ามา (LineChart เดิม) --- */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">แนวโน้มงานที่เข้ามา</h3>
           <div className="h-64">
@@ -67,56 +118,122 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
         </div>
       </div>
 
-      {/* --- ส่วน KpiRow 2 (ไม่เปลี่ยน) --- */}
+      {/* --- ส่วน KpiRow 2: ภาพรวมการดำเนินงาน (Operations) (ตัวเลขเดิม/ภาพรวม) --- */}
       <>
-        {/* [UPGRADE] 2. ขยาย Font หัวข้อหลัก */}
-        <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">ภาพรวมการดำเนินงาน (Operations)</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KpiCard title="งานทั้งหมด" numericValue={328} icon={<Briefcase size={22} />} color="default" change="+2.5% จากเดือนที่แล้ว" />
-          <KpiCard title="งานกำลังดำเนิน" numericValue={85} icon={<Clock size={22} />} color="blue" change="+1.2% จากเดือนที่แล้ว" />
-          <KpiCard title="งานเสร็จแล้ว" numericValue={77} icon={<CheckCircle size={22} />} color="green" change="+3.0% จากเดือนที่แล้ว" />
+        {/* 💡 ปรับปรุงหัวข้อ: ใช้ Border Bottom, Icon และสีเน้น */}
+        {/* ปรับ h2 ให้อยู่ใน div เพื่อให้สามารถใส่ Border Bottom ได้ง่ายขึ้น */}
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200 dark:border-slate-700">
+            <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+                {/* ใช้ไอคอน Clock และใช้สีเขียว/ฟ้าเพื่อให้ดูสอดคล้องกับสถานะ "กำลังดำเนินงาน" */}
+                <Clock size={20} className="inline mr-2 text-green-500 dark:text-green-400" /> 
+                ภาพรวมการดำเนินงาน (Operations)
+            </h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
+          
+          {/* Card 1: งานทั้งหมด */}
+          <KpiCard 
+            title="งานทั้งหมด" 
+            numericValue={328} // ตัวเลขเดิม
+            icon={<Briefcase size={22} />} 
+            color="default" 
+            change="+2.5% จากเดือนที่แล้ว" 
+          />
+          
+          {/* Card 2: กำลังดำเนินงาน */}
+          <KpiCard 
+            title="กำลังดำเนินงาน" 
+            numericValue={85} // ตัวเลขเดิม
+            icon={<Clock size={22} />} 
+            color="blue" 
+            change="+1.2% จากเดือนที่แล้ว" 
+          />
+          
+          {/* Card 3: งานเสร็จแล้ว */}
+          <KpiCard 
+            title="งานเสร็จแล้ว" 
+            numericValue={77} // ตัวเลขเดิม
+            icon={<CheckCircle size={22} />} 
+            color="green" 
+            change="+3.0% จากเดือนที่แล้ว" 
+          />
         </div>
 
-        {/* --- ส่วน "สถิติงาน" (Grouped Bar Chart) --- */}
+        {/* --- ส่วน "สถิติงาน" (Grouped Bar Chart) - ปรับปรุงหัวข้อแล้ว --- */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">สถิติงาน (Job Type Statistics)</h3>
+          
+          {/* 💡 หัวข้อ: ใช้ Border Bottom, Icon และสีเน้น */}
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200 dark:border-slate-700">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <Briefcase size={18} className="inline mr-2 text-blue-500 dark:text-blue-400" />
+                สถิติงาน (Job Type Statistics)
+            </h3>
+          </div>
+          
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              {/* ใช้ BarChart */}
-              <BarChart data={monthlyJobTypeData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }} barGap={5}> {/* 💡 เพิ่ม barGap */}
+              {/* ปรับ BarGap ให้ดูมีพื้นที่หายใจมากขึ้น */}
+              <BarChart data={monthlyJobTypeData} margin={{ top: 20, right: 20, left: -10, bottom: 20 }} barGap={8} barCategoryGap="20%"> 
                 
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
-                <XAxis dataKey="month" fontSize={12} tickLine={false} axisLine={false} stroke="#6b7280" />
-                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value} งาน`} stroke="#6b7280" />
+                {/* ปรับเส้น Grid ให้จางลง และเอาเส้น Y ออก */}
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} vertical={false} /> 
                 
-                <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} 
-                    formatter={(value, name) => [`${value} งาน`, name]} 
+                {/* เพิ่ม label ให้แกน X และปรับ tick/axis style */}
+                <XAxis 
+                    dataKey="month" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={{ stroke: '#e5e7eb', strokeWidth: 1 }} // เส้นแกน X 
+                    stroke="#6b7280" 
+                    label={{ value: 'เดือน', position: 'bottom', offset: 0, fill: '#6b7280', fontSize: 12 }}
                 />
                 
-                <Legend verticalAlign="top" height={36} iconSize={10} wrapperStyle={{ fontSize: '12px', color: '#6b7280' }} />
+                {/* ปรับ tick/axis style ของแกน Y */}
+                <YAxis 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `${value} งาน`} 
+                    stroke="#6b7280" 
+                />
                 
-                {/* 💡 Bar 1: ติดตั้ง (ลบ stackId) */}
+                {/* ใช้ Custom Tooltip Component ที่สร้างขึ้นใหม่ */}
+                <Tooltip 
+                    content={<CustomBarChartTooltip COLORS={COLORS} />}
+                />
+                
+                {/* ปรับ Legend ให้อยู่ด้านบนซ้าย และจัดรูปแบบให้ดูดีขึ้น */}
+                <Legend 
+                    verticalAlign="top" 
+                    align="right"
+                    height={36} 
+                    iconType="square" // เปลี่ยน icon เป็นสี่เหลี่ยม
+                    wrapperStyle={{ fontSize: '14px', color: '#6b7280', paddingBottom: '10px' }} 
+                />
+                
+                {/* ปรับสีและเพิ่ม Opacity */}
                 <Bar 
                     dataKey="install" 
                     name="ติดตั้ง" 
                     fill={COLORS.install} 
-                    radius={[4, 4, 0, 0]} // ทำให้แท่งมีมุมมนด้านบน
+                    fillOpacity={BAR_OPACITY}
+                    radius={[4, 4, 0, 0]} 
                 />
                 
-                {/* 💡 Bar 2: ซ่อมบำรุง (ลบ stackId) */}
                 <Bar 
                     dataKey="maintenance" 
                     name="ซ่อมบำรุง" 
                     fill={COLORS.maintenance}
+                    fillOpacity={BAR_OPACITY}
                     radius={[4, 4, 0, 0]} 
                 />
                 
-                {/* 💡 Bar 3: ซ่อมด่วน (ลบ stackId) */}
                 <Bar 
                     dataKey="urgent" 
                     name="ซ่อมด่วน" 
                     fill={COLORS.urgent} 
+                    fillOpacity={BAR_OPACITY}
                     radius={[4, 4, 0, 0]} 
                 />
               </BarChart>

@@ -127,8 +127,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                 <TableHead className="min-w-[200px]">ชื่องาน</TableHead>
                 <TableHead className="min-w-[140px]">วันที่</TableHead>
                 <TableHead className="min-w-[100px]">สถานะ</TableHead>
-                <TableHead className="w-[56px] text-center">แก้ไข</TableHead>
-                <TableHead className="w-[56px] text-center">รายละเอียด</TableHead>
+                <TableHead className="w-[56px] text-center">จัดการงาน</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -141,16 +140,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                       {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
                     </TableCell>
                     <TableCell>{getStatusBadge(job.status)}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center">
-                        <Button
-                         variant="ghost" 
-                         size="icon" 
-                         onClick={() => onViewJob(job)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center">
                         <Button 

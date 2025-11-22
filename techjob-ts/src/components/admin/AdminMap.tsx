@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,14 @@ function LocationMarker({
   readOnly?: boolean
   locationName?: string // เพิ่ม prop สำหรับชื่อสถานที่
 }) {
+  const [displayName, setDisplayName] = useState<string>("")
+
+  useEffect(() => {
+    if (locationName) {
+      setDisplayName(locationName)
+    }
+  }, [locationName])
+
   // useMapEvents hook (direct import) สำหรับดักจับการคลิกบนแผนที่
   useMapEvents({
     async click(e: any) {
@@ -43,6 +52,7 @@ function LocationMarker({
       if (onAddressFound) {
         const address = await reverseGeocode(e.latlng.lat, e.latlng.lng)
         if (address) {
+          setDisplayName(address) // อัปเดต displayName ทันที
           onAddressFound(address)
         }
       }
@@ -55,13 +65,13 @@ function LocationMarker({
         <Marker position={position}>
           <Popup>
             <div className="text-sm">
-              <p className="font-semibold">{locationName || "ตำแหน่งที่เลือก"}</p>
-              {locationName && (
+              <p className="font-semibold">{displayName || locationName || "ตำแหน่งที่เลือก"}</p>
+              {(displayName || locationName) && (
                 <p className="text-xs text-muted-foreground mt-1">
                   พิกัด: {position[0].toFixed(6)}, {position[1].toFixed(6)}
                 </p>
               )}
-              {!locationName && (
+              {!displayName && !locationName && (
                 <p className="text-xs text-muted-foreground mt-1">
                   {position[0].toFixed(6)}, {position[1].toFixed(6)}
                 </p>
@@ -121,7 +131,7 @@ export function AdminMap({
       mapRef.current.setView(target, 13)
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('[AdminMap] failed to setView', e)
+      console.warn("[AdminMap] failed to setView", e)
     }
   }, [mapCenter, position])
 
@@ -154,11 +164,14 @@ export function AdminMap({
         if (onPositionChange) {
           onPositionChange(coords)
         }
+         if (onAddressChange) {
+          onAddressChange(address)
+        }
       } else {
         alert("ไม่พบที่อยู่ที่ค้นหา กรุณาลองใหม่อีกครั้ง")
       }
     } catch (error) {
-      console.error("[v0] Search error:", error)
+      console.error(error)
       alert("เกิดข้อผิดพลาดในการค้นหา")
     } finally {
       setIsSearching(false)

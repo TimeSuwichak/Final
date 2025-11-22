@@ -1,7 +1,5 @@
-// ⭐ Sidebar พร้อม Badge แชทแบบเต็มคลาส พร้อมใช้งาน ⭐
-
-import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
 import { MdEngineering } from "react-icons/md";
 import { VscGraph } from "react-icons/vsc";
@@ -17,29 +15,44 @@ import { useAuth } from "@/contexts/AuthContext";
 import techJobLogo from "@/assets/techjob-logo.png";
 import { JobProvider } from "@/contexts/JobContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { MaterialProvider } from "@/contexts/MaterialContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+<<<<<<< HEAD
 import ChatNotificationPopup from "@/components/notifications/ChatNotificationPopup";
 
 // ⭐ ADD CHAT BADGE SYSTEM
+=======
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { ChatBadge } from "@/components/chat/ChatBadge";
 
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const role = user?.role?.toLowerCase() || "user";
-
-  // ⭐ Get unread chat messages
   const unreadChat = useUnreadChatCount(user?.uid || "", role);
 
+  // Reset image error when user changes
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.avatarUrl]);
+
+  // 🎨 Modern styled classes with gradient highlight
   const baseLinkClass =
-    "bg-[#19182A] text-white py-2 px-4 rounded-lg hover:bg-[#222] flex items-center gap-2 transition-all duration-200";
-  const activeLinkClass = "border-l-4 border-purple-500";
-  const inactiveLinkClass = "border-l-4 border-transparent";
+    "relative group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] text-sm font-medium";
+
+  const activeLinkClass =
+    "bg-gradient-to-r from-purple-500/20 to-blue-500/20 dark:from-purple-500/30 dark:to-blue-500/30 text-purple-600 dark:text-purple-400 shadow-lg shadow-purple-500/20";
+
+  const inactiveLinkClass =
+    "text-gray-600 dark:text-sidebar-foreground/70 hover:bg-gray-100 dark:hover:bg-sidebar-accent/50 hover:text-gray-900 dark:hover:text-sidebar-foreground";
 
   const menuConfig = {
     user: [
+<<<<<<< HEAD
       { path: "/user/userdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/user/userworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/user/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
@@ -49,34 +62,44 @@ export default function Sidebar() {
 
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
       { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
+=======
+      { path: "/user/UserDashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
+      { path: "/user/userworks", icon: <MdEngineering className="w-5 h-5" />, label: "การเข้างานช่าง" },
+      { path: "/user/report-problem", icon: <TbAlertHexagon className="w-5 h-5" />, label: "แจ้งปัญหา" },
+      { path: "/chat", icon: <IoChatbubbleEllipsesOutline className="w-5 h-5" />, label: "แชทสนทนา", isChat: true },
+      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
+      { path: "/user/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
     ],
-
     admin: [
-      { path: "/admin/admindashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/admin/datauser", icon: <MdEngineering />, label: "จัดการบัญชี" },
-      { path: "/admin/workoders", icon: <CgFileDocument />, label: "ระบบใบงาน" },
-      { path: "/admin/material", icon: <BsBoxes />, label: "คลังอุปกรณ์/วัสดุ" },
-      { path: "/admin/report", icon: <TbAlertHexagon />, label: "การแจ้งปัญหา" },
-
-      // ⭐ Chat with Badge for Admin
-      { path: "/admin/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทผู้ใช้งาน", isChat: true },
-
-      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
-      { path: "/admin/setting", icon: <FaCog />, label: "การตั้งค่า" },
+      { path: "/admin/admindashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
+      { path: "/admin/datauser", icon: <MdEngineering className="w-5 h-5" />, label: "จัดการบัญชี" },
+      { path: "/admin/workoders", icon: <CgFileDocument className="w-5 h-5" />, label: "ระบบใบงาน" },
+      { path: "/admin/material", icon: <BsBoxes className="w-5 h-5" />, label: "คลังอุปกรณ์/วัสดุ" },
+      { path: "/admin/report", icon: <TbAlertHexagon className="w-5 h-5" />, label: "การแจ้งปัญหา" },
+      { path: "/admin/chat", icon: <IoChatbubbleEllipsesOutline className="w-5 h-5" />, label: "แชทผู้ใช้งาน", isChat: true },
+      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
+      { path: "/admin/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
     ],
-
     leader: [
+<<<<<<< HEAD
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
       { path: "/leader/leaderworks", icon: <MdEngineering />, label: "การเข้างานช่าง" },
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
       { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
+=======
+      { path: "/leader/leaderdashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
+      { path: "/leader/leaderworks", icon: <MdEngineering className="w-5 h-5" />, label: "การเข้างานช่าง" },
+      { path: "/leader/report-problem", icon: <TbAlertHexagon className="w-5 h-5" />, label: "แจ้งปัญหา" },
+      { path: "/leader/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
+      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
     ],
-
     executive: [
-      { path: "/executive/exdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
-      { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
-      { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
+      { path: "/executive/exdashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
+      { path: "/chat", icon: <IoChatbubbleEllipsesOutline className="w-5 h-5" />, label: "แชทสนทนา", isChat: true },
+      { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
     ],
   };
 
@@ -84,99 +107,154 @@ export default function Sidebar() {
 
   return (
     <NotificationProvider>
-      <JobProvider>
-        <div className="flex h-screen">
+      <MaterialProvider>
+        <JobProvider>
+          <div className="flex h-screen bg-background">
 
-          {/* Mobile toggle */}
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="absolute top-4 left-4 z-50 p-2 text-white bg-[#222] rounded-md md:hidden"
-          >
-            {isSidebarOpen ? <HiX size={24} /> : <HiMenu size={24} />}
-          </button>
+            {/* 📱 Mobile Menu Button */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white dark:bg-card shadow-lg border border-gray-200 dark:border-border text-gray-700 dark:text-foreground hover:bg-gray-50 dark:hover:bg-accent transition-all md:hidden"
+              aria-label="Toggle menu"
+            >
+              {isSidebarOpen ? <HiX size={22} /> : <HiMenu size={22} />}
+            </button>
 
-          {/* Sidebar */}
-          <div
-            className={`fixed inset-y-0 left-0 w-64 bg-[#111014] flex flex-col justify-between border-r border-[#222]
-            transform transition-transform duration-300 z-40
+            {/* 🎨 Sidebar - White in Light Mode */}
+            <aside
+              className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-sidebar flex flex-col border-r border-gray-200 dark:border-sidebar-border
+            transform transition-transform duration-300 ease-in-out z-40
             ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-            md:translate-x-0 md:static`}
-          >
-            {/* Logo */}
-            <div>
-              <div className="p-5 pl-8 text-white text-xl font-bold flex items-center gap-3">
-                <img src={techJobLogo} alt="TechJob Logo" className="h-10 w-auto object-contain" />
+            md:translate-x-0 md:static shadow-xl md:shadow-none`}
+            >
+              {/* ✨ Logo Section - Centered on Mobile */}
+              <div className="p-6 pb-4 border-b border-gray-200 dark:border-sidebar-border">
+                <div className="flex items-center justify-center md:justify-start">
+                  <img
+                    src={techJobLogo}
+                    alt="TechJob Logo"
+                    className="h-12 w-auto object-contain"
+                  />
+                </div>
               </div>
 
-              {/* Menu */}
-              <nav className="flex flex-col gap-2 px-4">
+              {/* 📋 Navigation Menu */}
+              <nav className="flex-1 overflow-y-auto p-4 space-y-1.5 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-muted">
                 {menuItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
+                    onClick={() => setIsSidebarOpen(false)}
                     className={({ isActive }) =>
                       `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`
                     }
                   >
-                    {item.icon}
-                    <span>{item.label}</span>
+                    {({ isActive }) => (
+                      <>
+                        {/* 🎯 Active Indicator Line - Gradient */}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-blue-500 rounded-r-full" />
+                        )}
 
-                    {/* ⭐ CHAT BADGE HERE */}
-                    {item.isChat && <ChatBadge count={unreadChat} />}
+                        {/* 🎨 Icon Container */}
+                        <div className="flex items-center justify-center w-9 h-9 rounded-lg group-hover:scale-110 transition-transform">
+                          {item.icon}
+                        </div>
+
+                        {/* 📝 Label */}
+                        <span className="flex-1">{item.label}</span>
+
+                        {/* 💬 Chat Badge */}
+                        {item.isChat && <ChatBadge count={unreadChat} />}
+
+                        {/* ✨ Hover Gradient Effect */}
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/0 to-blue-500/0 group-hover:from-purple-500/5 group-hover:to-blue-500/5 transition-all pointer-events-none" />
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </nav>
-            </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-[#222] space-y-4">
-              {user && (
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-600/50 flex items-center justify-center font-bold text-purple-200">
-                    {user.fname.charAt(0)}
+              {/* 👤 User Profile Footer */}
+              <div className="p-4 border-t border-gray-200 dark:border-sidebar-border space-y-3">
+                {user && (
+                  <div
+                    onClick={() => {
+                      // ไปหน้า MyProfile สำหรับดูข้อมูลส่วนตัว
+                      navigate(`/my-profile`);
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-sidebar-accent/30 border border-gray-200 dark:border-sidebar-border transition-all hover:shadow-md cursor-pointer hover:bg-gray-100 dark:hover:bg-sidebar-accent/50"
+                  >
+                    {/* Avatar with Image or Fallback */}
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg overflow-hidden relative">
+                      {user.avatarUrl && !imageError ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={`${user.fname} ${user.lname}`}
+                          className="w-full h-full object-cover"
+                          onError={() => setImageError(true)}
+                        />
+                      ) : (
+                        <span>{user.fname.charAt(0)}</span>
+                      )}
+                    </div>
+
+                    {/* User Info */}
+                    <div className="flex-1 overflow-hidden">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-sidebar-foreground truncate">
+                        {user.fname} {user.lname}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-muted-foreground truncate capitalize">
+                        {user.role}
+                      </p>
+                    </div>
+
+                    {/* Theme Toggle */}
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ModeToggle />
+                    </div>
                   </div>
+                )}
 
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-semibold text-white truncate">
-                      {user.fname} {user.lname}
-                    </p>
-                    <p className="text-xs text-gray-400 truncate">{user.role}</p>
-                  </div>
-
-                  <ModeToggle />
+                {/* Logout Button */}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <LogoutButton />
                 </div>
-              )}
+              </div>
+            </aside>
 
-              <LogoutButton />
+            {/* 📄 Main Content Area */}
+            <div className="relative flex-1 md:ml-0">
+              {/* 🔔 Notification Bell */}
+              <div className="absolute right-6 top-6 z-30">
+                <NotificationBell />
+              </div>
+
+              {/* 📃 Page Content */}
+              <main className="h-full overflow-auto p-6 pt-20 bg-background">
+                <Outlet />
+              </main>
             </div>
-          </div>
 
-          {/* Main content */}
-          <div className="relative flex-1 md:ml-0">
-            <div className="absolute right-6 top-6 z-30">
-              <NotificationBell />
-            </div>
-
+<<<<<<< HEAD
             {/* Chat notification popup (in-app toast) */}
             <ChatNotificationPopup />
 
             <main className="h-full overflow-auto p-6 pt-20">
               <Outlet />
             </main>
+=======
+            {/* 🌑 Mobile Overlay */}
+            {isSidebarOpen && (
+              <div
+                onClick={() => setIsSidebarOpen(false)}
+                className="fixed inset-0 bg-black/50 dark:bg-background/80 backdrop-blur-sm md:hidden z-30 animate-in fade-in duration-300"
+              />
+            )}
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
           </div>
-
-          {/* Overlay mobile */}
-          {isSidebarOpen && (
-            <div
-              onClick={() => setIsSidebarOpen(false)}
-              className="fixed inset-0 bg-black opacity-40 md:hidden z-30"
-            />
-          )}
-        </div>
-      </JobProvider>
+        </JobProvider>
+      </MaterialProvider>
     </NotificationProvider>
   );
 }
-
-
-

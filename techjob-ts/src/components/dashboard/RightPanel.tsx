@@ -2,7 +2,7 @@ import React from 'react'
 import { Badge } from "../ui/badge"; 
 import { 
   BarChart2, PlayCircle, Clock, CheckCircle, 
-  Wrench, Zap, Settings2,
+  Wrench, Zap, Settings2, Shield, Truck, RefreshCw, // 💡 เพิ่ม Icons ใหม่
   PieChart as PieChartIcon 
 } from 'lucide-react'
 import { 
@@ -11,11 +11,14 @@ import {
   LabelList 
 } from 'recharts'
 
-// (CustomYAxisTick และ iconMap สำหรับ Bar Chart - เหมือนเดิม)
+// 💡 [อัปเดต] ขยาย iconMap สำหรับ Bar Chart เพื่อรองรับ 6 งาน
 const iconMap: Record<string, React.ReactNode> = {
   'ติดตั้ง A/C': <Settings2 className="h-5 w-5 text-gray-400" />,
   'ซ่อมบำรุง': <Wrench className="h-5 w-5 text-gray-400" />,
   'ซ่อมด่วน': <Zap className="h-5 w-5 text-gray-400" />,
+  'ตรวจเช็คประจำปี': <Shield className="h-5 w-5 text-gray-400" />, // NEW
+  'ขนย้ายอุปกรณ์': <Truck className="h-5 w-5 text-gray-400" />, // NEW
+  'เปลี่ยนอะไหล่': <RefreshCw className="h-5 w-5 text-gray-400" />, // NEW
 }
 const CustomYAxisTick = (props: any) => {
   const { x, y, payload } = props;
@@ -32,7 +35,7 @@ const CustomYAxisTick = (props: any) => {
   );
 };
 
-// [NEW] Custom Label สำหรับ Bar Chart เพื่อปรับปรุงการแสดงผล
+// Custom Label สำหรับ Bar Chart เพื่อปรับปรุงการแสดงผล (ปรับให้แสดง "งาน" แทน "%")
 const CustomBarLabel = (props: any) => {
   const { x, y, width, height, value, index } = props;
   const color = PALETTE[index % PALETTE.length];
@@ -46,14 +49,15 @@ const CustomBarLabel = (props: any) => {
       textAnchor="start" 
       className="text-sm font-bold"
     >
-      {`${value}%`}
+      {/* 💡 เปลี่ยนเป็นแสดงหน่วยเป็น "งาน" */}
+      {`${value} งาน`} 
     </text>
   );
 };
 
 
-// (PALETTE และ statusConfig เหมือนเดิม)
-const PALETTE = ['#4f46e5', '#10b981', '#f59e0b'];
+// 💡 [อัปเดต] ขยาย PALETTE เพื่อรองรับ 6 สี
+const PALETTE = ['#4f46e5', '#10b981', '#f59e0b', '#06b6d4', '#ef4444', '#a855f7']; // เพิ่มสีฟ้า, แดง, ม่วง
 const statusConfig: any = {
   'เริ่มงาน': { icon: <PlayCircle size={18} className="text-blue-500" />, className: 'bg-blue-100 text-blue-800 border-blue-200' },
   'กำลังดำเนินการ': { icon: <Clock size={18} className="text-yellow-600" />, className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -61,43 +65,50 @@ const statusConfig: any = {
   'default': { icon: <Clock size={18} className="text-gray-500" />, className: 'bg-gray-100 text-gray-800 border-gray-200' }
 }
 
-// [UPGRADE] 2. สร้าง Icon Map สำหรับ Legend ของ Pie Chart
+// 💡 [อัปเดต] ขยาย Icon Map สำหรับ Legend ของ Pie Chart เพื่อรองรับ 6 งาน
 const legendIconMap: Record<string, React.ElementType> = {
   'ติดตั้ง A/C': Settings2,
   'ซ่อมบำรุง': Wrench,
   'ซ่อมด่วน': Zap,
+  'ตรวจเช็คประจำปี': Shield,
+  'ขนย้ายอุปกรณ์': Truck,
+  'เปลี่ยนอะไหล่': RefreshCw,
 };
 
 export default function RightPanel() {
-  // 💡 ลบ activityFeed ออก หรือเก็บไว้เฉยๆ เนื่องจากไม่ได้ถูกใช้งานแล้ว
-  // const activityFeed = [
-  //   { id: 1, techName: 'นายสมชาย (ทีม A)', job: '#1026 - ติดตั้ง A/C', status: 'กำลังดำเนินการ' },
-  //   { id: 2, techName: 'นายวิรัตน์ (ทีม B)', job: '#1025 - ซ่อมด่วน', status: 'งานเสร็จสิ้น' },
-  //   { id: 3, techName: 'นายประยุทธ์ (ทีม C)', job: '#1027 - ซ่อมบำรุง', status: 'เริ่มงาน' },
-  //   { id: 4, techName: 'นายมงคล (ทีม D)', job: '#1024 - Overdue', status: 'กำลังดำเนินการ' }
-  // ]
+  
+  // 💡 [อัปเดต] Mock Data สำหรับ 6 ประเภทงาน (Pie Chart)
+  const jobTypeData = [ 
+    { name: 'ติดตั้ง A/C', value: 25 }, 
+    { name: 'ซ่อมบำรุง', value: 20 }, 
+    { name: 'ซ่อมด่วน', value: 15 }, 
+    { name: 'ตรวจเช็คประจำปี', value: 15 }, 
+    { name: 'ขนย้ายอุปกรณ์', value: 12 }, 
+    { name: 'เปลี่ยนอะไหล่', value: 13 } 
+  ] // รวมกันได้ 100%
 
-  const jobTypeData = [ { name: 'ติดตั้ง A/C', value: 45 }, { name: 'ซ่อมบำรุง', value: 30 }, { name: 'ซ่อมด่วน', value: 25 } ]
-  const ffrData = [ { name: 'ติดตั้ง A/C', Rate: 85 }, { name: 'ซ่อมบำรุง', Rate: 95 }, { name: 'ซ่อมด่วน', Rate: 70 } ]
+  // 💡 [อัปเดต] Mock Data สำหรับ 6 ประเภทงาน (Bar Chart - Completed Works)
+  const completedWorksData = [ // เปลี่ยนชื่อ Data และค่า
+    { name: 'ติดตั้ง A/C', Completed: 45 }, // เปลี่ยน Rate เป็น Completed
+    { name: 'ซ่อมบำรุง', Completed: 30 },
+    { name: 'ซ่อมด่วน', Completed: 15 },
+    { name: 'ตรวจเช็คประจำปี', Completed: 20 }, 
+    { name: 'ขนย้ายอุปกรณ์', Completed: 10 }, 
+    { name: 'เปลี่ยนอะไหล่', Completed: 18 } 
+  ]
 
   return (
     <>
-      {/* --- Card 1: Live Feed ถูกลบออกตามคำขอ --- */}
-      {/* <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
-        ... (โค้ด Live Feed ที่ถูกลบออก) ...
-      </div> 
-      */}
-
       {/* --- Card 2: Pie Chart (สัดส่วนประเภทงาน) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <PieChartIcon size={20} className="text-indigo-500" />
-          สัดส่วนประเภทงาน (Job Type Mix)
+          สัดส่วนประเภทงาน (Job Type Distribution)
         </h3>
-        <div className="h-56">
+        {/* 💡 ปรับความสูงเล็กน้อยเพื่อให้มีพื้นที่สำหรับ Legend ด้านล่าง */}
+        <div className="h-56"> 
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              {/* [NEW] เพิ่ม Drop Shadow Definition ใน Recharts */}
               <defs>
                 <filter id="shadow" height="130%">
                   <feDropShadow 
@@ -111,7 +122,6 @@ export default function RightPanel() {
               </defs>
 
               <Tooltip 
-                // ปรับ Tooltip Style ให้ดูสะอาดและมีขอบมนมากขึ้น
                 contentStyle={{ 
                   backgroundColor: 'rgba(255,255,255,0.95)', 
                   border: '1px solid #e5e7eb', 
@@ -127,16 +137,14 @@ export default function RightPanel() {
                 innerRadius={70} 
                 outerRadius={90} 
                 fill="#8884d8" 
-                paddingAngle={5} 
+                paddingAngle={3} // 💡 ลด paddingAngle เล็กน้อยเพื่อให้วงดูเต็มขึ้น
                 dataKey="value"
-                // [UPGRADE] ใช้ filter เพื่อใส่ Drop Shadow
                 filter="url(#shadow)" 
               >
                 {jobTypeData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={PALETTE[index % PALETTE.length]} 
-                    // [UPGRADE] ทำให้เส้นขอบหายไป เพื่อความนุ่มนวล
                     stroke="none" 
                   />
                 ))}
@@ -144,8 +152,8 @@ export default function RightPanel() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        {/* Legend ปรับปรุงให้มี Icon และดูดีอยู่แล้ว */}
-        <ul className="mt-6 space-y-4">
+        {/* Legend ปรับปรุงให้แสดง 2 คอลัมน์บนหน้าจอขนาดใหญ่เพื่อประหยัดพื้นที่ */}
+        <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
           {jobTypeData.map((entry, index) => {
             const color = PALETTE[index % PALETTE.length];
             const Icon = legendIconMap[entry.name] || Wrench; 
@@ -167,25 +175,32 @@ export default function RightPanel() {
         </ul>
       </div>
 
-      {/* --- Card 3: Bar Chart (Most Performed Tasks) --- */}
+      {/* --- Card 3: Bar Chart (Completed Works) --- */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Wrench size={20} className="text-indigo-500" />
-          Most Performed Tasks (งานที่ทำบ่อย)
+          {/* 💡 เปลี่ยน Icon และหัวข้อให้สื่อถึงงานที่เสร็จแล้ว */}
+          <CheckCircle size={20} className="text-green-500" />
+          Completed Works (จำนวนงานที่ทำเสร็จ)
         </h3>
-        <div className="h-56">
+        {/* 💡 เพิ่ม pt-4 (padding-top) เพื่อดัน Bar Chart ลงมาให้พอดีกับกรอบ */}
+        <div className="h-80 pt-4"> 
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
-              data={ffrData} 
+              data={completedWorksData} // 💡 เปลี่ยน Data Source
               layout="vertical" 
+              // ปรับ margin top กลับเป็นค่าเดิมหรือลดลงเล็กน้อย เพราะเราใช้ pt-4 ดันแล้ว
               margin={{ top: 10, right: 30, left: 20, bottom: 0 }} 
             >
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} horizontal={false} />
               
+              {/* 💡 XAxis: ปรับ type เป็น number และแสดงผลบนกราฟ (ไม่ซ่อนแล้ว) */}
               <XAxis 
                 type="number" 
-                domain={[0, 100]} 
-                hide={true} 
+                tickLine={false}
+                axisLine={false}
+                tick={{ fill: '#6b7280', fontSize: '12px' }}
+                tickFormatter={(value) => `${value} งาน`} // 💡 เพิ่มหน่วย 'งาน'
+                label={{ value: 'จำนวนงานที่ทำเสร็จ', position: 'bottom', offset: 0, fill: '#4f46e5', fontWeight: 'bold', fontSize: 12 }} // 💡 เพิ่ม Label แกน X
               />
               
               <YAxis 
@@ -193,40 +208,31 @@ export default function RightPanel() {
                 type="category" 
                 tickLine={false} 
                 axisLine={false} 
-                width={130}
+                width={130} 
                 tick={<CustomYAxisTick />}
                 interval={0}
               />
               
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                type="number"
-                domain={[0, 100]}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#6b7280', fontSize: '12px' }}
-                interval={0}
-                label={{ value: 'Completion Rate (%)', angle: 0, position: 'top', dx: 30, dy: -5, fill: '#4f46e5', fontWeight: 'bold' }}
-              />
+              {/* ❌ ลบ YAxis ทางขวาออก เนื่องจากไม่ได้ใช้ Completion Rate แล้ว */}
 
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333' }} 
-                formatter={(value: any) => [`${value}%`, "Completion Rate"]} 
+                // 💡 ปรับ Tooltip ให้แสดง "จำนวนงาน"
+                formatter={(value: any) => [`${value} งาน`, "Completed Works"]} 
               />
               
               <Bar 
-                dataKey="Rate" 
-                name="Completion Rate" 
+                dataKey="Completed" // 💡 เปลี่ยน dataKey เป็น 'Completed'
+                name="Completed Works" 
                 radius={[0, 10, 10, 0]} 
-                barSize={20} 
+                barSize={15} 
               >
-                {ffrData.map((entry, index) => (
+                {completedWorksData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
                 ))}
                 
                 <LabelList 
-                  dataKey="Rate" 
+                  dataKey="Completed" // 💡 เปลี่ยน dataKey เป็น 'Completed'
                   content={<CustomBarLabel />}
                 />
               </Bar>

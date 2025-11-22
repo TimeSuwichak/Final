@@ -14,8 +14,7 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203101",
     startDate: "2010-01-10",
-    status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=visai"
+    avatarUrl: "https://randomuser.me/api/portraits/men/50.jpg"
   },
   {
     id: 202,
@@ -32,8 +31,7 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203202",
     startDate: "2011-04-11",
-    status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kalayut"
+    avatarUrl: "https://randomuser.me/api/portraits/men/51.jpg"
   },
   {
     id: 203,
@@ -50,8 +48,7 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203303",
     startDate: "2012-08-21",
-    status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=patibat"
+    avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg"
   },
   {
     id: 204,
@@ -68,8 +65,7 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203404",
     startDate: "2013-02-14",
-    status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nawattakam"
+    avatarUrl: "https://randomuser.me/api/portraits/men/53.jpg"
   },
   {
     id: 205,
@@ -86,7 +82,6 @@ export const executive = [
     nationality: "ไทย",
     idCard: "1101700203505",
     startDate: "2014-11-04",
-    status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kanngern"
+    avatarUrl: "https://randomuser.me/api/portraits/men/54.jpg"
   }
 ];

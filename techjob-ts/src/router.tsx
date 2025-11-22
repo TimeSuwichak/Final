@@ -8,7 +8,6 @@ import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // ADMIN
-
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Datauser from "./pages/admin/Datauser";
 import Report from "./pages/admin/Report";
@@ -17,11 +16,15 @@ import MaterialPage from "./pages/admin/Material";
 import Settings from "./pages/admin/Settings";
 import UserDetail from "./pages/admin/UserDetail";
 import UserDetailPage from "./pages/admin/UserDetailPage";
+import CreateJobPage from "./pages/admin/CreateJobPage";
+import JobViewPage from "./components/admin/JobViewPage";
+import JobEditPage from "./components/admin/JobEditPage";
 
 // USER
 import UserDashboard from "./pages/user/UserDashboard";
 import ReportProblem from "./pages/user/ReportProblem";
 import UserWorks from "./pages/user/UserWorks";
+import UserWorkOrderDetail from "./pages/user/UserWorkOrderDetail";
 
 // LEADER
 import LeaderDashboard from "./pages/leader/LeaderDashboard";
@@ -34,13 +37,17 @@ import ExDashboard from "./pages/executive/ExDashboard";
 
 // COMMON
 import Profile from "./pages/commom/Profile";
+import MyProfile from "./pages/commom/MyProfile";
 import Notification from "./pages/commom/Notification";
 import Theme from "./pages/commom/Theme";
 import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
 
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
@@ -60,75 +67,161 @@ const router = createBrowserRouter([
       // ──────── ADMIN ────────
       {
         path: "admin/admindashboard",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminDashboard />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["admin"]}
+            element={<AdminDashboard />}
+          />
+        ),
       },
       {
         path: "admin/datauser",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<Datauser />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<Datauser />} />
+        ),
       },
       {
         path: "admin/user-detail/:id",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<UserDetailPage />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["admin"]}
+            element={<UserDetailPage />}
+          />
+        ),
       },
       {
         path: "admin/workoders",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<WorkOders />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<WorkOders />} />
+        ),
       },
       {
         path: "admin/material",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<MaterialPage />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<MaterialPage />} />
+        ),
       },
       {
         path: "admin/report",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<Report />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<Report />} />
+        ),
       },
       {
         path: "admin/setting",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />
+        ),
+      },
+      {
+        path: "admin/create-job",
+        element: (
+          <ProtectedRoute
+            allowedRoles={["admin"]}
+            element={<CreateJobPage />}
+          />
+        ),
+      },
+      {
+        path: "admin/job/:jobId",
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<JobViewPage />} />
+        ),
+      },
+      {
+        path: "admin/job/:jobId/edit",
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]} element={<JobEditPage />} />
+        ),
       },
 
       // ──────── USER ────────
       {
         path: "user/userdashboard",
-        element: <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["user"]} element={<UserDashboard />} />
+        ),
       },
       {
         path: "user/report-problem",
-        element: <ProtectedRoute allowedRoles={["user"]} element={<ReportProblem />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["user"]} element={<ReportProblem />} />
+        ),
       },
       {
         path: "user/userworks",
-        element: <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />,
+        element: (
+          <ProtectedRoute allowedRoles={["user"]} element={<UserWorks />} />
+        ),
+      },
+      {
+        path: "user/works/:jobId",
+        element: (
+          <ProtectedRoute
+            allowedRoles={["user"]}
+            element={<UserWorkOrderDetail />}
+          />
+        ),
       },
 
+<<<<<<< HEAD
       // LEADER
+=======
+      // ──────── LEADER ────────
+>>>>>>> 4f86b5c3bff3c64cf9a50a65f504d8d7ceba3990
       {
         path: "leader/leaderdashboard",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderDashboard />} />
+        element: (
+          <ProtectedRoute
+            allowedRoles={["leader"]}
+            element={<LeaderDashboard />}
+          />
+        ),
       },
       {
         path: "leader/leaderworks",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />
+        element: (
+          <ProtectedRoute allowedRoles={["leader"]} element={<LeaderWorks />} />
+        ),
       },
       {
         path: "leader/tracking",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<TechnicianTracking />} />
+        element: (
+          <ProtectedRoute
+            allowedRoles={["leader"]}
+            element={<TechnicianTracking />}
+          />
+        ),
       },
       {
         path: "leader/workorder/:jobId",
-        element: <ProtectedRoute allowedRoles={["leader"]} element={<WorkOrderDetail />} />
+        element: (
+          <ProtectedRoute
+            allowedRoles={["leader"]}
+            element={<WorkOrderDetail />}
+          />
+        ),
       },
 
       // ──────── EXECUTIVE ────────
       {
         path: "executive/exdashboard",
-        element: <ProtectedRoute allowedRoles={["executive"]} element={<ExDashboard />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["executive"]}
+            element={<ExDashboard />}
+          />
+        ),
       },
 
       // ──────── COMMON ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
       { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
-      { path: "notification", element: <ProtectedRoute element={<Notification />} /> },
+      { path: "my-profile", element: <ProtectedRoute element={<MyProfile />} /> },
+      {
+        path: "notification",
+        element: <ProtectedRoute element={<Notification />} />,
+      },
       { path: "security", element: <ProtectedRoute element={<Security />} /> },
       { path: "theme", element: <ProtectedRoute element={<Theme />} /> },
       { path: "system", element: <ProtectedRoute element={<System />} /> },
@@ -138,17 +231,32 @@ const router = createBrowserRouter([
       // USER CHAT
       {
         path: "chat",
-        element: <ProtectedRoute allowedRoles={["user", "leader", "executive"]} element={<ChatPage />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["user", "leader", "executive"]}
+            element={<ChatPage />}
+          />
+        ),
       },
 
       // ADMIN CHAT
       {
         path: "admin/chat",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminChatPage />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["admin"]}
+            element={<AdminChatPage />}
+          />
+        ),
       },
       {
         path: "admin/chat/:chatId",
-        element: <ProtectedRoute allowedRoles={["admin"]} element={<AdminChatRoomPage />} />,
+        element: (
+          <ProtectedRoute
+            allowedRoles={["admin"]}
+            element={<AdminChatRoomPage />}
+          />
+        ),
       },
     ],
   },

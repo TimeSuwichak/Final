@@ -48,7 +48,7 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
         
         {/* Bubble */}
         <div className={`p-3 max-w-[70%] ${bubbleClass}`}>
-          {msg.type === "text" && <div className="break-words">{msg.text}</div>}
+          {msg.type === "text" && <div>{msg.text}</div>}
           {msg.type === "image" && msg.url && (
             <img src={msg.url} alt="chat-img" className="rounded-lg max-w-[200px]" />
           )}

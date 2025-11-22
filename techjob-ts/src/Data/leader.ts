@@ -16,7 +16,7 @@ export const leader = [
     idCard: "1101700201101",
     startDate: "2018-01-15",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=boonmee",
+    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
     jobsThisMonth: 8,
   },
   {
@@ -35,7 +35,7 @@ export const leader = [
     idCard: "1101700201104",
     startDate: "2017-06-01",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=prasert",
+    avatarUrl: "https://randomuser.me/api/portraits/men/33.jpg",
     jobsThisMonth: 11,
   },
   {
@@ -54,7 +54,7 @@ export const leader = [
     idCard: "1101700201105",
     startDate: "2016-03-12",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=kittisak",
+    avatarUrl: "https://randomuser.me/api/portraits/men/34.jpg",
     jobsThisMonth: 5,
   },
   {
@@ -73,7 +73,7 @@ export const leader = [
     idCard: "1101700201106",
     startDate: "2015-09-20",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=somkiat",
+    avatarUrl: "https://randomuser.me/api/portraits/men/35.jpg",
     jobsThisMonth: 14,
   },
   {
@@ -92,7 +92,7 @@ export const leader = [
     idCard: "1101700201107",
     startDate: "2019-11-01",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wirat",
+    avatarUrl: "https://randomuser.me/api/portraits/men/36.jpg",
     jobsThisMonth: 7,
   },
 
@@ -113,7 +113,7 @@ export const leader = [
     idCard: "1101700201102",
     startDate: "2018-05-10",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chokchai",
+    avatarUrl: "https://randomuser.me/api/portraits/men/37.jpg",
     jobsThisMonth: 9,
   },
   {
@@ -132,7 +132,7 @@ export const leader = [
     idCard: "1101700201108",
     startDate: "2017-02-22",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=anan",
+    avatarUrl: "https://randomuser.me/api/portraits/men/38.jpg",
     jobsThisMonth: 12,
   },
   {
@@ -151,7 +151,7 @@ export const leader = [
     idCard: "1101700201109",
     startDate: "2016-12-12",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=chanchai",
+    avatarUrl: "https://randomuser.me/api/portraits/men/39.jpg",
     jobsThisMonth: 6,
   },
   {
@@ -170,7 +170,7 @@ export const leader = [
     idCard: "1101700201100",
     startDate: "2014-08-08",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=pornchai",
+    avatarUrl: "https://randomuser.me/api/portraits/men/40.jpg",
     jobsThisMonth: 15,
   },
   {
@@ -189,7 +189,7 @@ export const leader = [
     idCard: "1101700201111",
     startDate: "2013-07-07",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=surasak",
+    avatarUrl: "https://randomuser.me/api/portraits/men/42.jpg",
     jobsThisMonth: 3,
   },
 
@@ -210,7 +210,7 @@ export const leader = [
     idCard: "1101700201113",
     startDate: "2012-05-05",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=wattana",
+    avatarUrl: "https://randomuser.me/api/portraits/men/43.jpg",
     jobsThisMonth: 10,
   },
   {
@@ -229,7 +229,7 @@ export const leader = [
     idCard: "1101700201112",
     startDate: "2011-04-04",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=nopporn",
+    avatarUrl: "https://randomuser.me/api/portraits/men/44.jpg",
     jobsThisMonth: 4,
   },
   {
@@ -248,7 +248,7 @@ export const leader = [
     idCard: "1101700201114",
     startDate: "2010-02-02",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=panya",
+    avatarUrl: "https://randomuser.me/api/portraits/men/46.jpg",
     jobsThisMonth: 13,
   },
   {
@@ -267,7 +267,7 @@ export const leader = [
     idCard: "1101700201114",
     startDate: "2019-09-09",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=amorn",
+    avatarUrl: "https://randomuser.me/api/portraits/men/47.jpg",
     jobsThisMonth: 7,
   },
   {
@@ -286,7 +286,7 @@ export const leader = [
     idCard: "1101700201115",
     startDate: "2018-10-10",
     status: "available",
-    avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=paisan",
+    avatarUrl: "https://randomuser.me/api/portraits/men/48.jpg",
     jobsThisMonth: 9,
   },
 ];

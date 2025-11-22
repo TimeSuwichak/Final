@@ -1,11 +1,12 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { type Job, type Task } from '@/types/index';
 import { useJobs } from '@/contexts/JobContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useMaterials } from '@/contexts/MaterialContext';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -42,11 +43,6 @@ import {
   Plus
 } from 'lucide-react';
 import { MaterialSelectionDialog } from './MaterialSelectionDialog';
-import { electricalMaterials } from '@/data/materials/electrical';
-import { networkMaterials } from '@/data/materials/network';
-import { toolMaterials } from '@/data/materials/tools';
-import { multimediaMaterials } from '@/data/materials/multimedia';
-import { consumableMaterials } from '@/data/materials/consumables';
 
 interface UserTaskUpdateProps {
   job: Job;
@@ -80,20 +76,32 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Combine all materials for lookup
-  const allMaterials = [
-    ...electricalMaterials,
-    ...networkMaterials,
-    ...toolMaterials,
-    ...multimediaMaterials,
-    ...consumableMaterials,
-  ];
+  const { materials: inventoryMaterials } = useMaterials();
 
-  const getMaterialName = (materialId: string) => {
-    // Extract the actual material ID by removing the category prefix (e.g., "multimedia-IOT-001" -> "IOT-001")
-    const actualId = materialId.includes('-') ? materialId.split('-').slice(1).join('-') : materialId;
-    const material = allMaterials.find(m => m.id === actualId);
-    return material ? material.name : materialId;
+  const materialDictionary = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        name: string;
+        unit?: string;
+      }
+    >();
+    inventoryMaterials.forEach((material) => {
+      map.set(material.id, { name: material.name, unit: material.unit });
+    });
+    return map;
+  }, [inventoryMaterials]);
+
+  const normalizeMaterialId = (materialId: string) => {
+    const parts = String(materialId).split("-");
+    if (parts.length <= 2) return String(materialId);
+    return parts.slice(-2).join("-");
+  };
+
+  const resolveMaterialName = (materialId: string, fallbackName?: string) => {
+    if (fallbackName) return fallbackName;
+    const normalized = normalizeMaterialId(materialId);
+    return materialDictionary.get(normalized)?.name ?? materialId;
   };
 
   if (!user) return null;
@@ -284,7 +292,12 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
                                 </span>
                               </div>
                               <div className={`rounded-lg p-2 space-y-2 ${update.message.startsWith('งานถูกตีกลับโดยหัวหน้า:') ? 'bg-yellow-50 border border-yellow-200' : 'bg-muted/50'}`}>
-                                <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{update.message}</p>
+                                <p
+                                  className="text-xs leading-relaxed whitespace-pre-wrap"
+                                  style={{ overflowWrap: "anywhere" }}
+                                >
+                                  {update.message}
+                                </p>
                                 {update.imageUrl && (
                                   <div className="relative group">
                                     <img
@@ -313,17 +326,28 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
                           <h4 className="text-xs font-semibold">วัสดุที่เบิก ({task.materials.length})</h4>
                         </div>
                         <div className="space-y-1">
-                          {task.materials.map((material, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
-                              <div className="flex-1">
-                                <p className="text-xs font-medium">{getMaterialName(material.materialId)}</p>
-                                <p className="text-[10px] text-muted-foreground">รหัส: {material.materialId}</p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  จำนวน: {material.quantity} | เบิกเมื่อ: {format(material.withdrawnAt, 'dd/MM/yyyy HH:mm', { locale: th })} | โดย: {material.withdrawnBy}
-                                </p>
+                          {task.materials.map((material, idx) => {
+                            const displayName = resolveMaterialName(material.materialId, material.materialName);
+                            const unit = material.unit
+                              ? material.unit
+                              : materialDictionary.get(normalizeMaterialId(material.materialId))?.unit;
+                            return (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800"
+                              >
+                                <div className="flex-1">
+                                  <p className="text-xs font-medium">{displayName}</p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    รหัส: {material.materialId} • หน่วย: {unit || "-"}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    จำนวน: {material.quantity} | เบิกเมื่อ: {format(material.withdrawnAt, 'dd/MM/yyyy HH:mm', { locale: th })} | โดย: {material.withdrawnBy}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}

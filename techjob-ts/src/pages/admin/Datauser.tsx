@@ -808,14 +808,14 @@ export default function Datauser() {
               {pagedData.length > 0 ? (
                 pagedData.map((item) => (
                   <TableRow
-                     onClick={() =>
-                              navigate(`/admin/user-detail/${item.originalId}`)
-                            }
-                  key={item.id}>
+                    onClick={() =>
+                      navigate(`/admin/user-detail/${item.originalId}`)
+                    }
+                    key={item.id}>
                     <TableCell className="min-w-0 cursor-pointer">
                       <div
-                   
-                       className="flex items-center gap-3 min-w-0">
+
+                        className="flex items-center gap-3 min-w-0">
                         <img
                           src={item.urlImage}
                           className="w-8 h-8 rounded-full object-cover bg-muted"
@@ -829,23 +829,29 @@ export default function Datauser() {
                       {departmentMap[item.department] || item.department}
                     </TableCell>
                     <TableCell className="min-w-0 truncate">{item.role}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
-                            onClick={() =>
-                              navigate(`/admin/user-detail/${item.originalId}`)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/admin/user-detail/${item.originalId}`);
+                            }}
                           >
                             ดูรายละเอียด
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setEditingUser(item);
                               setIsDialogOpen(true);
                             }}
@@ -854,7 +860,10 @@ export default function Datauser() {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
-                            onClick={() => handleDeleteUser(item.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteUser(item.id);
+                            }}
                           >
                             ลบ
                           </DropdownMenuItem>

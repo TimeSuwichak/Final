@@ -54,6 +54,7 @@ const TechnicianTracking: React.FC = () => {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [showMapPopup, setShowMapPopup] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  
 
   if (!user) return null;
 
@@ -93,9 +94,9 @@ const TechnicianTracking: React.FC = () => {
       case 'done':
         return 'bg-green-500';
       case 'in-progress':
-        return 'bg-blue-500';
-      default:
         return 'bg-orange-500';
+      default:
+        return 'bg-blue-500';
     }
   };
 
@@ -119,7 +120,7 @@ const TechnicianTracking: React.FC = () => {
   };
 
   const createCustomIcon = (status: string) => {
-    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#3b82f6' : '#f97316';
+    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#f97316' : '#3b82f6';
     return L.divIcon({
       className: 'custom-marker',
       html: `
@@ -236,6 +237,7 @@ const TechnicianTracking: React.FC = () => {
             </ScrollArea>
           </CardContent>
         </Card>
+        
 
         <div className="lg:col-span-3 flex flex-col gap-4 relative">
           <Card className="h-200 overflow-hidden">
@@ -261,9 +263,9 @@ const TechnicianTracking: React.FC = () => {
                         radius={workAreaRadius}
                         pathOptions={{
                           color: job.status === 'done' ? '#22c55e' : 
-                                 job.status === 'in-progress' ? '#3b82f6' : '#f97316',
+                                 job.status === 'in-progress' ? '#f97316' : '#3b82f6',
                           fillColor: job.status === 'done' ? '#22c55e' : 
-                                     job.status === 'in-progress' ? '#3b82f6' : '#f97316',
+                                     job.status === 'in-progress' ? '#f97316' : '#3b82f6',
                           fillOpacity: 0.1,
                           weight: 2,
                           opacity: 0.5,
