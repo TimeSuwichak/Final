@@ -285,8 +285,6 @@ export default function MaterialDashboard() {
         ภาพรวมและจัดการสต็อกวัสดุที่มีอยู่
       </p>
 
-
-
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {summary.map((item, i) => (
@@ -310,14 +308,148 @@ export default function MaterialDashboard() {
         <div className="md:col-span-2">
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <Input
-                  placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
-                  className="max-w-sm bg-muted text-foreground border-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                />
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ค้นหา (ID, ชื่อ, หมวดหมู่...)"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 bg-muted border-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  />
+                </div>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
+                  <SelectTrigger className="w-full md:w-[180px] bg-muted border-none">
+                    <SelectValue placeholder="ทุกหมวดหมู่" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกหมวดหมู่</SelectItem>
+                    {categories.map((c, i) => (
+                      <SelectItem key={i} value={c.name}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={usageTypeFilter}
+                  onValueChange={setUsageTypeFilter}
+                >
+                  <SelectTrigger className="w-full md:w-[150px] bg-muted border-none">
+                    <SelectValue placeholder="ทุกประเภท" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทุกประเภท</SelectItem>
+                    <SelectItem value="consumable">ไม่ต้องคืน</SelectItem>
+                    <SelectItem value="returnable">คืนได้</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="text-center text-muted-foreground py-12 border rounded-lg bg-muted">
-                (ตารางแสดงรายการวัสดุจะอยู่ตรงนี้)
+
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="w-[80px]">ID</TableHead>
+                      <TableHead>ชื่อวัสดุ</TableHead>
+                      <TableHead>หมวดหมู่</TableHead>
+                      <TableHead>ประเภท</TableHead>
+                      <TableHead className="text-right">คงเหลือ</TableHead>
+                      <TableHead className="w-[80px]">หน่วย</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentMaterials.length > 0 ? (
+                      currentMaterials.map((material) => (
+                        <TableRow
+                          key={material.id}
+                          className="hover:bg-muted/50"
+                        >
+                          <TableCell className="font-medium text-xs text-muted-foreground">
+                            {material.id}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {material.name}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor: getCategoryColor(
+                                    material.category
+                                  ),
+                                }}
+                              />
+                              <span className="text-sm text-muted-foreground">
+                                {material.category}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                material.usageType === "returnable"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={
+                                material.usageType === "returnable"
+                                  ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+                              }
+                            >
+                              {material.usageType === "returnable"
+                                ? "คืนได้"
+                                : "ไม่ต้องคืน"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className={
+                                material.minStock !== undefined &&
+                                material.stock <= material.minStock
+                                  ? "text-red-600 font-bold"
+                                  : ""
+                              }
+                            >
+                              {material.stock}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {material.unit}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-blue-600"
+                              onClick={() => {
+                                setEditMat(material);
+                                setOpenEdit(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="h-24 text-center text-muted-foreground"
+                        >
+                          ไม่พบข้อมูลวัสดุ
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
               {totalPages > 1 && (
                 <div className="flex justify-center ">
@@ -372,7 +504,6 @@ export default function MaterialDashboard() {
 
         {/* Right Sidebar */}
         <div className="space-y-4">
-
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <CardContent className="">
               <h3 className="font-semibold text-foreground mb-2">
@@ -395,7 +526,9 @@ export default function MaterialDashboard() {
                       outerRadius={90}
                       paddingAngle={2}
                       dataKey="value"
-                      label={({ percent = 0 }) => `${(percent * 100).toFixed(1)}%`}
+                      label={({ percent = 0 }) =>
+                        `${(percent * 100).toFixed(1)}%`
+                      }
                       labelLine={false}
                     >
                       {categories.map((c, i) => (
@@ -426,28 +559,9 @@ export default function MaterialDashboard() {
               </ul>
             </CardContent>
           </Card>
-
-                {/* Shipping Status Button */}
-      <Button
-        variant="outline"
-        className="w-full max-w-sm justify-start h-auto p-4 rounded-2xl bg-card text-card-foreground shadow-sm transition-colors hover:shadow-md mb-6"
-        onClick={() => setOpenShipping(true)}
-      >
-        <Truck className="w-5 h-5 text-blue-500 mr-2" />
-        <div className="text-left">
-          <p className="font-semibold">สถานะการจัดส่ง</p>
-          <p className="text-sm text-muted-foreground">
-            {pendingOrders.length} คำสั่งซื้อรอดำเนินการ
-          </p>
-        </div>
-      </Button>
-
-
           <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
             <p>test</p>
           </Card>
-
-
         </div>
       </div>
 
@@ -626,14 +740,12 @@ export default function MaterialDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>คงเหลือ</Label>
+                  <Label>คงเหลือ (แก้ไขไม่ได้)</Label>
                   <Input
                     type="number"
                     value={editMat.stock}
-                    onChange={(e) =>
-                      setEditMat({ ...editMat, stock: Number(e.target.value) })
-                    }
-                    className="bg-muted border-none focus-visible:ring-blue-500"
+                    disabled
+                    className="bg-muted/50 border-none text-muted-foreground cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -642,6 +754,20 @@ export default function MaterialDashboard() {
                     value={editMat.unit}
                     onChange={(e) =>
                       setEditMat({ ...editMat, unit: e.target.value })
+                    }
+                    className="bg-muted border-none focus-visible:ring-blue-500"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>จำนวนขั้นต่ำ (แจ้งเตือนเมื่อต่ำกว่า)</Label>
+                  <Input
+                    type="number"
+                    value={editMat.minStock || 0}
+                    onChange={(e) =>
+                      setEditMat({
+                        ...editMat,
+                        minStock: Number(e.target.value),
+                      })
                     }
                     className="bg-muted border-none focus-visible:ring-blue-500"
                   />
@@ -749,63 +875,7 @@ export default function MaterialDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog สถานะการจัดส่ง */}
-      <Dialog open={openShipping} onOpenChange={setOpenShipping}>
-        <DialogContent className="max-w-2xl bg-card text-card-foreground">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Truck className="w-5 h-5 text-blue-500" />
-              สถานะการจัดส่ง
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {pendingOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                ไม่มีคำสั่งซื้อที่รอดำเนินการ
-              </p>
-            ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {pendingOrders.map((order) => {
-                  const material = materials.find(m => m.id === order.materialId);
-                  return (
-                    <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{material?.name || 'วัสดุไม่พบ'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.quantity} {material?.unit} • {order.estimatedDays} วัน
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          สั่งซื้อเมื่อ: {order.orderedAt.toLocaleDateString('th-TH')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          ถึงภายวันที่: {(() => {
-                            const deliveryDate = new Date(order.orderedAt);
-                            deliveryDate.setDate(deliveryDate.getDate() + order.estimatedDays);
-                            return deliveryDate.toLocaleDateString('th-TH');
-                          })()}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          order.status === "completed" ? "default" :
-                          order.status === "shipping" ? "secondary" :
-                          "outline"
-                        }
-                        className="text-xs"
-                      >
-                        {order.status === "processing_documents" ? "กำลังดำเนินเอกสาร" :
-                         order.status === "shipping" ? "กำลังจัดส่ง" :
-                         order.status === "sorting" ? "กำลังคัดแยก" :
-                         "เสร็จสิ้น"}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
