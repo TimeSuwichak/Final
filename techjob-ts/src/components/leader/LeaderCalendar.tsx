@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { isWithinInterval, format } from "date-fns";
+import { useJobs } from "@/contexts/JobContext";
 import { th } from "date-fns/locale"; // [ใหม่] Import locale ภาษาไทย
 
 // ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage (ฉบับอัปเดต)
@@ -31,16 +32,21 @@ export default function LeaderCalendar() {
   const { user: loggedInLeader } = useAuth();
   const [managedJobs, setManagedJobs] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { jobs } = useJobs();
 
   useEffect(() => {
-    if (loggedInLeader) {
-      const allJobs = loadDataFromStorage();
-      const leaderJobs = allJobs.filter(
-        (job: any) => job.assignment.leadId === loggedInLeader.id
-      );
-      setManagedJobs(leaderJobs);
-    }
-  }, [loggedInLeader]);
+    if (!loggedInLeader || !jobs) return setManagedJobs([]);
+    const leaderJobs = jobs.filter((job: any) => String(job.leadId || (job as any).assignment?.leadId) === String(loggedInLeader.id));
+    setManagedJobs(
+      leaderJobs.map((job: any) => ({
+        ...job,
+        dates: {
+          start: job.startDate ? new Date(job.startDate) : new Date(),
+          end: job.endDate ? new Date(job.endDate) : new Date(job.startDate || Date.now()),
+        },
+      }))
+    );
+  }, [loggedInLeader, jobs]);
 
   // หาว่าวันที่เลือกมีงานอะไรบ้าง
   const jobsOnSelectedDate = selectedDate ? managedJobs.filter(job => 

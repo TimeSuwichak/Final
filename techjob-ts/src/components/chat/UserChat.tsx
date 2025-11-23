@@ -159,7 +159,7 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
       </div>
 
       <div className="mt-3 border-t pt-3">
-        <ChatInput onSend={send} />
+        <ChatInput onSend={send} chatId={chatId} />
       </div>
     </div>
   );

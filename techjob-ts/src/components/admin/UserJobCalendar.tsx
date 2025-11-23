@@ -7,6 +7,7 @@ import { isWithinInterval, format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
 import type { Job } from "@/types/index";
+import { useJobs } from "@/contexts/JobContext";
 
 interface UserJobCalendarProps {
     userId: string | number;
@@ -66,17 +67,12 @@ const loadJobsFromStorage = (): Job[] => {
 
 export function UserJobCalendar({ userId }: UserJobCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const [jobs, setJobs] = useState<Job[]>([]);
-
-    useEffect(() => {
-        const allJobs = loadJobsFromStorage();
-        setJobs(allJobs);
-    }, []);
+    const { jobs } = useJobs();
 
     // กรองงานที่ user นี้ถูกมอบหมาย
     const userJobs = useMemo(() => {
+        if (!jobs) return [];
         return jobs.filter((job) => {
-            // ตรวจสอบทั้ง assignedTechs และ assignment.techIds (สำหรับระบบเก่า)
             const assignedTechs = job.assignedTechs || (job as any).assignment?.techIds || [];
             return assignedTechs.some(
                 (techId: string | number) => String(techId) === String(userId)

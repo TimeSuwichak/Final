@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useJobs } from "@/contexts/JobContext";
+import { leader as leadersData } from "@/Data/leader";
+import { user as usersData } from "@/Data/user";
 // [สำคัญ] Import Button และ CardFooter เข้ามา
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -11,42 +14,20 @@ import { th } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { JobDetailsDialog } from "@/components/common/JobDetailsDialog";
 
-// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage
-const loadDataFromStorage = () => {
-  try {
-    const data = localStorage.getItem("techJobData");
-    if (data) {
-      const parsed = JSON.parse(data);
-      parsed.jobs = parsed.jobs.map((job: any) => ({
-        ...job,
-        dates: {
-          start: new Date(job.dates.start),
-          end: new Date(job.dates.end),
-        },
-      }));
-      return parsed;
-    }
-  } catch (e) { console.error("Failed to load data", e); }
-  return { jobs: [], users: [], leaders: [] };
-};
-
 export default function MyManagedTasks() {
   const { user: loggedInLeader } = useAuth();
+  const { jobs } = useJobs();
   const [managedJobs, setManagedJobs] = useState<any[]>([]);
   const [viewingJob, setViewingJob] = useState<any | null>(null);
-  const [allData, setAllData] = useState<{ users: any[], leaders: any[] }>({ users: [], leaders: [] });
 
   useEffect(() => {
-    if (loggedInLeader) {
-      const { jobs, users, leaders } = loadDataFromStorage();
-      const leaderJobs = jobs.filter((job: any) => job.assignment.leadId === loggedInLeader.id);
-      setManagedJobs(leaderJobs);
-      setAllData({ users, leaders });
-    }
-  }, [loggedInLeader]);
+    if (!loggedInLeader || !jobs) return setManagedJobs([]);
+    const leaderJobs = jobs.filter((job: any) => String(job.leadId || job.assignment?.leadId) === String(loggedInLeader.id));
+    setManagedJobs(leaderJobs);
+  }, [loggedInLeader, jobs]);
   
-  const findLeaderById = (id: number) => allData.leaders.find(l => l.id === id);
-  const findUserById = (id: number) => allData.users.find(u => u.id === id);
+  const findLeaderById = (id: number) => leadersData.find(l => l.id === id);
+  const findUserById = (id: number) => usersData.find(u => u.id === id);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -75,7 +56,7 @@ export default function MyManagedTasks() {
               <CardContent>
                 <div className="text-sm text-muted-foreground">
                   <p><strong>ลูกค้า:</strong> {job.client?.name || 'N/A'}</p>
-                  <p><strong>ระยะเวลา:</strong> {format(job.dates.start, "PPP", { locale: th })} - {format(job.dates.end, "PPP", { locale: th })}</p>
+                  <p><strong>ระยะเวลา:</strong> {format(new Date(job.startDate || job.dates?.start || Date.now()), "PPP", { locale: th })} - {format(new Date(job.endDate || job.dates?.end || job.startDate || Date.now()), "PPP", { locale: th })}</p>
                 </div>
               </CardContent>
               {/* เพิ่ม CardFooter และ Button กลับมา */}
@@ -92,8 +73,8 @@ export default function MyManagedTasks() {
       {/* ส่วน Dialog แสดงรายละเอียด */}
       <JobDetailsDialog
           job={viewingJob}
-          lead={viewingJob ? findLeaderById(viewingJob.assignment.leadId) : null}
-          techs={viewingJob ? viewingJob.assignment.techIds.map(findUserById) : []}
+          lead={viewingJob ? findLeaderById(viewingJob.leadId || viewingJob.assignment?.leadId) : null}
+          techs={viewingJob ? (viewingJob.assignment?.techIds || viewingJob.techIds || []).map(findUserById) : []}
           isOpen={!!viewingJob}
           onClose={() => setViewingJob(null)}
       />

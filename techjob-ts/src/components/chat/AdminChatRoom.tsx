@@ -115,7 +115,7 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       </div>
 
       <div className="mt-3">
-        <ChatInput onSend={send} />
+        <ChatInput onSend={send} chatId={userId} />
       </div>
     </div>
   );

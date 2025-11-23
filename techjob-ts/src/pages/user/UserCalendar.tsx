@@ -2,45 +2,37 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useJobs } from "@/contexts/JobContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { isWithinInterval, format } from "date-fns";
 import { th } from "date-fns/locale"; // [ใหม่] Import locale ภาษาไทย
 
-// ฟังก์ชันสำหรับอ่านข้อมูลจาก LocalStorage (ฉบับอัปเดต)
-const loadDataFromStorage = () => {
-  try {
-    const data = localStorage.getItem("techJobData");
-    if (data) {
-      const parsed = JSON.parse(data);
-      // [สำคัญ] แปลงวันที่กลับเป็น Date object
-      parsed.jobs = parsed.jobs.map((job: any) => ({
-        ...job,
-        dates: {
-          start: new Date(job.dates.start),
-          end: new Date(job.dates.end),
-        },
-      }));
-      return parsed.jobs;
-    }
-  } catch (e) { console.error("Failed to load jobs", e); }
-  return [];
-};
+// ใช้ jobs จาก JobContext แทน localStorage เพื่อให้เป็น realtime
 
 export default function UserCalendarPage() {
   const { user } = useAuth();
   const [myJobs, setMyJobs] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { jobs } = useJobs();
 
   useEffect(() => {
     if (user) {
-      const allJobs = loadDataFromStorage();
-      const userJobs = allJobs.filter((job: any) =>
-        job.assignment.techIds.includes(user.id)
-      );
+      if (!jobs) return setMyJobs([]);
+      const userIdString = String(user.id);
+      const userJobs = jobs
+        .filter((job: any) => Array.isArray(job.assignedTechs) && job.assignedTechs.includes(userIdString))
+        .map((job: any) => ({
+          ...job,
+          dates: {
+            start: job.startDate ? new Date(job.startDate) : new Date(),
+            end: job.endDate ? new Date(job.endDate) : new Date(job.startDate || Date.now()),
+          },
+        }));
+
       setMyJobs(userJobs);
     }
-  }, [user]);
+  }, [user, jobs]);
 
   // หาว่าวันที่เลือกมีงานอะไรบ้าง
   const jobsOnSelectedDate = selectedDate ? myJobs.filter(job => 

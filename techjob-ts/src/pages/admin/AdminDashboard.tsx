@@ -95,16 +95,19 @@ export default function AdminDashboardPage() {
     return '#D0D0D0'; // สีเทาอ่อนมากสำหรับเส้นแกนใน Light Mode
   };
   
-  // --- 1. LOGIC การเตรียมข้อมูลสำหรับกราฟ (ใช้ค่าจำลอง) ---
+  // --- 1. LOGIC การเตรียมข้อมูลสำหรับกราฟ (จาก Firestore realtime) ---
   const jobStatusData = useMemo(() => {
-    const totalCount = 200;
-    const newCount = 15;
-    const inProgressCount = 80;
-    const completedCount = 105;
+    if (!jobs || jobs.length === 0) return { total: 0, new: 0, inProgress: 0, completed: 0 };
+    
+    const totalCount = jobs.length;
+    const newCount = jobs.filter(j => j.status === 'new').length;
+    const inProgressCount = jobs.filter(j => j.status === 'in-progress').length;
+    const completedCount = jobs.filter(j => j.status === 'completed').length;
     return { total: totalCount, new: newCount, inProgress: inProgressCount, completed: completedCount };
-  }, []);
+  }, [jobs]);
 
   const teamStatusData = useMemo(() => {
+    // สามารถดึงจาก context ผู้ใช้ได้ ตอนนี้ใช้ค่า hardcoded
     return [
         { name: 'พร้อมรับงาน', value: 12 }, 
         { name: 'กำลังทำงาน', value: 8 },  
@@ -113,20 +116,51 @@ export default function AdminDashboardPage() {
   }, []); 
 
   const popularJobTypesData = useMemo(() => {
+    if (!jobs || jobs.length === 0) {
+      return {
+        list: [
+          { name: 'ม.ค.', count: 0 }, 
+          { name: 'ก.พ.', count: 0 },
+          { name: 'มี.ค.', count: 0 },
+          { name: 'เม.ย.', count: 0 },
+          { name: 'พ.ค.', count: 0 },
+          { name: 'มิ.ย.', count: 0 },
+        ],
+        maxCount: 0
+      };
+    }
+
+    // นับจำนวนงานตามเดือนของ startDate
+    const monthCounts: { [key: number]: number } = {
+      0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0
+    };
+    
+    jobs.forEach(job => {
+      const startDate = new Date(job.startDate);
+      const currentDate = new Date();
+      const monthsDiff = (currentDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                         (currentDate.getMonth() - startDate.getMonth());
+      
+      if (monthsDiff >= 0 && monthsDiff < 6) {
+        const monthIndex = 5 - monthsDiff; // 0 = 6 months ago, 5 = this month
+        if (monthIndex >= 0) monthCounts[monthIndex]++;
+      }
+    });
+
     const data = [
-      { name: 'ม.ค.', count: 45 }, 
-      { name: 'ก.พ.', count: 32 },
-      { name: 'มี.ค.', count: 50 },
-      { name: 'เม.ย.', count: 28 },
-      { name: 'พ.ค.', count: 38 },
-      { name: 'มิ.ย.', count: 65 },
+      { name: 'ม.ค.', count: monthCounts[0] }, 
+      { name: 'ก.พ.', count: monthCounts[1] },
+      { name: 'มี.ค.', count: monthCounts[2] },
+      { name: 'เม.ย.', count: monthCounts[3] },
+      { name: 'พ.ค.', count: monthCounts[4] },
+      { name: 'มิ.ย.', count: monthCounts[5] },
     ];
     
     return {
         list: data,
         maxCount: data.reduce((max, item) => Math.max(max, item.count), 0)
     };
-  }, []);
+  }, [jobs]);
 
 
   const materialUsageData = useMemo(() => {

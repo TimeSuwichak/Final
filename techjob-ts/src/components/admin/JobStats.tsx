@@ -16,6 +16,7 @@ import {
 import { th } from "date-fns/locale";
 import { CheckCircle2, Calendar, TrendingUp } from "lucide-react";
 import type { Job } from "@/types/index";
+import { useJobs } from "@/contexts/JobContext";
 
 interface JobStatsProps {
     userId: string | number;
@@ -77,15 +78,11 @@ const loadJobsFromStorage = (): Job[] => {
 
 export function JobStats({ userId }: JobStatsProps) {
     const [timeRange, setTimeRange] = useState<TimeRange>("month");
-    const [jobs, setJobs] = useState<Job[]>([]);
-
-    useEffect(() => {
-        const allJobs = loadJobsFromStorage();
-        setJobs(allJobs);
-    }, []);
+    const { jobs } = useJobs();
 
     // ตรวจสอบว่ามีงานที่ user นี้ถูกมอบหมายหรือไม่
     const hasAnyAssignedJobs = useMemo(() => {
+        if (!jobs) return false;
         return jobs.some((job) => {
             const assignedTechs = job.assignedTechs || (job as any).assignment?.techIds || [];
             return assignedTechs.some(
@@ -96,8 +93,8 @@ export function JobStats({ userId }: JobStatsProps) {
 
     // กรองงานที่ user นี้ทำได้จริง (status = 'done' และมี completedAt)
     const completedJobs = useMemo(() => {
+        if (!jobs) return [];
         const userJobs = jobs.filter((job) => {
-            // ตรวจสอบทั้ง assignedTechs และ assignment.techIds (สำหรับระบบเก่า)
             const assignedTechs = job.assignedTechs || (job as any).assignment?.techIds || [];
             const isAssigned = assignedTechs.some(
                 (techId: string | number) => String(techId) === String(userId)

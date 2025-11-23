@@ -1,4 +1,6 @@
 import React from 'react';
+import { useJobs } from '@/contexts/JobContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- Components ย่อยสำหรับ Chart (Mock Charts - เน้นความกระชับและเล็กลง) ---
 
@@ -57,10 +59,24 @@ const CompactMiniBarChart: React.FC<{ color: string }> = ({ color = 'text-indigo
 // --- Main Component ---
 
 const SummaryCardsCompact: React.FC = () => {
+  const { jobs } = useJobs();
+  const { user } = useAuth();
+  
+  // Filter jobs assigned to leader
+  const leaderJobs = React.useMemo(() => {
+    if (!user || !jobs) return [];
+    return jobs.filter(j => String(j.leadId) === String(user.id));
+  }, [jobs, user]);
+  
+  const totalCount = leaderJobs.length;
+  const inProgressCount = leaderJobs.filter(j => j.status === 'in-progress').length;
+  const completedCount = leaderJobs.filter(j => j.status === 'completed').length;
+  const completedPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  
   const cards = [
     { 
       title: 'งานทั้งหมด', 
-      value: 15, 
+      value: totalCount, 
       label: 'TOTAL',
       unit: 'รายการ',
       bgClass: 'bg-emerald-50 dark:bg-slate-800/50',
@@ -69,13 +85,13 @@ const SummaryCardsCompact: React.FC = () => {
       shadowClass: 'shadow-md hover:shadow-lg',
       iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
       icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
-      chart: <CompactProgressRing value={80} /> ,
-      auxiliary: '80% เสร็จสิ้น', // ข้อมูลเสริม
+      chart: <CompactProgressRing value={completedPercent} /> ,
+      auxiliary: `${completedPercent}% เสร็จสิ้น`,
       auxColor: 'text-emerald-500 dark:text-emerald-400'
     },
     { 
       title: 'กำลังทำ', 
-      value: 2, 
+      value: inProgressCount, 
       label: 'IN PROGRESS',
       unit: 'รายการ',
       bgClass: 'bg-amber-50 dark:bg-slate-800/50',
@@ -85,13 +101,13 @@ const SummaryCardsCompact: React.FC = () => {
       iconBg: 'bg-amber-100 dark:bg-amber-900/30',
       icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>,
       chart: <CompactMiniLineChart color="text-amber-500 dark:text-amber-400" />,
-      auxiliary: 'เพิ่มขึ้น 12% สัปดาห์นี้',
+      auxiliary: `${inProgressCount} งานกำลังทำ`,
       auxColor: 'text-amber-500 dark:text-amber-400'
     },
     { 
       title: 'เสร็จสิ้น', 
-      value: 3, 
-      label: 'APPROVED',
+      value: completedCount, 
+      label: 'COMPLETED',
       unit: 'รายการ',
       bgClass: 'bg-indigo-50 dark:bg-slate-800/50',
       borderClass: 'border-indigo-300 dark:border-indigo-700',
@@ -100,7 +116,7 @@ const SummaryCardsCompact: React.FC = () => {
       iconBg: 'bg-indigo-100 dark:bg-indigo-900/30',
       icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>,
       chart: <CompactMiniBarChart color="text-indigo-500 dark:text-indigo-400" />,
-      auxiliary: 'อนุมัติเรียบร้อย 100%',
+      auxiliary: 'สมบูรณ์จากการทำงาน',
       auxColor: 'text-indigo-500 dark:text-indigo-400'
     },
   ];

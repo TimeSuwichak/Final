@@ -10,6 +10,19 @@ import React, {
   type ReactNode,
 } from "react";
 import type { NotificationItem } from "@/types/index";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  doc,
+  updateDoc,
+  query as firestoreQuery,
+  where,
+  orderBy,
+  getDocs,
+  serverTimestamp,
+} from "firebase/firestore";
 
 const STORAGE_KEY = "techJobNotifications_v1";
 
@@ -134,71 +147,144 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   // Listen for storage changes (when notifications update from other tabs or localStorage changes)
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const updated = JSON.parse(e.newValue) as NotificationItem[];
-          setNotifications(updated.map(reviveNotification));
-        } catch (error) {
-          console.error("Failed to parse storage change", error);
+    // Subscribe to Firestore 'notifications' collection (realtime)
+    try {
+      const q = firestoreQuery(
+        collection(db, "notifications"),
+        orderBy("createdAt", "desc")
+      );
+      const unsub = onSnapshot(
+        q,
+        (snap) => {
+          const toDate = (v: any) => (v && typeof v.toDate === "function" ? v.toDate() : v);
+          const items: NotificationItem[] = snap.docs.map((d) => {
+            const data: any = d.data();
+            return {
+              id: d.id,
+              title: data.title,
+              message: data.message,
+              recipientRole: data.recipientRole,
+              recipientId: data.recipientId,
+              relatedJobId: data.relatedJobId,
+              metadata: data.metadata,
+              read: !!data.read,
+              createdAt: toDate(data.createdAt),
+            } as NotificationItem;
+          });
+          setNotifications(items);
+        },
+        (err) => {
+          console.error("notifications onSnapshot error", err);
         }
-      }
-    };
+      );
 
-    // Listen for custom event (same tab)
-    const handleCustomEvent = (_e: any) => {
-      // notifications changed in same tab - no debug log
-    };
+      return () => unsub();
+    } catch (e) {
+      // Fallback: if Firestore not available, keep storage-based sync
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          try {
+            const updated = JSON.parse(e.newValue) as NotificationItem[];
+            setNotifications(updated.map(reviveNotification));
+          } catch (error) {
+            console.error("Failed to parse storage change", error);
+          }
+        }
+      };
 
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("notificationsChanged", handleCustomEvent);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("notificationsChanged", handleCustomEvent);
-    };
+      const handleCustomEvent = (_e: any) => {};
+
+      window.addEventListener("storage", handleStorageChange);
+      window.addEventListener("notificationsChanged", handleCustomEvent);
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener("notificationsChanged", handleCustomEvent);
+      };
+    }
   }, []);
 
   const addNotification: NotificationContextType["addNotification"] = (
     notificationInput
   ) => {
-    setNotifications((prev) => [
-      {
-        id: generateId(),
-        createdAt: new Date(),
-        read: false,
-        ...notificationInput,
-      },
-      ...prev,
-    ]);
+    // Write to Firestore; fallback to local update on error
+    (async () => {
+      try {
+        await addDoc(collection(db, "notifications"), {
+          ...notificationInput,
+          read: false,
+          createdAt: serverTimestamp(),
+        } as any);
+      } catch (e) {
+        console.error("Failed to add notification to Firestore", e);
+        setNotifications((prev) => [
+          {
+            id: generateId(),
+            createdAt: new Date(),
+            read: false,
+            ...notificationInput,
+          },
+          ...prev,
+        ]);
+      }
+    })();
   };
 
   const markAsRead: NotificationContextType["markAsRead"] = (notificationId) => {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
+    (async () => {
+      try {
+        await updateDoc(doc(db, "notifications", notificationId), { read: true } as any);
+      } catch (e) {
+        console.error("Failed to mark notification as read in Firestore", e);
+        setNotifications((prev) =>
+          prev.map((notification) =>
+            notification.id === notificationId
+              ? { ...notification, read: true }
+              : notification
+          )
+        );
+      }
+    })();
   };
 
   const markAllAsReadForUser: NotificationContextType["markAllAsReadForUser"] = (
     role,
     recipientId
   ) => {
-    setNotifications((prev) =>
-      prev.map((notification) => {
-        const matchRole = notification.recipientRole === role;
-        const matchRecipient =
-          !notification.recipientId ||
-          !recipientId ||
-          String(notification.recipientId) === String(recipientId);
-        if (matchRole && matchRecipient) {
-          return { ...notification, read: true };
-        }
-        return notification;
-      })
-    );
+    (async () => {
+      try {
+        const q = recipientId
+          ? firestoreQuery(
+              collection(db, "notifications"),
+              where("recipientRole", "==", role),
+              where("recipientId", "==", String(recipientId)),
+              where("read", "==", false)
+            )
+          : firestoreQuery(
+              collection(db, "notifications"),
+              where("recipientRole", "==", role),
+              where("read", "==", false)
+            );
+
+        const snap = await getDocs(q as any);
+        const updates = snap.docs.map((d) => updateDoc(doc(db, "notifications", d.id), { read: true } as any));
+        await Promise.all(updates);
+      } catch (e) {
+        console.error("Failed to mark all as read in Firestore", e);
+        setNotifications((prev) =>
+          prev.map((notification) => {
+            const matchRole = notification.recipientRole === role;
+            const matchRecipient =
+              !notification.recipientId ||
+              !recipientId ||
+              String(notification.recipientId) === String(recipientId);
+            if (matchRole && matchRecipient) {
+              return { ...notification, read: true };
+            }
+            return notification;
+          })
+        );
+      }
+    })();
   };
   // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ user คนนี้ ==================
   // ตัวอย่าง: getNotificationsForUser("leader", "101")

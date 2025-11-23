@@ -5,15 +5,41 @@ import { Input } from "@/components/ui/input";
 import { uploadChatImage } from "@/lib/firebase-storage";
 import { ImageIcon, Send } from "lucide-react";
 
-export default function ChatInput({ onSend }: { onSend: (payload: any) => void }) {
+export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) => void; chatId?: string }) {
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Persist draft per chat room so it survives refresh
+  const draftKey = chatId ? `chat_draft_${chatId}` : null;
+
+  React.useEffect(() => {
+    if (draftKey) {
+      try {
+        const saved = localStorage.getItem(draftKey);
+        if (saved) setText(saved);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [draftKey]);
+
+  React.useEffect(() => {
+    if (!draftKey) return;
+    try {
+      if (text) localStorage.setItem(draftKey, text);
+      else localStorage.removeItem(draftKey);
+    } catch (e) {
+      // ignore
+    }
+  }, [draftKey, text]);
   async function handleSendText() {
     const t = text.trim();
     if (!t) return;
     onSend({ type: "text", text: t });
     setText("");
+    if (draftKey) {
+      try { localStorage.removeItem(draftKey); } catch (e) { /* ignore */ }
+    }
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {

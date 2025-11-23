@@ -11,6 +11,17 @@ import React, {
 } from "react"; // 1. Import useEffect
 import { useNotifications } from "@/contexts/NotificationContext";
 import { leader as LEADER_DIRECTORY } from "@/Data/leader";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  arrayUnion,
+} from "firebase/firestore";
 
 // --- ชื่อกุญแจสำหรับเก็บข้อมูล ---
 const STORAGE_KEY = "techJobData_v2"; // (v2 สำหรับระบบใหม่)
@@ -182,22 +193,85 @@ interface JobContextType {
 
 const JobContext = createContext<JobContextType | undefined>(undefined);
 
+// ---- Migration helper (run manually from console if needed) ----
+// Can be called from browser DevTools console in dev mode: migrateLocalJobsToFirestore()
+export const migrateLocalJobsToFirestore = async () => {
+  const local = loadJobsFromStorage();
+  for (const job of local) {
+    try {
+      const ref = doc(db, "jobs", job.id);
+      await setDoc(ref, { ...job, createdAt: job.createdAt || serverTimestamp() }, { merge: true });
+    } catch (e) {
+      console.error("migrateLocalJobsToFirestore failed for", job.id, e);
+    }
+  }
+};
+
 // --- สร้าง "ผู้ให้บริการ" (Provider) ---
 export const JobProvider = ({ children }: { children: ReactNode }) => {
-  // ▼▼▼ 2. (แก้ไข!) เปลี่ยน useState ให้ "โหลด" ข้อมูลตอนเริ่ม ▼▼▼
-  // (นี่คือการอ่าน "แผ่นหิน" ตอนเปิดออฟฟิศ)
-  const [jobs, setJobs] = useState<Job[]>(loadJobsFromStorage);
+  // เริ่มต้น state ว่างไว้ก่อน — จะถูกเติมจาก Firestore realtime listener
+  const [jobs, setJobs] = useState<Job[]>(() => loadJobsFromStorage());
   const { addNotification } = useNotifications();
 
-  // ▼▼▼ 3. (ใหม่!) เพิ่ม "สมอง" ให้ "บันทึก" ข้อมูลทุกครั้งที่ 'jobs' เปลี่ยน ▼▼▼
-  // (นี่คือการ "สลักหิน" ทุกครั้งที่มีคนเขียนกระดาน)
+  // Firestore realtime subscription: ให้ข้อมูลสดไหลมาที่ context
+  useEffect(() => {
+    const q = collection(db, "jobs");
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const toDate = (v: any) => (v && typeof v.toDate === "function" ? v.toDate() : v);
+
+        const serverJobs: Job[] = snap.docs.map((d) => {
+          const data: any = d.data();
+
+          // แปลง Timestamp ของ Firestore เป็น Date object ถ้ามี
+          const revivedJob: any = {
+            id: d.id,
+            ...data,
+            startDate: toDate(data.startDate),
+            endDate: toDate(data.endDate),
+            createdAt: toDate(data.createdAt),
+            completedAt: toDate(data.completedAt),
+            editHistory: (data.editHistory || []).map((e: any) => ({
+              ...e,
+              editedAt: toDate(e.editedAt),
+            })),
+            activityLog: (data.activityLog || []).map((a: any) => ({
+              ...a,
+              timestamp: toDate(a.timestamp),
+            })),
+            tasks: (data.tasks || []).map((t: any) => ({
+              ...t,
+              updates: (t.updates || []).map((u: any) => ({
+                ...u,
+                updatedAt: toDate(u.updatedAt),
+              })),
+              materials: (t.materials || []).map((m: any) => ({
+                ...m,
+                withdrawnAt: toDate(m.withdrawnAt),
+              })),
+            })),
+          } as Job;
+
+          return revivedJob;
+        });
+
+        setJobs(serverJobs);
+      },
+      (err) => console.error("jobs onSnapshot error", err)
+    );
+
+    return () => unsub();
+  }, []);
+
+  // Persist a local cache so dashboards can show something quickly offline
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
     } catch (e) {
       console.error("Failed to save jobs to storage", e);
     }
-  }, [jobs]); // <-- "ยาม" ที่คอยเฝ้าดู 'jobs'
+  }, [jobs]);
 
   // --- ฟังก์ชัน "เพิ่มใบงานใหม่" (เหมือนเดิม) ---
   const addJob = (
@@ -218,7 +292,6 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       status: "new",
       editHistory: [],
       activityLog: [],
-      // ในระบบใหม่ ทุกใบงานจะเริ่มต้นด้วย Task 4 ขั้นตอนที่กำหนดไว้แล้ว
       tasks: createDefaultTasks(),
       assignedTechs: newJobData.assignedTechs || [],
       completionSummary: undefined,
@@ -263,7 +336,19 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     }
     // =====================================================================
 
-    setJobs((prevJobs) => [newJob, ...prevJobs]); // (อัปเดตกระดาน -> useEffect จะทำงาน -> สลักหิน)
+    // เขียนไปที่ Firestore โดยใช้ id ที่สร้างขึ้น (รักษา id เดิมของระบบ)
+    (async () => {
+      try {
+        await setDoc(doc(db, "jobs", newId), {
+          ...newJob,
+          createdAt: serverTimestamp(),
+        });
+      } catch (e) {
+        console.error("Failed to create job in Firestore", e);
+        // ตกกลับเป็น local update เพื่อ UX ชั่วคราว
+        setJobs((prevJobs) => [newJob, ...prevJobs]);
+      }
+    })();
 
     // 🔥 ส่ง notification ทั้งหมดที่เตรียมไว้ให้ NotificationContext จัดการ
     // ลูป forEach จะเรียก addNotification() หลายครั้ง (ครั้งละ 1 notification)
@@ -290,13 +375,11 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       changes: Object.keys(updatedData).join(", "),
     };
 
-    const nextAssignedTechs =
-      updatedData.assignedTechs ?? targetJob.assignedTechs;
-    const updatedJob: Job = {
+    const updatedJob = {
       ...targetJob,
       ...updatedData,
       editHistory: [...(targetJob.editHistory || []), newHistory],
-    };
+    } as Job;
 
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
 
@@ -310,7 +393,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           findLeaderName(previousLeaderId) ?? "หัวหน้างานเดิม";
         const reasonMessage = editReason || "ไม่ระบุเหตุผล";
 
-        nextAssignedTechs.forEach((techId) => {
+        (updatedJob.assignedTechs || []).forEach((techId) => {
           notificationsToSend.push({
             title: "หัวหน้างานถูกเปลี่ยน",
             message: `งาน ${targetJob.title} เปลี่ยนหัวหน้างานเป็น ${newLeaderName} โดย ${adminName}. เหตุผล: ${reasonMessage}`,
@@ -355,9 +438,21 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    setJobs((prevJobs) =>
-      prevJobs.map((job) => (job.id === jobId ? updatedJob : job))
-    );
+    // เขียนการเปลี่ยนแปลงลง Firestore (merge)
+    (async () => {
+      try {
+        await updateDoc(doc(db, "jobs", jobId), {
+          ...updatedJob,
+          // เราเก็บ editedAt ใน editHistory ดังนั้นไม่ต้อง serverTimestamp ที่นี่
+        } as any);
+      } catch (e) {
+        console.error("Failed to update job in Firestore", e);
+        // fallback: update local state for UX
+        setJobs((prevJobs) =>
+          prevJobs.map((job) => (job.id === jobId ? updatedJob : job))
+        );
+      }
+    })();
 
     notificationsToSend.forEach(addNotification);
   };
@@ -371,26 +466,35 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => {
-    setJobs((prevJobs) =>
-      prevJobs.map((job) => {
-        if (job.id === jobId) {
-          const newActivity: ActivityLog = {
-            actorName,
-            actorRole,
-            activityType,
-            message,
-            timestamp: new Date(),
-            metadata,
-          };
+    const newActivity: ActivityLog = {
+      actorName,
+      actorRole,
+      activityType,
+      message,
+      timestamp: new Date(),
+      metadata,
+    };
 
-          return {
-            ...job,
-            activityLog: [...(job.activityLog || []), newActivity],
-          };
-        }
-        return job;
-      })
-    );
+    (async () => {
+      try {
+        await updateDoc(doc(db, "jobs", jobId), {
+          activityLog: arrayUnion(newActivity),
+        } as any);
+      } catch (e) {
+        console.error("Failed to add activity log in Firestore", e);
+        setJobs((prevJobs) =>
+          prevJobs.map((job) => {
+            if (job.id === jobId) {
+              return {
+                ...job,
+                activityLog: [...(job.activityLog || []), newActivity],
+              };
+            }
+            return job;
+          })
+        );
+      }
+    })();
   };
 
   // --- ฟังก์ชัน "ลบใบงาน" (สามารถเรียกโดย Admin/Leader) ---
@@ -434,8 +538,15 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
-    // เอาใบงานออกจากรายการ
-    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+    // ลบ doc ใน Firestore
+    (async () => {
+      try {
+        await deleteDoc(doc(db, "jobs", jobId));
+      } catch (e) {
+        console.error("Failed to delete job in Firestore", e);
+        setJobs((prev) => prev.filter((j) => j.id !== jobId));
+      }
+    })();
 
     // ส่งแจ้งเตือนทั้งหมด
     notificationsToSend.forEach(addNotification);
@@ -451,28 +562,49 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     actorRole: "leader" | "tech",
     metadata?: Record<string, any>
   ) => {
-    setJobs((prevJobs) =>
-      prevJobs.map((job) => {
-        if (job.id === jobId) {
-          const newActivity: ActivityLog = {
-            actorName,
-            actorRole,
-            activityType,
-            message,
-            timestamp: new Date(),
-            metadata,
-          };
+    const newActivity: ActivityLog = {
+      actorName,
+      actorRole,
+      activityType,
+      message,
+      timestamp: new Date(),
+      metadata,
+    };
 
-          return {
-            ...job,
-            ...updatedData,
-            activityLog: [...(job.activityLog || []), newActivity],
-          };
-        }
-        return job;
-      })
-    );
+    (async () => {
+      try {
+        await updateDoc(doc(db, "jobs", jobId), {
+          ...updatedData,
+          activityLog: arrayUnion(newActivity),
+        } as any);
+      } catch (e) {
+        console.error("Failed to update job with activity in Firestore", e);
+        setJobs((prevJobs) =>
+          prevJobs.map((job) => {
+            if (job.id === jobId) {
+              return {
+                ...job,
+                ...updatedData,
+                activityLog: [...(job.activityLog || []), newActivity],
+              };
+            }
+            return job;
+          })
+        );
+      }
+    })();
   };
+
+  // ในโหมดพัฒนา ให้แนบ helper ไปยัง window เพื่อเรียกจาก DevTools ได้สะดวก
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      try {
+        (window as any).migrateLocalJobsToFirestore = migrateLocalJobsToFirestore;
+      } catch (e) {
+        // ปิดเงียบถ้าไม่สามารถแนบได้
+      }
+    }
+  }, []);
 
   return (
     <JobContext.Provider

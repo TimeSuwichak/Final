@@ -114,19 +114,13 @@ export default function UserDashboard() {
   ];
 
   // --- 3. LOGIC การ "เลือกใช้" ข้อมูล (Mocking Logic) ---
-  const finalCompletedCount = completedJobsCount > 0 ? completedJobsCount : 15;
-  const finalInProgressCount = inProgressJobsCount > 0 ? inProgressJobsCount : 2;
-  const finalPendingCount = pendingJobsCount > 0 ? pendingJobsCount : 5;
-  // [!!] เพิ่ม Logic Mock สำหรับ Approved
-  const finalApprovedCount = approvedJobsCount > 0 ? approvedJobsCount : 3;
+  const finalCompletedCount = completedJobsCount;
+  const finalInProgressCount = inProgressJobsCount;
+  const finalPendingCount = pendingJobsCount;
+  const finalApprovedCount = approvedJobsCount;
 
-  const finalJobTypeData =
-    jobTypeData.length > 0 ? jobTypeData : mockJobTypeData;
-  const finalMonthlyPerformanceData = monthlyPerformanceData.some(
-    (month) => month["งานที่เสร็จ"] > 0
-  )
-    ? monthlyPerformanceData
-    : mockMonthlyPerformanceData;
+  const finalJobTypeData = jobTypeData;
+  const finalMonthlyPerformanceData = monthlyPerformanceData;
 
   const navigate = useNavigate();
 

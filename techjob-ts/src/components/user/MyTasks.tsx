@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useJobs } from "@/contexts/JobContext";
+import { leader as LEADERS } from "@/Data/leader";
+import { user as USERS } from "@/Data/user";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,59 +21,30 @@ import { JobDetailsDialog } from "../common/JobDetailsDialog";
 
 
 // ฟังก์ชัน loadDataFromStorage ยังคงเหมือนเดิม
-const loadDataFromStorage = () => {
-  // [สำคัญ] ฟังก์ชันอ่านข้อมูลจาก LocalStorage
-  try {
-    const data = localStorage.getItem("techJobData")
-    if (data) {
-      const parsed = JSON.parse(data)
-      parsed.jobs = parsed.jobs.map((job) => ({
-        ...job,
-        dates: job.dates ? { start: new Date(job.dates.start), end: new Date(job.dates.end) } : null,
-      }))
-      return parsed
-    }
-  } catch (e) {
-    console.error("Failed to load data", e)
-  }
-  return { jobs: initialJobs, users: initialUsers, leaders: initialLeaders }
-}
+// Use JobContext for realtime jobs and Data files for users/leaders lookups
 
 export default function MyAssignedTasksPage() {
   // ✨ เปลี่ยนชื่อตัวแปรให้สื่อความหมายว่าเป็น user ทั่วไป
   const { user: loggedInUser } = useAuth(); 
   
   // ✨ เปลี่ยนชื่อ state ให้สอดคล้องกัน
-  const [assignedJobs, setAssignedJobs] = useState<any[]>([]); 
-  
+  const { jobs } = useJobs();
+  const [assignedJobs, setAssignedJobs] = useState<any[]>([]);
   const [viewingJob, setViewingJob] = useState<any | null>(null);
-  const [allData, setAllData] = useState<{ users: any[]; leaders: any[] }>({
-    users: [],
-    leaders: [],
-  });
 
   useEffect(() => {
-    // ✨ เช็ค user ที่ล็อกอินเข้ามา
-    if (loggedInUser) {
-      const { jobs, users, leaders } = loadDataFromStorage();
-
-      // ==========================================================
-      // === ✨ จุดแก้ไขสำคัญ: เปลี่ยนเงื่อนไขการกรองข้อมูล ✨ ===
-      // ==========================================================
-      const userJobs = jobs.filter(
-        // เช็คว่า ID ของ user ที่ล็อกอินอยู่, อยู่ใน array 'techIds' ของใบงานหรือไม่
-        (job: any) => job.assignment.techIds.includes(loggedInUser.id)
-      );
-
-      // ✨ อัปเดต state ด้วยงานที่ user ได้รับมอบหมาย
-      setAssignedJobs(userJobs); 
-      setAllData({ users, leaders });
-    }
-  }, [loggedInUser]); // ✨ เปลี่ยน dependency เป็น loggedInUser
+    if (!loggedInUser || !jobs) return setAssignedJobs([]);
+    const userIdString = String(loggedInUser.id);
+    const userJobs = jobs.filter((job: any) => {
+      const assigned = job.assignedTechs || (job as any).assignment?.techIds || [];
+      return assigned.some((t: any) => String(t) === userIdString);
+    });
+    setAssignedJobs(userJobs);
+  }, [loggedInUser, jobs]);
 
   // ฟังก์ชัน helpers ยังคงเหมือนเดิม
-  const findLeaderById = (id: number) => allData.leaders.find((l) => l.id === id);
-  const findUserById = (id: number) => allData.users.find((u) => u.id === id);
+  const findLeaderById = (id: number) => LEADERS.find((l) => l.id === id);
+  const findUserById = (id: number) => USERS.find((u) => u.id === id);
   const getStatusBadge = (status: string) => { /* ... โค้ดเหมือนเดิม ... */ };
 
   return (
