@@ -63,6 +63,7 @@ import { multimediaMaterials } from "@/data/materials/multimedia";
 import { consumableMaterials } from "@/data/materials/consumables";
 import { useMaterials } from "@/contexts/MaterialContext";
 import type { Material } from "@/types";
+import { MaterialWithdrawalList } from "@/components/admin/MaterialWithdrawalList";
 
 interface PendingOrder {
   id: string;
@@ -592,9 +593,7 @@ export default function MaterialDashboard() {
               </ul>
             </CardContent>
           </Card>
-          <Card className="rounded-2xl bg-card text-card-foreground shadow-sm transition-colors">
-            <p>test</p>
-          </Card>
+          <MaterialWithdrawalList />
         </div>
       </div>
 
