@@ -393,15 +393,15 @@ const UserWorkOrderDetail: React.FC = () => {
             <Separator />
 
             {/* Map */}
-            <div className="h-48 w-full rounded-lg overflow-hidden border">
+            <div className="h-48 w-full rounded-lg overflow-hidden border relative" style={{ zIndex: 0, isolation: 'isolate' }}>
               {currentJob.latitude && currentJob.longitude ? (
                 <MapContainer
                   center={[currentJob.latitude, currentJob.longitude]}
                   zoom={15}
-                  style={{ height: "100%", width: "100%" }}
-                  zoomControl={false}
-                  dragging={false}
-                  scrollWheelZoom={false}
+                  style={{ height: "100%", width: "100%", zIndex: 0 }}
+                  zoomControl={true}
+                  dragging={true}
+                  scrollWheelZoom={true}
                 >
                   <TileLayer
                     attribution="&copy; OpenStreetMap"
