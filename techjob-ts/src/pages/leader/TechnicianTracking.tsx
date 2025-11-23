@@ -205,7 +205,7 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
   };
   
   const createCustomIcon = (status: string) => {
-    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#f97316' : '#3b82f6';
+    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#3b82f6' : '#3b82f6';
     return L.divIcon({
       className: 'custom-marker',
       html: `
