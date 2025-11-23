@@ -17,6 +17,7 @@ interface AdminMapProps {
   onPositionChange?: (position: [number, number]) => void
   onAddressChange?: (address: string) => void
   readOnly?: boolean
+  allowZoom?: boolean // Allow zoom and pan even in readOnly mode
 }
 
 // Component for handling map clicks
@@ -103,6 +104,7 @@ export function AdminMap({
   onPositionChange,
   onAddressChange,
   readOnly = false,
+  allowZoom = true, // Default to true for better UX
 }: AdminMapProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition || [13.7563, 100.5018])
@@ -228,13 +230,15 @@ export function AdminMap({
         </div>
       )}
 
-      <div className="h-[400px] w-full overflow-hidden rounded-md border">
+      <div className="h-[400px] w-full overflow-hidden rounded-md border relative" style={{ zIndex: 0, isolation: 'isolate' }}>
         <MapContainer
           center={mapCenter}
           zoom={13}
-          style={{ height: "100%", width: "100%" }}
+          style={{ height: "100%", width: "100%", zIndex: 0 }}
           // ไม่กำหนด key อีกต่อไป (หลีกเลี่ยง remount สั้น ๆ)
-          scrollWheelZoom={!readOnly}
+          scrollWheelZoom={allowZoom}
+          zoomControl={allowZoom}
+          dragging={allowZoom}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

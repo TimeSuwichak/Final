@@ -1,2 +1,20 @@
 @import "tailwindcss";
 
+/* Fix Leaflet map z-index to be below dropdowns */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2 !important;
+}
+
+.leaflet-control {
+  z-index: 3 !important;
+}
+

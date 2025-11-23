@@ -197,12 +197,12 @@
     }, [position, mapCenter, zoom])
 
     return (
-      <div className="h-full w-full min-h-[300px]">
+      <div className="h-full w-full min-h-[300px] relative" style={{ zIndex: 0, isolation: 'isolate' }}>
         <MapContainer
           // ถ้ามี 'position' (หมุด) ให้ใช้เป็น center, ถ้าไม่ ให้ใช้ 'mapCenter'
           center={position || mapCenter}
           zoom={zoom}
-          style={{ height: "100%", width: "100%", cursor: interactive ? "crosshair" : "default" }}
+          style={{ height: "100%", width: "100%", cursor: interactive ? "crosshair" : "default", zIndex: 0 }}
           scrollWheelZoom={true}
         >
           {/* ตั้งค่า mapRef ผ่าน child component ที่ใช้ useMapEvents() */}

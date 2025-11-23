@@ -205,7 +205,7 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
   };
   
   const createCustomIcon = (status: string) => {
-    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#f97316' : '#3b82f6';
+    const color = status === 'done' ? '#22c55e' : status === 'in-progress' ? '#3b82f6' : '#3b82f6';
     return L.divIcon({
       className: 'custom-marker',
       html: `
@@ -340,12 +340,12 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
         {/* Map View */}
         <Card className="lg:col-span-3 flex flex-col overflow-hidden">
           <CardContent className="p-0 h-full flex-1">
-            <div className="w-full h-full rounded-lg overflow-hidden">
+            <div className="w-full h-full rounded-lg overflow-hidden relative" style={{ zIndex: 0, isolation: 'isolate' }}>
               {currentJob && currentJob.latitude && currentJob.longitude ? (
                 <MapContainer
                   center={initialMapCenter}
                   zoom={16}
-                  style={{ height: "100%", width: "100%" }}
+                  style={{ height: "100%", width: "100%", zIndex: 0 }}
                   className="z-0"
                 >
                   <MapController
@@ -524,11 +524,11 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
         <div className="lg:col-span-3 flex flex-col gap-4 relative">
           <Card className="h-200 overflow-hidden">
             <CardContent className="p-0 h-full relative">
-              <div className="w-full h-full rounded-lg overflow-hidden">
+              <div className="w-full h-full rounded-lg overflow-hidden relative" style={{ zIndex: 0, isolation: 'isolate' }}>
                 <MapContainer
                   center={initialMapCenter}
                   zoom={12}
-                  style={{ height: '100%', width: '100%' }}
+                  style={{ height: '100%', width: '100%', zIndex: 0 }}
                   className="z-0"
                 >
                   <MapController selectedJobId={selectedJobId} jobs={jobsWithLocation} />

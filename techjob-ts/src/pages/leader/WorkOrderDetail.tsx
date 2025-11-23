@@ -219,12 +219,7 @@ const WorkOrderDetail: React.FC = () => {
   const [showTechnicianView, setShowTechnicianView] = useState(false);
 
   const [draftTechs, setDraftTechs] = useState<string[]>([]);
-  const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
-  const [teamChangeReason, setTeamChangeReason] = useState("");
-  const [pendingTeamChanges, setPendingTeamChanges] = useState<{
-    added: string[];
-    removed: string[];
-  } | null>(null);
+  const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false);
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
@@ -272,14 +267,12 @@ const WorkOrderDetail: React.FC = () => {
 
   const handleSaveTeam = () => {
     if (!canManageTeam) {
-      alert("งานนี้ถูกกำหนดทีมช่างโดยแอดมิน หัวหน้าไม่สามารถแก้ไขได้");
       return;
     }
     const normalizedDraft = [...draftTechs].sort();
     const normalizedCurrent = [...currentJob.assignedTechs].sort();
 
     if (JSON.stringify(normalizedDraft) === JSON.stringify(normalizedCurrent)) {
-      alert("ไม่ได้เปลี่ยนแปลงทีมช่าง");
       return;
     }
 
@@ -290,39 +283,24 @@ const WorkOrderDetail: React.FC = () => {
       (techId) => !draftTechs.includes(techId)
     );
 
-    setPendingTeamChanges({ added, removed });
-    setTeamChangeReason("");
-    setIsReasonDialogOpen(true);
-  };
-
-  const handleConfirmTeamChanges = () => {
-    if (!pendingTeamChanges) return;
-    if (!teamChangeReason.trim()) {
-      alert("กรุณาระบุเหตุผลในการเปลี่ยนแปลงทีมช่าง");
-      return;
-    }
-
-    const reasonText = teamChangeReason.trim();
-
     updateJobWithActivity(
       currentJob.id,
       { assignedTechs: draftTechs },
       "tech_assigned",
-      `อัปเดตทีมช่าง (${draftTechs.length} คน) - เหตุผล: ${reasonText}`,
+      `อัปเดตทีมช่าง (${draftTechs.length} คน)`,
       user.fname,
       "leader",
       {
         techIds: draftTechs,
-        added: pendingTeamChanges.added,
-        removed: pendingTeamChanges.removed,
-        reason: reasonText,
+        added: added,
+        removed: removed,
       }
     );
 
-    pendingTeamChanges.added.forEach((techId) => {
+    added.forEach((techId) => {
       addNotification({
         title: "ได้รับมอบหมายงานใหม่",
-        message: `คุณถูกเพิ่มเข้าทีมงาน "${currentJob.title}" โดย ${user.fname}. เหตุผล: ${reasonText}`,
+        message: `คุณถูกเพิ่มเข้าทีมงาน "${currentJob.title}" โดย ${user.fname}`,
         recipientRole: "user",
         recipientId: techId,
         relatedJobId: currentJob.id,
@@ -334,10 +312,10 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    pendingTeamChanges.removed.forEach((techId) => {
+    removed.forEach((techId) => {
       addNotification({
         title: "มีการถอดคุณออกจากงาน",
-        message: `คุณถูกถอดออกจากทีมงาน "${currentJob.title}" โดย ${user.fname}. เหตุผล: ${reasonText}`,
+        message: `คุณถูกถอดออกจากทีมงาน "${currentJob.title}" โดย ${user.fname}`,
         recipientRole: "user",
         recipientId: techId,
         relatedJobId: currentJob.id,
@@ -349,10 +327,7 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    setIsReasonDialogOpen(false);
-    setPendingTeamChanges(null);
-    setTeamChangeReason("");
-    alert("บันทึกทีมช่างเรียบร้อย!");
+    setIsSaveSuccessOpen(true);
   };
 
   const getTechDisplayName = (techId: string) => {
@@ -696,45 +671,24 @@ const WorkOrderDetail: React.FC = () => {
         )}
       </div>
 
+      {/* Save Success Dialog */}
       <AlertDialog
-        open={isReasonDialogOpen}
-        onOpenChange={(nextOpen) => {
-          setIsReasonDialogOpen(nextOpen);
-          if (!nextOpen) {
-            setPendingTeamChanges(null);
-            setTeamChangeReason("");
-          }
-        }}
+        open={isSaveSuccessOpen}
+        onOpenChange={setIsSaveSuccessOpen}
       >
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-sm text-center space-y-4">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              ระบุเหตุผลในการปรับทีม
+            <AlertDialogTitle className="text-base flex items-center gap-2 justify-center">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              บันทึกเสร็จสิ้น
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs space-y-1">
-              <p>กรุณาแจ้งเหตุผลสำหรับการเพิ่ม/ลบช่าง</p>
-              <p className="text-[10px]">
-                ข้อมูลจะถูกส่งเป็นการแจ้งเตือนไปยังช่างที่เกี่ยวข้อง
-              </p>
-            </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea
-            value={teamChangeReason}
-            onChange={(e) => setTeamChangeReason(e.target.value)}
-            placeholder="ระบุรายละเอียด เช่น ปรับตามความเหมาะสม"
-            rows={3}
-            className="text-xs resize-none"
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-xs">
-              ยกเลิก
-            </AlertDialogCancel>
+          <AlertDialogFooter className="justify-center">
             <AlertDialogAction
-              onClick={handleConfirmTeamChanges}
               className="h-8 text-xs"
+              onClick={() => setIsSaveSuccessOpen(false)}
             >
-              ยืนยัน
+              ตกลง
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
