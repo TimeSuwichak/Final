@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react"; 
 
-import { Zap, Users, TrendingUp, Package, BarChartBig, Gauge, Calendar, Crown } from 'lucide-react'; 
+import { Zap, Users, TrendingUp, Package, BarChartBig, Gauge, Calendar, Crown, Clock } from 'lucide-react'; 
 
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +46,77 @@ const CustomLineTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// ==========================================================
+// ⭐ NEW Component: AdminHeaderCard (รวมการตกแต่งทั้งหมด) ⭐
+// ==========================================================
+function AdminHeaderCard() {
+    const todayDate = new Date().toLocaleDateString('th-TH', { dateStyle: 'medium' });
+    
+    const cardStyle = "bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl dark:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 border border-gray-100 dark:border-[#2A2C40]";
+    const titleStyle = "text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-snug";
+    const descStyle = "pt-1 text-sm text-gray-500 dark:text-gray-400";
+
+    // ✅ [UPDATED ICON STYLE] Glass Sphere with Complex Shadow
+    const iconWrapperStyle = `
+      w-14 h-14 md:w-16 md:h-16 flex items-center justify-center 
+      rounded-full 
+      bg-gradient-to-br from-indigo-500 to-violet-600  /* เปลี่ยนเป็นสีม่วง-น้ำเงิน */
+      dark:from-indigo-700 dark:to-violet-800         /* สีเข้มขึ้นใน Dark Mode */
+      shadow-[
+        0_5px_15px_rgba(0,0,0,0.3), 
+        0_0_0_1px_rgba(255,255,255,0.1), 
+        inset_0_2px_5px_rgba(255,255,255,0.3), 
+        inset_0_-2px_5px_rgba(0,0,0,0.2) 
+      ]
+      dark:shadow-[
+        0_5px_15px_rgba(0,0,0,0.6), 
+        0_0_0_1px_rgba(255,255,255,0.05),
+        inset_0_2px_5px_rgba(255,255,255,0.1),
+        inset_0_-2px_5px_rgba(0,0,0,0.3)
+      ]
+      transform transition-all duration-300 ease-in-out
+    `;
+
+    return (
+      <div className={`relative overflow-hidden ${cardStyle}`}>
+        
+        {/* 1. Vertical Accent Line */}
+        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-l-2xl"></div>
+
+        <CardHeader className="p-5 md:p-6">
+          <div className="flex items-start justify-between">
+            
+            <div className="flex items-center gap-4">
+               {/* 2. Glass Sphere Icon */}
+              <div className={iconWrapperStyle}>
+                {/* ✅ [แก้ไข Icon] ใช้ text-white และ drop-shadow-sm เพื่อความเข้ากัน */}
+                <Gauge size={28} className="text-white drop-shadow-sm" /> 
+              </div>
+              
+              <div className="flex flex-col">
+                <CardTitle className={titleStyle}> 
+                    Admin Dashboard: ภาพรวมระบบงาน
+                </CardTitle>
+                <CardDescription className={descStyle}>
+                    ภาพรวมข้อมูลและสถิติสำคัญสำหรับการจัดการระบบ
+                </CardDescription>
+              </div>
+            </div>
+            
+            {/* 3. Date Stamp */}
+            <div className="flex items-center space-x-2 text-right pt-1 shrink-0">
+              <Calendar size={16} className="text-muted-foreground dark:text-gray-400" />
+              <p className="text-sm font-semibold text-muted-foreground dark:text-gray-400">
+                ข้อมูลล่าสุด ณ {todayDate}
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+      </div>
+    );
+}
+// ==========================================================
+
 
 // ==========================================================
 // ✨ ADMIN DASHBOARD PAGE (ใช้ Dark/Light Mode มาตรฐาน) ✨
@@ -84,7 +155,7 @@ export default function AdminDashboardPage() {
           return '#E0E0E0'; 
       }
       // Light Mode (พื้นหลังสว่าง): ใช้สีดำ
-      return '#000000'; // 💡 แก้ไข: ใช้สีดำล้วนเพื่อให้คมชัดสูงสุดใน Light Mode
+      return '#000000'; 
   };
 
   // 💡 ฟังก์ชันใหม่: คืนค่าสีเส้นแกน (Grid และ Axis Lines)
@@ -186,29 +257,8 @@ export default function AdminDashboardPage() {
         className="flex-1 space-y-10 p-4 md:p-8 bg-background dark:bg-background"
     >
       
-      {/* HEADER SECTION */}
-      <Card className="shadow-2xl dark:bg-card dark:border-border">
-        <CardHeader className="p-4 md:p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2"> 
-                  <Gauge size={50} className="text-pink-500" /> 
-                  Admin Dashboard: ภาพรวมระบบงาน
-              </CardTitle>
-              <CardDescription className="pt-1 text-sm text-muted-foreground">
-                  ภาพรวมข้อมูลและสถิติสำคัญสำหรับการจัดการระบบ
-              </CardDescription>
-            </div>
-            
-            <div className="flex items-center space-x-1 text-right pt-1">
-              <Calendar size={16} className="text-muted-foreground" />
-              <p className="text-xxs font-semibold text-muted-foreground">
-                ข้อมูลล่าสุด ณ {new Date().toLocaleDateString('th-TH', { dateStyle: 'medium' })}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      {/* HEADER SECTION (ใช้ AdminHeaderCard ใหม่) */}
+      <AdminHeaderCard />
 
 
       {/* KEY METRICS (แถวสรุปสถานะงานและบุคลากร) */}
