@@ -96,7 +96,6 @@ const getStatusText = (status: string) => {
   }
 };
 
-
 const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
   pdfFiles = [],
 }) => {
@@ -666,6 +665,7 @@ const WorkOrderDetail: React.FC = () => {
                             variant="outline"
                             onClick={handleSaveTeam}
                             className="h-7 text-xs gap-1 bg-transparent"
+                            disabled={currentJob.status === "done"}
                           >
                             <Save className="h-3 w-3" />
                             บันทึก
@@ -676,6 +676,7 @@ const WorkOrderDetail: React.FC = () => {
                           jobEndDate={currentJob.endDate}
                           selectedTechIds={draftTechs}
                           onTechsChange={setDraftTechs}
+                          disabled={currentJob.status === "done"}
                         />
                       </div>
                     </>
