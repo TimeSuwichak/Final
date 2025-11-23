@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { format } from 'date-fns';
 import {
@@ -52,6 +53,7 @@ const getStatusBadge = (status: 'new' | 'in-progress' | 'done') => {
 const ITEMS_PER_PAGE = 10;
 
 export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
@@ -61,6 +63,10 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleViewDetail = (jobId: string) => {
+    navigate(`/leader/workorder/${jobId}`);
   };
 
   return (
@@ -101,7 +107,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                 <Button 
                   variant="default" 
                   size="sm"
-                  onClick={() => window.location.href = `/leader/workorder/${job.id}`}
+                  onClick={() => handleViewDetail(job.id)}
                   className="gap-1"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -146,7 +152,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => window.location.href = `/leader/workorder/${job.id}`}
+                          onClick={() => handleViewDetail(job.id)}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
