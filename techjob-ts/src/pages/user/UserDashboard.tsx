@@ -10,15 +10,86 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Wrench,
   CheckCircle2,
-  Hourglass, // ไอคอนสำหรับ Pending
-  BadgeCheck, // ไอคอนสำหรับ Approved
-  MessageCircle, // 🚨 แก้ไข: เพิ่ม MessageCircle
+  Hourglass,
+  BadgeCheck,
+  MessageCircle,
+  UserCircle, // ✅ NEW ICON: เพิ่ม UserCircle
 } from "lucide-react";
 import { JobTypePieChart } from "@/components/user/charts/JobTypePieChart";
 import { MonthlyPerformanceChart } from "@/components/user/charts/MonthlyPerformanceChart";
 import { collection, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { RecentChats } from "@/components/chat/RecentChats";
+
+
+// ==========================================================
+// ⭐ NEW Component: UserHeaderBanner (ตกแต่งหัวข้อ) ⭐
+// ==========================================================
+function UserHeaderBanner({ userName, onChatClick }: { userName: string; onChatClick: () => void }) {
+  // สไตล์ Card สำหรับหัวข้อ (ใช้สไตล์เดียวกับ Card อื่นๆ)
+  const headerCardStyle = "bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl dark:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-[#2A2C40]";
+  
+  // สไตล์ Icon Wrapper (Glass Sphere Style)
+  const iconWrapperStyle = `
+    w-12 h-12 md:w-14 md:h-14 flex items-center justify-center 
+    rounded-full 
+    bg-gradient-to-br from-indigo-500 to-violet-600 
+    dark:from-indigo-700 dark:to-violet-800 
+    shadow-[
+      0_5px_15px_rgba(0,0,0,0.3), 
+      0_0_0_1px_rgba(255,255,255,0.1), 
+      inset_0_2px_5px_rgba(255,255,255,0.3), 
+      inset_0_-2px_5px_rgba(0,0,0,0.2) 
+    ]
+    dark:shadow-[
+      0_5px_15px_rgba(0,0,0,0.6), 
+      0_0_0_1px_rgba(255,255,255,0.05),
+      inset_0_2px_5px_rgba(255,255,255,0.1),
+      inset_0_-2px_5px_rgba(0,0,0,0.3)
+    ]
+    transform transition-all duration-300 ease-in-out
+  `;
+
+  return (
+    // ✅ [UPDATED] ห่อหุ้มด้วย Card Style และเพิ่ม Vertical Accent Line
+    <div className={`relative overflow-hidden p-5 md:p-6 mb-8 ${headerCardStyle}`}>
+      
+      {/* 1. Vertical Accent Line */}
+      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-l-2xl"></div>
+      
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          
+          {/* 2. Glass Sphere Icon */}
+          <div className={iconWrapperStyle}>
+            <UserCircle className="w-8 h-8 text-white drop-shadow-sm" /> 
+          </div>
+          
+          {/* 3. Title */}
+          <div>
+            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug">
+              ผลงานของคุณ, {userName}
+            </h2>
+            {/* ✅ [NEW] เพิ่มคำอธิบายย่อย */}
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
+                ภาพรวมประสิทธิภาพและสถานะงานปัจจุบัน
+            </p>
+          </div>
+        </div>
+
+        {/* 4. Chat Button (ปรับให้เข้ากับ Card Style) */}
+        <button
+          onClick={onChatClick}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 dark:bg-violet-600 dark:hover:bg-violet-700 transition font-semibold shrink-0"
+        >
+          <MessageCircle className="w-5 h-5" />
+          แชท
+        </button>
+      </div>
+    </div>
+  );
+}
+// ==========================================================
 
 
 // ==========================================================
@@ -31,7 +102,6 @@ export default function UserDashboard() {
   // --- 1. LOGIC การเตรียมข้อมูลจริง ---
   const myJobs = useMemo(() => {
     if (!user || !jobs) return [];
-    // 🚨 ปรับปรุง: ใช้ user.id เป็น string เพื่อให้เข้ากับ includes() ได้ดี
     const userIdString = String(user.id); 
     return jobs.filter(
       (job) => job.assignedTechs && job.assignedTechs.includes(userIdString)
@@ -50,10 +120,7 @@ export default function UserDashboard() {
     () => myJobs.filter((j) => j.status === "new").length,
     [myJobs]
   );
-  // [!!] แก้ไข Logic สำหรับงาน Approved: ควรนับสถานะ 'approved' จริงๆ (ถ้ามี)
-  // แต่ถ้าไม่มี status 'approved' จริง ให้สมมติว่าเป็นการนับงานที่ทำเสร็จแล้ว (done) ที่รอการตรวจสอบ
   const approvedJobsCount = useMemo(
-    // 🚨 ถ้ามี status 'approved' ให้เปลี่ยนเป็น j.status === "approved"
     () => myJobs.filter((j) => j.status === "approved" || j.status === "done").length, 
     [myJobs]
   );
@@ -72,7 +139,6 @@ export default function UserDashboard() {
     const monthlyData: { [key: string]: number } = {};
     const today = new Date();
     
-    // สร้างชื่อเดือนย้อนหลัง 6 เดือน
     for (let i = 5; i >= 0; i--) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const monthName = date.toLocaleString("th-TH", { month: "short" });
@@ -82,7 +148,6 @@ export default function UserDashboard() {
     myJobs
       .filter((j) => j.status === "done")
       .forEach((job) => {
-        // ตรวจสอบว่า job.endDate เป็นค่าที่ถูกต้องก่อนใช้งาน
         if (job.endDate) { 
             const jobDate = new Date(job.endDate);
             const monthName = jobDate.toLocaleString("th-TH", { month: "short" });
@@ -98,22 +163,8 @@ export default function UserDashboard() {
     }));
   }, [myJobs]);
 
-  // --- 2. สร้างข้อมูลจำลอง (Mock Data) ---
-  const mockJobTypeData = [
-    { name: "ซ่อมบำรุง", value: 12 },
-    { name: "ติดตั้งระบบ", value: 8 },
-    { name: "ตรวจเช็คสภาพ", value: 5 },
-  ];
-  const mockMonthlyPerformanceData = [
-    { name: "มิ.ย.", "งานที่เสร็จ": 4 },
-    { name: "ก.ค.", "งานที่เสร็จ": 6 },
-    { name: "ส.ค.", "งานที่เสร็จ": 5 },
-    { name: "ก.ย.", "งานที่เสร็จ": 8 },
-    { name: "ต.ค.", "งานที่เสร็จ": 7 },
-    { name: "พ.ย.", "งานที่เสร็จ": 2 },
-  ];
 
-  // --- 3. LOGIC การ "เลือกใช้" ข้อมูล (Mocking Logic) ---
+  // --- 3. LOGIC การ "เลือกใช้" ข้อมูล ---
   const finalCompletedCount = completedJobsCount;
   const finalInProgressCount = inProgressJobsCount;
   const finalPendingCount = pendingJobsCount;
@@ -132,20 +183,19 @@ export default function UserDashboard() {
   if (!user) {
     return <div className="p-8">Please log in to view your dashboard.</div>;
   }
-
+  
   // --- 4. JSX (ส่วนแสดงผลที่ปรับ Font แล้ว) ---
   return (
-    <div className="flex-1 space-y-8 p-4 md:p-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">ผลงานของคุณ, {user.fname}</h2>
-        <button
-          onClick={() => navigate("/chat")}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-        >
-          <MessageCircle className="w-5 h-5" />
-          แชท
-        </button>
-      </div>
+    // ✅ [ADJUSTED] p-4 md:p-8 -> p-8 (ใช้ padding ที่เหมาะสมกับ Card Style)
+    <div className="flex-1 space-y-8 p-8"> 
+      
+      {/* ================================================== */}
+      {/* ⭐ [UPDATED] ส่วนหัวข้อที่ถูกตกแต่งแล้ว ⭐ */}
+      {/* ================================================== */}
+      <UserHeaderBanner 
+        userName={user.fname || 'ผู้ใช้งาน'} 
+        onChatClick={() => navigate("/chat")} 
+      />
 
       {/* ================================================== */}
       {/* ✨ ส่วนของ Card Dashboard (4 Cards) ✨ */}
@@ -169,7 +219,7 @@ export default function UserDashboard() {
           </CardContent>
         </Card>
 
-        {/* Card 2: งานที่กำลังทำ */}
+        {/* Card 2: งานที่กำลังทำ (New Jobs) */}
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
@@ -230,10 +280,11 @@ export default function UserDashboard() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <JobTypePieChart data={finalJobTypeData} />
+          {/* ใช้ data จริงหรือ mock data ตาม logic */}
+          <JobTypePieChart data={finalJobTypeData.length > 0 ? finalJobTypeData : []} />
         </div>
         <div className="lg:col-span-3">
-          <MonthlyPerformanceChart data={finalMonthlyPerformanceData} />
+          <MonthlyPerformanceChart data={finalMonthlyPerformanceData.length > 0 ? finalMonthlyPerformanceData : []} />
         </div>
       </div>
 
