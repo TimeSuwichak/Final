@@ -250,9 +250,14 @@ function DashboardHeaderCard({
   `;
   
   return (
-    <header className={`mb-8 ${cardStyle}`}>
+    <header className={`mb-8 ${cardStyle} relative overflow-hidden`}>
       
-      {/* 1. Header Row (Title & Action) */}
+      {/* 1. Vertical Accent Line (สอดคล้องกับ Card Style) */}
+      {/* ✅ [ADDED] Vertical Accent Line */}
+      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-l-2xl"></div>
+
+      {/* 2. Header Row (Title & Action) */}
+      {/* ✅ [ADJUSTED] p-5 md:p-6 p-6 -> p-5 md:p-6 (เพื่อไม่ให้ซ้ำกับ padding ของ cardStyle) */}
       <div className="p-5 md:p-6 border-b border-gray-100 dark:border-[#2A2C40]">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           
@@ -282,7 +287,7 @@ function DashboardHeaderCard({
         </div>
       </div>
       
-      {/* 2. Filters Row (Bottom Layer) */}
+      {/* 3. Filters Row (Bottom Layer) */}
       <div className="p-5 md:p-6 pt-4"> 
         <DashboardFilters 
           activeRange={activeRange} 
@@ -369,6 +374,9 @@ export default function ExDashboard() {
     return (
       <div className={`${baseContainerClass} animate-pulse`}>
         <div className="mb-8 bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2C40]">
+           {/* เพิ่ม Skeleton สำหรับ Vertical Accent Line */}
+          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gray-300 dark:bg-[#383a54] rounded-l-2xl"></div> 
+
           <div className="p-5 md:p-6 border-b border-gray-100 dark:border-[#2A2C40] flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div className="flex items-center gap-3">
               {/* ปรับขนาด Skeleton Icon ให้ตรงกับ Glass Sphere Icon */}
@@ -410,7 +418,7 @@ export default function ExDashboard() {
     <ThemeProvider>
       <div ref={dashboardRef} className={baseContainerClass}>
         
-        {/* ✅ ใช้ DashboardHeaderCard ที่รวม Glass Sphere Icon Style แล้ว */}
+        {/* ✅ ใช้ DashboardHeaderCard ที่รวม Glass Sphere Icon Style และ Vertical Accent Line แล้ว */}
         <DashboardHeaderCard 
           activeRange={activeRange} 
           onRangeChange={setActiveRange}
