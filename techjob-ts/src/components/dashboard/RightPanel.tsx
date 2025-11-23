@@ -141,7 +141,7 @@ export default function RightPanel() {
       {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-200 | Dark: #131422, border-[#2A2C40] */}
       <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]">
         {/* 💡 [ปรับปรุง] Icon Light: indigo-500 | Dark: violet-400 */}
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h3 className="text-x font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <PieChartIcon size={20} className="text-indigo-500 dark:text-violet-400" /> 
           สัดส่วนประเภทงาน (Job Type Distribution)
         </h3>
@@ -212,7 +212,7 @@ export default function RightPanel() {
       {/* --- Card 3: Bar Chart (Completed Works) --- */}
       {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-200 | Dark: #131422, border-[#2A2C40] */}
       <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h3 className="text-x font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <CheckCircle size={20} className="text-green-500 dark:text-emerald-400" /> 
           Completed Works (จำนวนงานที่ทำเสร็จ)
         </h3>
