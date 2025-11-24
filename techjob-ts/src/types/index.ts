@@ -1,6 +1,8 @@
 // src/types/index.ts
 // (คุณสามารถเพิ่มรายละเอียดอื่นๆ ได้ตามต้องการ)
 
+import type { S } from "node_modules/tailwindcss/dist/types-WlZgYgM8.d.mts";
+
 // พิมพ์เขียวสำหรับ "ประวัติการแก้ไข" (โดย Admin เท่านั้น)
 export interface EditHistory {
   adminName: string;
@@ -45,6 +47,9 @@ export interface Task {
   description: string;
   imageUrl?: string;
   status: "pending" | "in-progress" | "completed";
+   needsAcknowledgment: boolean;
+   lasrtAcknowledgedBy?: String;
+   lastAcknowledgedAt?: String;
   updates: {
     message: string;
     imageUrl?: string;

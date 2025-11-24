@@ -1,7 +1,7 @@
 // src/components/leader/TaskManagement.tsx
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { type Job, type Task } from "@/types/index";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,6 +50,7 @@ import {
   Plus,
   Send,
   Camera,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
@@ -102,6 +103,24 @@ export function TaskManagement({
   const updateFileInputRef = useRef<HTMLInputElement>(null);
 
   const { materials: inventoryMaterials } = useMaterials();
+
+  useEffect(() => {
+    if (!selectedTask) return;
+    const latestTask = job.tasks.find((t) => t.id === selectedTask.id);
+    if (!latestTask) return;
+
+    if (latestTask !== selectedTask) {
+      setSelectedTask(latestTask);
+    }
+
+    if (
+      latestTask.needsAcknowledgment &&
+      (updateDialogOpen || materialDialogOpen)
+    ) {
+      setUpdateDialogOpen(false);
+      setMaterialDialogOpen(false);
+    }
+  }, [job.tasks, selectedTask, updateDialogOpen, materialDialogOpen]);
 
   const materialDictionary = useMemo(() => {
     const map = new Map<string, { name: string; unit?: string }>();
@@ -259,6 +278,9 @@ export function TaskManagement({
     const updatedTask: Task = {
       ...task,
       status: "pending",
+      needsAcknowledgment: true,
+      lastAcknowledgedAt: undefined,
+      lasrtAcknowledgedBy: undefined,
       updates: [...task.updates, newUpdate],
     };
 
@@ -294,6 +316,10 @@ export function TaskManagement({
   // --- User Actions ---
 
   const handleOpenUpdateDialog = (task: Task) => {
+    if (task.needsAcknowledgment) {
+      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
+      return;
+    }
     setSelectedTask(task);
     setUpdateMessage("");
     setUpdateImagePreview(null);
@@ -302,8 +328,61 @@ export function TaskManagement({
   };
 
   const handleOpenMaterialDialog = (task: Task) => {
+    if (task.needsAcknowledgment) {
+      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนเบิกวัสดุ");
+      return;
+    }
     setSelectedTask(task);
     setMaterialDialogOpen(true);
+  };
+
+  const handleAcknowledgeRejectedTask = (task: Task) => {
+    const now = new Date().toISOString();
+    const acknowledgementUpdate = {
+      message: `ช่าง ${user.fname} รับทราบการตีกลับและพร้อมดำเนินงานต่อ`,
+      updatedBy: user.fname,
+      updatedAt: now,
+    };
+
+    const updatedTask: Task = {
+      ...task,
+      status: "in-progress",
+      needsAcknowledgment: false,
+      lastAcknowledgedAt: now,
+      lasrtAcknowledgedBy: user.fname,
+      updates: [...(task.updates || []), acknowledgementUpdate],
+    };
+
+    const updatedTasks = job.tasks.map((t) =>
+      t.id === task.id ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      "acknowledge",
+      `ช่าง "${user.fname}" รับทราบการตีกลับของงาน "${task.title}"`,
+      user.fname,
+      "tech",
+      { taskId: task.id, taskTitle: task.title }
+    );
+
+    if (job.leadId) {
+      addNotification({
+        title: "ช่างรับทราบงานที่ถูกตีกลับ",
+        message: `${user.fname} รับทราบงาน "${task.title}" ในใบงาน "${job.title}" และจะดำเนินงานต่อ`,
+        recipientRole: "leader",
+        recipientId: String(job.leadId),
+        relatedJobId: job.id,
+        metadata: {
+          type: "task_acknowledged",
+          taskId: task.id,
+          taskTitle: task.title,
+          jobTitle: job.title,
+          techName: user.fname,
+        },
+      });
+    }
   };
 
   const handleUpdateFileChange = (
@@ -326,6 +405,11 @@ export function TaskManagement({
   const submitUpdate = () => {
     if (!selectedTask || !updateMessage.trim()) {
       alert("กรุณากรอกข้อความอัปเดต");
+      return;
+    }
+
+    if (selectedTask.needsAcknowledgment) {
+      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
       return;
     }
 
@@ -431,6 +515,7 @@ export function TaskManagement({
           const isCompleted = task.status === "completed";
           const isInProgress = task.status === "in-progress";
           const isPending = task.status === "pending";
+          const isAwaitingAcknowledgement = Boolean(task.needsAcknowledgment);
 
           // Determine visual style based on status
           let cardBorderColor = "border-gray-200";
@@ -447,13 +532,19 @@ export function TaskManagement({
             icon = <Clock className="h-4 w-4 animate-pulse" />;
           }
 
+          if (isAwaitingAcknowledgement) {
+            cardBorderColor = "border-amber-300 ring-1 ring-amber-100";
+            headerColor = "bg-amber-50 text-amber-700";
+            icon = <AlertCircle className="h-4 w-4 text-amber-700" />;
+          }
+
           return (
             <Card
               key={task.id}
               className={cn(
                 "flex flex-col h-full transition-all duration-200",
                 cardBorderColor,
-                isPending && "opacity-70 grayscale-[0.5]"
+                isPending && !isAwaitingAcknowledgement && "opacity-70 grayscale-[0.5]"
               )}
             >
               {/* Header */}
@@ -477,9 +568,14 @@ export function TaskManagement({
                     กำลังดำเนินการ
                   </span>
                 )}
-                {isPending && (
+                {isPending && !isAwaitingAcknowledgement && (
                   <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">
                     รอเริ่ม
+                  </span>
+                )}
+                {isAwaitingAcknowledgement && (
+                  <span className="text-xs bg-white/40 px-2 py-0.5 rounded-full text-amber-900">
+                    รอช่างรับทราบ
                   </span>
                 )}
               </div>
@@ -495,6 +591,20 @@ export function TaskManagement({
                     </p>
                   )}
                 </div>
+
+                {isAwaitingAcknowledgement && (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
+                    <div className="space-y-1">
+                      <p className="font-semibold text-sm text-amber-900">
+                        งานถูกตีกลับโดยหัวหน้า
+                      </p>
+                      <p>
+                        กรุณากดรับทราบก่อนเริ่มอัปเดตหรือเบิกวัสดุต่อ
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Updates Summary */}
                 <div className="mt-auto space-y-3">
@@ -542,7 +652,9 @@ export function TaskManagement({
                   <Maximize2 className="h-3 w-3" />
                 </Button>
 
-                {isInProgress && (
+                {((mode === "leader" && isInProgress) ||
+                  (mode === "user" &&
+                    (isInProgress || isAwaitingAcknowledgement))) && (
                   <div className="w-full pt-2 border-t">
                     {mode === "leader" ? (
                       <div className="grid grid-cols-2 gap-2">
@@ -564,25 +676,41 @@ export function TaskManagement({
                         </Button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs gap-1"
-                          onClick={() => handleOpenMaterialDialog(task)}
-                        >
-                          <Plus className="h-3 w-3" />
-                          เบิกของ
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="text-xs gap-1"
-                          onClick={() => handleOpenUpdateDialog(task)}
-                        >
-                          <Send className="h-3 w-3" />
-                          อัปเดต
-                        </Button>
-                      </div>
+                      isAwaitingAcknowledgement ? (
+                        <div className="space-y-2 text-xs text-amber-900">
+                          <p>
+                            หัวหน้าตีกลับงานนี้แล้ว กรุณากดรับทราบเพื่อเริ่มทำงานต่อ
+                          </p>
+                          <Button
+                            size="sm"
+                            className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-1"
+                            onClick={() => handleAcknowledgeRejectedTask(task)}
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            รับทราบและเริ่มต่อ
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs gap-1"
+                            onClick={() => handleOpenMaterialDialog(task)}
+                          >
+                            <Plus className="h-3 w-3" />
+                            เบิกของ
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="text-xs gap-1"
+                            onClick={() => handleOpenUpdateDialog(task)}
+                          >
+                            <Send className="h-3 w-3" />
+                            อัปเดต
+                          </Button>
+                        </div>
+                      )
                     )}
                   </div>
                 )}

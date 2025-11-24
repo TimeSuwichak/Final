@@ -618,7 +618,7 @@ const WorkOrderDetail: React.FC = () => {
                           onFinishJob={handleFinishJob}
                         />
                         <br />
-                        <TaskDetailsLocked tasks={currentJob.tasks} />
+                     
                       </div>
 
                       <Separator />

@@ -159,6 +159,11 @@ export function MaterialSelectionDialog({
 
   const handleWithdraw = () => {
     if (!user) return;
+    if (task.needsAcknowledgment) {
+      alert("กรุณารับทราบงานที่ถูกตีกลับ ");
+      setConfirmDialogOpen(false);
+      return;
+    }
 
     const withdrawRequests = selectedMaterials.map((material) => ({
       materialId: material.id,

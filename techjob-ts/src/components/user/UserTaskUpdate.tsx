@@ -64,6 +64,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
     update.message.startsWith("งานถูกตีกลับโดยหัวหน้า:")
   );
   const hasContent = (task.updates?.length ?? 0) > 0 || (task.materials?.length ?? 0) > 0;
+  const needsAcknowledgement = Boolean(task.needsAcknowledgment);
   const [isExpanded, setIsExpanded] = useState(
     hasLeaderRejectUpdate || hasContent
   );
@@ -73,6 +74,12 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
       setIsExpanded(true);
     }
   }, [hasLeaderRejectUpdate]);
+
+  useEffect(() => {
+    if (needsAcknowledgement) {
+      setMaterialDialogOpen(false);
+    }
+  }, [needsAcknowledgement]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -157,7 +164,60 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
     reader.readAsDataURL(file);
   };
 
+  const handleAcknowledgeRejectedTask = () => {
+    const now = new Date().toISOString();
+    const acknowledgementUpdate = {
+      message: `ช่าง ${user.fname} รับทราบงานที่ถูกตีกลับและพร้อมดำเนินงานต่อ`,
+      updatedBy: user.fname,
+      updatedAt: now,
+    };
+
+    const updatedTask: Task = {
+      ...task,
+      status: "in-progress",
+      needsAcknowledgment: false,
+      lastAcknowledgedAt: now,
+      lasrtAcknowledgedBy: user.fname,
+      updates: [...(task.updates || []), acknowledgementUpdate],
+    };
+
+    const updatedTasks = job.tasks.map((t) =>
+      t.id === task.id ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      "acknowledge",
+      `ช่าง "${user.fname}" รับทราบการตีกลับของงาน "${task.title}"`,
+      user.fname,
+      "tech",
+      { taskId: task.id, taskTitle: task.title }
+    );
+
+    if (job.leadId) {
+      addNotification({
+        title: "ช่างรับทราบงานที่ถูกตีกลับ",
+        message: `${user.fname} รับทราบงาน "${task.title}" ในใบงาน "${job.title}" และจะดำเนินงานต่อ`,
+        recipientRole: "leader",
+        recipientId: String(job.leadId),
+        relatedJobId: job.id,
+        metadata: {
+          type: "task_acknowledged",
+          taskId: task.id,
+          taskTitle: task.title,
+          jobTitle: job.title,
+          techName: user.fname,
+        },
+      });
+    }
+  };
+
   const handleUpdate = () => {
+    if (needsAcknowledgement) {
+      alert("กรุณากดรับทราบการตีกลับจากหัวหน้าก่อนส่งอัปเดตใหม่");
+      return;
+    }
     if (!message.trim()) {
       alert("กรุณากรอกข้อความอัปเดต");
       return;
@@ -224,9 +284,14 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
                 {task.title}
               </CardTitle>
               {hasLeaderRejectUpdate && (
-                <Badge variant="destructive" className="text-[10px] h-5 px-2 gap-1">
+                <Badge
+                  variant={needsAcknowledgement ? "destructive" : "outline"}
+                  className={`text-[10px] h-5 px-2 gap-1 ${
+                    needsAcknowledgement ? "" : "text-amber-800 border-amber-300"
+                  }`}
+                >
                   <AlertCircle className="h-3 w-3" />
-                  ถูกตีกลับ
+                  {needsAcknowledgement ? "รอรับทราบ" : "เคยถูกตีกลับ"}
                 </Badge>
               )}
             </div>
@@ -241,6 +306,25 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
         </CardHeader>
 
         <CardContent className="space-y-3">
+          {needsAcknowledgement && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-2">
+              <div className="flex items-center gap-2 text-amber-900">
+                <AlertCircle className="h-4 w-4" />
+                <p className="font-semibold text-xs">หัวหน้าตีกลับงานนี้</p>
+              </div>
+              <p className="text-xs text-amber-900">
+                กรุณากดรับทราบก่อนที่จะส่งอัปเดตใหม่หรือเบิกวัสดุเพิ่มเติม
+              </p>
+              <Button
+                size="sm"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                onClick={handleAcknowledgeRejectedTask}
+              >
+                รับทราบและดำเนินงานต่อ
+              </Button>
+            </div>
+          )}
+
           {/* Updates Timeline */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -397,6 +481,7 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
               placeholder="อธิบายงานที่ทำ ความคืบหน้า หรือปัญหาที่พบ..."
               rows={3}
               className="resize-none text-xs"
+              disabled={needsAcknowledgement}
             />
 
             <div className="space-y-1.5">
@@ -411,17 +496,29 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
               </div>
 
               {!imagePreview ? (
-                <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-3 hover:border-blue-400/50 transition-colors">
+                <div
+                  className={`border-2 border-dashed border-muted-foreground/20 rounded-lg p-3 transition-colors ${
+                    needsAcknowledgement
+                      ? "opacity-60 cursor-not-allowed"
+                      : "hover:border-blue-400/50"
+                  }`}
+                >
                   <Input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="hidden"
+                    disabled={needsAcknowledgement}
                   />
                   <div
-                    className="cursor-pointer text-center"
-                    onClick={() => fileInputRef.current?.click()}
+                    className={`text-center ${
+                      needsAcknowledgement ? "cursor-not-allowed" : "cursor-pointer"
+                    }`}
+                    onClick={() => {
+                      if (needsAcknowledgement) return;
+                      fileInputRef.current?.click();
+                    }}
                   >
                     <ImageIcon className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">คลิกเพื่อเลือกรูปภาพ</p>
@@ -458,17 +555,18 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
             <div className="flex justify-between pt-1">
               <Button
-                onClick={() => setMaterialDialogOpen(true)}
+                onClick={() => !needsAcknowledgement && setMaterialDialogOpen(true)}
                 variant="outline"
                 size="sm"
                 className="gap-1.5 h-8 text-xs"
+                disabled={needsAcknowledgement}
               >
                 <Plus className="h-3 w-3" />
                 เบิกวัสดุ
               </Button>
               <Button
                 onClick={handleUpdate}
-                disabled={!message.trim()}
+                disabled={!message.trim() || needsAcknowledgement}
                 size="sm"
                 className="gap-1.5 h-8 text-xs"
               >
