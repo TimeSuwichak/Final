@@ -116,4 +116,5 @@ export interface Material {
   unit: string;
   stock: number;
   minStock: number;
+  isLocal?: boolean;
 }

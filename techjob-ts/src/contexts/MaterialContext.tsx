@@ -36,16 +36,15 @@ const SEED_MATERIALS: Material[] = [
   ...toolMaterials,
   ...multimediaMaterials,
   ...consumableMaterials,
-].map((item) => ({ ...item }));
+  ...consumableMaterials,
+].map((item) => ({ ...item, isLocal: true })); // 🔥 FIX: Mark seeds as local so they survive sync
 
 type WithdrawRequest = {
   materialId: string;
   quantity: number;
 };
 
-type WithdrawResult =
-  | { success: true }
-  | { success: false; errors: string[] };
+type WithdrawResult = { success: true } | { success: false; errors: string[] };
 
 interface MaterialContextType {
   materials: Material[];
@@ -72,6 +71,8 @@ function loadMaterialsFromStorage(): Material[] {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return SEED_MATERIALS;
     const parsed = JSON.parse(raw) as Material[];
+    // 🔥 FIX: If parsed list is empty (was wiped), restore seeds
+    if (parsed.length === 0) return SEED_MATERIALS;
     return parsed.map((item) => ({ ...item }));
   } catch (error) {
     console.error("Failed to load materials from storage", error);
@@ -87,12 +88,25 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
   // Firestore realtime subscription for materials
   useEffect(() => {
     try {
-      const q = firestoreQuery(collection(db, "materials"), orderBy("name", "asc"));
+      const q = firestoreQuery(
+        collection(db, "materials"),
+        orderBy("name", "asc")
+      );
       const unsub = onSnapshot(
         q,
         (snap) => {
-          const items: Material[] = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Material));
-          setMaterials(items);
+          const items: Material[] = snap.docs.map(
+            (d) => ({ id: d.id, ...(d.data() as any) } as Material)
+          );
+
+          // 🔥 FIX: Merge server materials with existing local-only materials
+          setMaterials((prev) => {
+            const localOnly = prev.filter((m) => m.isLocal);
+            const uniqueLocal = localOnly.filter(
+              (l) => !items.some((s) => s.id === l.id)
+            );
+            return [...items, ...uniqueLocal];
+          });
         },
         (err) => console.error("materials onSnapshot error", err)
       );
@@ -122,10 +136,14 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
-        await addDoc(collection(db, "materials"), { ...newMaterial, createdAt: serverTimestamp() } as any);
+        await addDoc(collection(db, "materials"), {
+          ...newMaterial,
+          createdAt: serverTimestamp(),
+        } as any);
       } catch (e) {
         console.error("Failed to add material to Firestore", e);
-        setMaterials((prev) => [newMaterial, ...prev]);
+        // 🔥 FIX: Mark as local-only
+        setMaterials((prev) => [{ ...newMaterial, isLocal: true }, ...prev]);
       }
     })();
 
@@ -158,7 +176,13 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const targetRef = doc(db, "materials", materialId);
-        await updateDoc(targetRef, { stock: (await (await getDocs(firestoreQuery(collection(db, "materials")))).docs.find(d=>d.id===materialId)) ? undefined : undefined } as any);
+        await updateDoc(targetRef, {
+          stock: (await (
+            await getDocs(firestoreQuery(collection(db, "materials")))
+          ).docs.find((d) => d.id === materialId))
+            ? undefined
+            : undefined,
+        } as any);
         // Best-effort: increment locally as fallback if update API not suitable
         setMaterials((prev) =>
           prev.map((material) =>
@@ -219,12 +243,15 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         // Apply updates in Firestore per material
-        const updates = Array.from(aggregated.entries()).map(async ([materialId, qty]) => {
-          const ref = doc(db, "materials", materialId);
-          // Best-effort: decrement by setting new value based on local state
-          const current = materials.find((m) => m.id === materialId)?.stock ?? 0;
-          await updateDoc(ref, { stock: current - qty } as any);
-        });
+        const updates = Array.from(aggregated.entries()).map(
+          async ([materialId, qty]) => {
+            const ref = doc(db, "materials", materialId);
+            // Best-effort: decrement by setting new value based on local state
+            const current =
+              materials.find((m) => m.id === materialId)?.stock ?? 0;
+            await updateDoc(ref, { stock: current - qty } as any);
+          }
+        );
         await Promise.all(updates);
       } catch (e) {
         console.error("Failed to withdraw materials in Firestore", e);
@@ -273,4 +300,3 @@ export const useMaterials = () => {
   }
   return ctx;
 };
-
