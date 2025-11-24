@@ -103,6 +103,12 @@ export interface Job {
   completionPdfUrl?: string;
   completedAt?: Date;
   leaderCloser?: string;
+
+  // ลายเซ็นลูกค้า (metadata only - ไม่เก็บรูปจริง)
+  lastSignedAt?: Date;
+  lastSignedBy?: string;
+  signatureCount?: number;
+
   isLocal?: boolean; // Flag to indicate if the job is only local (not yet synced to Firestore)
 }
 

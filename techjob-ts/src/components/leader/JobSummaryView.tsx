@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,43 +15,110 @@ import {
   Phone,
   Package,
   ImageIcon,
+  PenTool,
 } from "lucide-react";
 import type { Job } from "@/types/index";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import { generateCompletionReportPdf } from "@/utils/jobReport";
+import {
+  generateCompletionReportPdf,
+  generateSignedCompletionReportPdf,
+} from "@/utils/jobReport";
+import { SignatureDialog } from "@/components/common/SignatureDialog";
+import { useJobs } from "@/contexts/JobContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface JobSummaryViewProps {
   job: Job;
 }
 
 export function JobSummaryView({ job }: JobSummaryViewProps) {
+  const { updateJobWithActivity } = useJobs();
+  const { user } = useAuth();
+  const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
+
   const handleDownloadReport = () => {
     generateCompletionReportPdf(job);
   };
 
-  // Calculate total materials used
+  const handleSignatureSubmit = (signatureData: string, signerName: string) => {
+    // เปลี่ยนสถานะเป็น done และบันทึก metadata
+    updateJobWithActivity(
+      job.id,
+      {
+        status: "done",
+        lastSignedAt: new Date(),
+        lastSignedBy: signerName,
+        signatureCount: (job.signatureCount || 0) + 1,
+      },
+      "status_changed",
+      `ลูกค้าเซ็นรับทราบงาน - งานเสร็จสมบูรณ์`,
+      user?.fname || "ระบบ",
+      "leader"
+    );
+    // สร้างและดาวน์โหลด PDF พร้อมลายเซ็น
+    generateSignedCompletionReportPdf(job, signatureData, signerName);
+  };
+
   const allMaterials = job.tasks.flatMap((task) => task.materials || []);
+  const isWaitingForSignature = job.completedAt && !job.lastSignedAt;
+  const hasSigned = !!job.lastSignedAt;
 
   return (
     <div className="space-y-4">
       {/* Completion Status Card */}
-      <Card className="border-green-200 bg-green-50/40">
+      <Card
+        className={
+          isWaitingForSignature
+            ? "border-yellow-200 bg-yellow-50/40"
+            : "border-green-200 bg-green-50/40"
+        }
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm flex items-center gap-2 text-green-800">
-              <CheckCircle2 className="h-5 w-5" />
-              งานเสร็จสิ้นแล้ว
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadReport}
-              className="gap-2"
+            <CardTitle
+              className={`text-sm flex items-center gap-2 ${
+                isWaitingForSignature ? "text-yellow-800" : "text-green-800"
+              }`}
             >
-              <Download className="h-4 w-4" />
-              ดาวน์โหลดรายงาน PDF
-            </Button>
+              {isWaitingForSignature ? (
+                <>
+                  <PenTool className="h-5 w-5" />
+                  รอลูกค้าเซ็นรับทราบ
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-5 w-5" />
+                  งานเสร็จสิ้นแล้ว
+                </>
+              )}
+            </CardTitle>
+            <div className="flex gap-2">
+              {hasSigned && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadReport}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  ดาวน์โหลด PDF
+                </Button>
+              )}
+              <Button
+                variant={isWaitingForSignature ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsSignatureDialogOpen(true)}
+                className={
+                  isWaitingForSignature
+                    ? "gap-2 bg-yellow-600 hover:bg-yellow-700"
+                    : "gap-2 bg-blue-600 hover:bg-blue-700"
+                }
+              >
+                <PenTool className="h-4 w-4" />
+                {isWaitingForSignature ? "เซ็นรับทราบ" : "เซ็นอีกครั้ง"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
@@ -69,6 +136,40 @@ export function JobSummaryView({ job }: JobSummaryViewProps) {
               </p>
             </div>
           </div>
+
+          {hasSigned && (
+            <>
+              <Separator />
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <p className="text-xs font-semibold text-blue-800 mb-1 flex items-center gap-1">
+                  <PenTool className="h-3 w-3" />
+                  ข้อมูลการเซ็นรับทราบ
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">ผู้เซ็นรับทราบ</p>
+                    <p className="font-medium text-blue-900">
+                      {job.lastSignedBy || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">เซ็นเมื่อ</p>
+                    <p className="font-medium text-blue-900">
+                      {job.lastSignedAt &&
+                        format(job.lastSignedAt, "dd MMM yyyy HH:mm", {
+                          locale: th,
+                        })}
+                    </p>
+                  </div>
+                </div>
+                {job.signatureCount && job.signatureCount > 1 && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    เซ็นรับทราบแล้ว {job.signatureCount} ครั้ง
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -258,6 +359,14 @@ export function JobSummaryView({ job }: JobSummaryViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      <SignatureDialog
+        open={isSignatureDialogOpen}
+        onOpenChange={setIsSignatureDialogOpen}
+        onSubmit={handleSignatureSubmit}
+        jobTitle={job.title}
+        defaultSignerName={job.customerName}
+      />
     </div>
   );
 }
