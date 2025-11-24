@@ -600,6 +600,20 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       metadata,
     };
 
+    // 🔥 FIX: Optimistic Update - Update local state IMMEDIATELY
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => {
+        if (job.id === jobId) {
+          return {
+            ...job,
+            ...updatedData,
+            activityLog: [...(job.activityLog || []), newActivity],
+          };
+        }
+        return job;
+      })
+    );
+
     (async () => {
       try {
         await updateDoc(doc(db, "jobs", jobId), {
@@ -608,18 +622,6 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
         } as any);
       } catch (e) {
         console.error("Failed to update job with activity in Firestore", e);
-        setJobs((prevJobs) =>
-          prevJobs.map((job) => {
-            if (job.id === jobId) {
-              return {
-                ...job,
-                ...updatedData,
-                activityLog: [...(job.activityLog || []), newActivity],
-              };
-            }
-            return job;
-          })
-        );
       }
     })();
   };
