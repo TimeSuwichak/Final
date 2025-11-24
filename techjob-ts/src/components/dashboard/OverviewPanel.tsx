@@ -1,8 +1,155 @@
-// ... (ThemeProvider and useTheme code remains unchanged, omitted here for brevity)
+// ------------------------------------------------------------------------------------------------------------------
+// ✅ โค้ดที่แก้ไข: รวมการนำเข้า Lucide Icons ทั้งหมดไว้ในบรรทัดเดียว และลบการนำเข้าซ้ำซ้อนออก
+// ------------------------------------------------------------------------------------------------------------------
+import React, { useState, useRef, useEffect, useMemo, createContext, useContext } from 'react'
+// รวม Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase, CheckCircle, AlertTriangle ไว้ที่นี่
+import { 
+    Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase, 
+    CheckCircle, AlertTriangle 
+} from 'lucide-react' 
 
-import React from 'react'
-import KpiCard from './KpiCard'
-import { CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
+
+// Components (split) - Assuming these are accessible
+import RightPanel from '../../components/dashboard/RightPanel'
+
+// --- ThemeProvider Code (Included for context) ---
+// ... (ThemeProvider code remains unchanged) ...
+type Theme = "dark" | "light" | "system"
+type ThemeProviderProps = { children: React.ReactNode; defaultTheme?: Theme; storageKey?: string }
+type ThemeProviderState = { theme: Theme; setTheme: (theme: Theme) => void }
+const initialState: ThemeProviderState = { theme: "system", setTheme: () => null }
+const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
+
+export function ThemeProvider({
+  children,
+  defaultTheme = "system",
+  storageKey = "vite-ui-theme",
+  ...props
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+  )
+
+  useEffect(() => {
+    const root = window.document.documentElement
+
+    root.classList.remove("light", "dark")
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light"
+
+      root.classList.add(systemTheme)
+      return
+    }
+
+    root.classList.add(theme)
+  }, [theme])
+
+  const value = {
+    theme,
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme)
+      setTheme(setTheme)
+    },
+  }
+
+  return (
+    <ThemeProviderContext.Provider {...props} value={value}>
+      {children}
+    </ThemeProviderContext.Provider>
+  )
+}
+
+export const useTheme = () => {
+  const context = useContext(ThemeProviderContext)
+  if (context === undefined)
+    throw new Error("useTheme must be used within a ThemeProvider")
+  return context
+}
+// --- END ThemeProvider Code ---
+
+
+// ----------------------------------------------------------------------------------
+// ✅ [แก้ไข] KpiCard เวอร์ชันที่ปรับขนาดตัวเลข (text-4xl md:text-5xl -> text-3xl md:text-4xl)
+// ----------------------------------------------------------------------------------
+type KpiCardProps = {
+    title: string;
+    numericValue: number;
+    icon: React.ReactNode;
+    color: 'default' | 'blue' | 'green' | 'red';
+    change: string;
+}
+
+// Map color prop to Tailwind CSS classes
+const colorMap: Record<KpiCardProps['color'], { background: string; text: string; iconBg: string }> = {
+    default: { // Violet/Purple
+        background: 'bg-indigo-600 dark:bg-violet-600',
+        text: 'text-indigo-600 dark:text-violet-400',
+        iconBg: 'bg-indigo-500/10 dark:bg-violet-500/20'
+    },
+    blue: { // Cyan/Blue
+        background: 'bg-cyan-600 dark:bg-cyan-500',
+        text: 'text-cyan-600 dark:text-cyan-400',
+        iconBg: 'bg-cyan-500/10 dark:bg-cyan-500/20'
+    },
+    green: { // Emerald/Green
+        background: 'bg-emerald-600 dark:bg-emerald-500',
+        text: 'text-emerald-600 dark:text-emerald-400',
+        iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/20'
+    },
+    red: { // Red/Orange
+        background: 'bg-red-600 dark:bg-red-500',
+        text: 'text-red-600 dark:text-red-400',
+        iconBg: 'bg-red-500/10 dark:bg-red-500/20'
+    }
+}
+
+function KpiCard({ title, numericValue, icon, color, change }: KpiCardProps) {
+    // ไม่มี Hook สำหรับ Animation การนับตัวเลข: แสดงค่าจริงทันที
+    const valueDisplay = numericValue.toLocaleString('en-US'); 
+    
+    const { text, iconBg } = colorMap[color] || colorMap.default;
+    
+    // Determine change text color
+    const isPositive = change.startsWith('+');
+    const changeColor = isPositive 
+        ? 'text-emerald-500 dark:text-emerald-400' 
+        : 'text-red-500 dark:text-red-400';
+
+    return (
+        <div className="bg-white dark:bg-[#1a1c2e] p-5 rounded-xl shadow-lg border border-gray-100 dark:border-[#2A2C40] transition-shadow hover:shadow-2xl">
+            <div className="flex items-start justify-between">
+                <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{title}</p>
+                    {/* ✅ แก้ไขขนาดตัวเลข: text-3xl สำหรับมือถือ, md:text-4xl สำหรับเดสก์ท็อป */}
+                    <p className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white leading-none">
+                        {valueDisplay}
+                    </p>
+                </div>
+                
+                {/* Simplified Icon Wrapper - No Glass Sphere */}
+                <div className={`w-12 h-12 flex items-center justify-center rounded-full ${iconBg} ${text} shrink-0`}>
+                    {React.cloneElement(icon as React.ReactElement, { size: 20 })}
+                </div>
+            </div>
+            
+            <p className={`mt-3 text-xs font-semibold ${changeColor}`}>
+                {change}
+            </p>
+        </div>
+    )
+}
+// ----------------------------------------------------------------------------------
+
+
+// ❌ ลบการนำเข้าซ้ำซ้อน Clock, CheckCircle, Briefcase ออก
+// import { CheckCircle, Clock, AlertTriangle, Briefcase } from 'lucide-react' 
+
 import { 
   ResponsiveContainer, 
   LineChart, Line, 
@@ -36,6 +183,9 @@ const CustomBarChartTooltip = ({ active, payload, label, COLORS }: any) => {
 }
 
 
+// ----------------------------------------------------------------------------------
+// ✅ export default function OverviewPanel ... (ไม่มีการ import ซ้ำซ้อนแล้ว)
+// ----------------------------------------------------------------------------------
 export default function OverviewPanel({ activeRange }: { activeRange: string }) {
   const rangeTextMap: Record<string, string> = { Daily: 'วันนี้', Monthly: 'เดือนนี้', Yearly: 'ปีนี้' }
   const currentRangeText = rangeTextMap[activeRange] || 'เดือนนี้'
@@ -71,6 +221,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300">ภาพรวมสถิติงาน Statistics Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title={`งานทั้งหมด (${currentRangeText})`} 
             numericValue={120}
@@ -79,6 +230,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             change="+5.0% จากช่วงก่อนหน้า"
           />
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title={`กำลังดำเนินงาน (${currentRangeText})`} 
             numericValue={35}
@@ -87,6 +239,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             change="-2 งาน (เทียบกับช่วงก่อนหน้า)"
           />
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title={`งานเสร็จ (${currentRangeText})`} 
             numericValue={45}
@@ -138,6 +291,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">ภาพรวมการดำเนินงาน (Operations)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> 
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title="งานทั้งหมด" 
             numericValue={328} 
@@ -146,6 +300,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             change="+2.5% จากเดือนที่แล้ว" 
           />
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title="กำลังดำเนินงาน" 
             numericValue={85}
@@ -154,6 +309,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             change="+1.2% จากเดือนที่แล้ว" 
           />
           
+          {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
           <KpiCard 
             title="งานเสร็จแล้ว" 
             numericValue={77}
