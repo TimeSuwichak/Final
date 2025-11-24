@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, createContext, useContext 
 import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import { showError } from '@/lib/sweetalert'
 
 // Components (split) - Assuming these are accessible
 import OverviewPanel from '../../components/dashboard/OverviewPanel'
@@ -329,7 +330,7 @@ export default function ExDashboard() {
       }
       
       pdf.save('executive-dashboard-export.pdf')
-    }).catch(err => { console.error('Error exporting PDF:', err); alert('เกิดข้อผิดพลาดในการ Export PDF:\n\n' + err.message) }).finally(() => setIsExporting(false))
+    }).catch(err => { console.error('Error exporting PDF:', err); showError('เกิดข้อผิดพลาดในการ Export PDF', err.message) }).finally(() => setIsExporting(false))
   }
 
   // Removed min-h-screen for less 'fill-the-view' feeling

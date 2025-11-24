@@ -68,6 +68,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { PdfViewer } from "@/components/common/PdfViewer";
+import { showWarning } from "@/lib/sweetalert";
 
 interface LeaderJobDetailDialogProps {
   job: Job | null;
@@ -222,7 +223,7 @@ export function LeaderJobDetailDialog({
 
   const handleSubmitCompletion = () => {
     if (!completionSummary.trim()) {
-      alert("กรุณากรอกสรุปผลการทำงาน");
+      showWarning("กรุณากรอกสรุปผลการทำงาน");
       return;
     }
     setIsGeneratingReport(true);
@@ -925,7 +926,7 @@ export function LeaderJobDetailDialog({
               className="bg-destructive hover:bg-destructive/90 h-8 text-xs"
               onClick={() => {
                 if (!deleteReason.trim()) {
-                  alert("กรุณาระบุเหตุผลการลบ");
+                  showWarning("กรุณาระบุเหตุผลการลบ");
                   return;
                 }
                 deleteJob(job.id, deleteReason.trim(), user.fname);

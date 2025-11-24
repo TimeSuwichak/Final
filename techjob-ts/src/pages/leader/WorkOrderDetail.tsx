@@ -61,6 +61,7 @@ import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
 import { JobSummaryView } from "@/components/leader/JobSummaryView";
 import TechnicianTracking from "@/pages/leader/TechnicianTracking";
+import { showSuccess } from "@/lib/sweetalert";
 
 // Declare missing functions
 const getStatusColor = (status: string) => {
@@ -393,7 +394,7 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    alert("ปิดงานเรียบร้อย!");
+    showSuccess("ปิดงานเรียบร้อย!");
   };
 
   const workAreaRadius = 150;

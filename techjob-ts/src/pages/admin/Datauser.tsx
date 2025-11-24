@@ -60,6 +60,7 @@ import { admin } from "@/Data/admin";
 // ==========================================================
 import { departmentMap } from "@/Data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { showWarning, showConfirm } from "@/lib/sweetalert";
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -241,7 +242,7 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
   const handleSubmit = (event: any) => {
     event.preventDefault();
     if (!fname || !lname || !department || !position) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      showWarning("กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
 
@@ -630,8 +631,9 @@ export default function Datauser() {
     setEditingUser(null);
   };
 
-  const handleDeleteUser = (userId: any) => {
-    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?")) {
+  const handleDeleteUser = async (userId: any) => {
+    const result = await showConfirm("ยืนยันการลบ", "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?");
+    if (result.isConfirmed) {
       setPersonnelData((prev) => {
         const updated = prev.filter((user) => user.id !== userId);
         // บันทึกทันที

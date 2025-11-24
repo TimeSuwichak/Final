@@ -14,6 +14,7 @@ import { user } from "@/Data/user";
 import { leader } from "@/Data/leader";
 import { admin } from "@/Data/admin";
 import { executive } from "@/Data/executive";
+import { showError } from "@/lib/sweetalert";
 
 // --- 2. รวมข้อมูลทุก Role ไว้ในถังเดียว เพื่อง่ายต่อการค้นหา ---
 const allUsers = [...user, ...leader, ...admin, ...executive];
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return true;
     } else {
       // ถ้าไม่เจอ -> แจ้งเตือน
-      alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      showError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       return false;
     }
   };

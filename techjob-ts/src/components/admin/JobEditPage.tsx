@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import type { Job } from "@/types/index"
 import { AdminMap } from "@/components/admin/AdminMap"
 import { ArrowLeft } from "lucide-react"
+import { showInfo, showError, showWarning } from "@/lib/sweetalert"
 
 const JOB_TYPES = ["ซ่อมบำรุง", "รื้อถอน", "ติดตั้งระบบ", "ตรวจสอบประจำปี", "อื่นๆ"]
 
@@ -120,7 +121,7 @@ export default function JobEditPage() {
     }
 
     if (Object.keys(changes).length === 0) {
-      alert("ไม่มีข้อมูลเปลี่ยนแปลง")
+      showInfo("ไม่มีข้อมูลเปลี่ยนแปลง")
       navigate(`/admin/job/${jobId}`)
       return
     }
@@ -131,7 +132,7 @@ export default function JobEditPage() {
 
   const handleConfirmSave = () => {
     if (!job || !user || !editReason) {
-      alert("เกิดข้อผิดพลาด หรือยังไม่ได้กรอกเหตุผล")
+      showError("เกิดข้อผิดพลาด", "ยังไม่ได้กรอกเหตุผล")
       return
     }
     updateJob(job.id, pendingChanges, editReason, user.fname)
@@ -339,7 +340,7 @@ export default function JobEditPage() {
             <AlertDialogAction
               onClick={() => {
                 if (!deleteReason.trim()) {
-                  alert("กรุณาระบุเหตุผลการลบ")
+                  showWarning("กรุณาระบุเหตุผลการลบ")
                   return
                 }
                 if (!job || !user) return

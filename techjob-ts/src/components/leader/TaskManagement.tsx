@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils";
 import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
 import { user as ALL_USERS } from "@/Data/user";
 import { Users } from "lucide-react";
+import { showWarning } from "@/lib/sweetalert";
 
 interface TaskManagementProps {
   job: Job;
@@ -194,7 +195,7 @@ export function TaskManagement({
       .some((t) => t.status !== "completed");
 
     if (hasUnfinishedPreviousStep) {
-      alert("ไม่สามารถข้ามขั้นตอนได้ กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน");
+      showWarning("ไม่สามารถข้ามขั้นตอนได้", "กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน");
       setStatusChangeDialogOpen(false);
       setPendingStatusChange(null);
       return;
@@ -260,7 +261,7 @@ export function TaskManagement({
 
   const confirmRejectTask = () => {
     if (!pendingRejectTask || !pendingRejectTask.reason.trim()) {
-      alert("กรุณาใส่เหตุผลในการตีกลับงาน");
+      showWarning("กรุณาใส่เหตุผลในการตีกลับงาน");
       return;
     }
 
@@ -317,7 +318,7 @@ export function TaskManagement({
 
   const handleOpenUpdateDialog = (task: Task) => {
     if (task.needsAcknowledgment) {
-      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
       return;
     }
     setSelectedTask(task);
@@ -329,7 +330,7 @@ export function TaskManagement({
 
   const handleOpenMaterialDialog = (task: Task) => {
     if (task.needsAcknowledgment) {
-      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนเบิกวัสดุ");
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนเบิกวัสดุ");
       return;
     }
     setSelectedTask(task);
@@ -404,12 +405,12 @@ export function TaskManagement({
 
   const submitUpdate = () => {
     if (!selectedTask || !updateMessage.trim()) {
-      alert("กรุณากรอกข้อความอัปเดต");
+      showWarning("กรุณากรอกข้อความอัปเดต");
       return;
     }
 
     if (selectedTask.needsAcknowledgment) {
-      alert("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
       return;
     }
 

@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { showWarning } from '@/lib/sweetalert';
 import {
   Dialog,
   DialogContent,
@@ -215,11 +216,11 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
 
   const handleUpdate = () => {
     if (needsAcknowledgement) {
-      alert("กรุณากดรับทราบการตีกลับจากหัวหน้าก่อนส่งอัปเดตใหม่");
+      showWarning("กรุณากดรับทราบการตีกลับจากหัวหน้าก่อนส่งอัปเดตใหม่");
       return;
     }
     if (!message.trim()) {
-      alert("กรุณากรอกข้อความอัปเดต");
+      showWarning("กรุณากรอกข้อความอัปเดต");
       return;
     }
 

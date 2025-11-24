@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eraser, PenTool, Download } from "lucide-react";
+import { showWarning } from "@/lib/sweetalert";
 
 interface SignatureDialogProps {
   open: boolean;
@@ -108,11 +109,11 @@ export function SignatureDialog({
 
   const handleSubmit = () => {
     if (isEmpty) {
-      alert("กรุณาเซ็นชื่อก่อนยืนยัน");
+      showWarning("กรุณาเซ็นชื่อก่อนยืนยัน");
       return;
     }
     if (!signerName.trim()) {
-      alert("กรุณากรอกชื่อผู้เซ็น");
+      showWarning("กรุณากรอกชื่อผู้เซ็น");
       return;
     }
 

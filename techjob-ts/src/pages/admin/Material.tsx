@@ -64,6 +64,7 @@ import { consumableMaterials } from "@/data/materials/consumables";
 import { useMaterials } from "@/contexts/MaterialContext";
 import type { Material } from "@/types";
 import { MaterialWithdrawalList } from "@/components/admin/MaterialWithdrawalList";
+import { showSuccess, showError } from "@/lib/sweetalert";
 
 interface PendingOrder {
   id: string;
@@ -228,7 +229,7 @@ export default function MaterialDashboard() {
       });
       setOpenAdd(false);
       setNewMat({ name: "", type: "", stock: 0, unit: "" });
-      alert("เพิ่มวัสดุสำเร็จ");
+      showSuccess("เพิ่มวัสดุสำเร็จ");
     }
   };
 
@@ -244,7 +245,7 @@ export default function MaterialDashboard() {
       });
       setOpenEdit(false);
       setEditMat(null);
-      alert("แก้ไขวัสดุสำเร็จ");
+      showSuccess("แก้ไขวัสดุสำเร็จ");
     }
   };
 
@@ -281,9 +282,9 @@ export default function MaterialDashboard() {
     if (result.success) {
       setWithdrawMat(null);
       setWithdrawQuantity(0);
-      alert("เบิกวัสดุสำเร็จ");
+      showSuccess("เบิกวัสดุสำเร็จ");
     } else {
-      alert(result.errors ? result.errors.join("\n") : "เกิดข้อผิดพลาด");
+      showError("เกิดข้อผิดพลาด", result.errors ? result.errors.join("\n") : "");
     }
   };
 
