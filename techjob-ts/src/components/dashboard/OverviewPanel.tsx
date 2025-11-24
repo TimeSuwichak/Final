@@ -227,7 +227,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={120}
             icon={<Briefcase size={22} />} 
             color="default" // จะถูกตีความเป็น Violet/Purple Accent
-            change="+5.0% จากช่วงก่อนหน้า"
+            change="+5.0% จำนวนงาน "
           />
           
           {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
@@ -236,7 +236,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={35}
             icon={<Clock size={22} />} 
             color="blue" // จะถูกตีความเป็น Cyan Accent
-            change="-2 งาน (เทียบกับช่วงก่อนหน้า)"
+            change="กำลังดำเนินงาน "
           />
           
           {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
@@ -245,7 +245,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={45}
             icon={<CheckCircle size={22} />} 
             color="green" // จะถูกตีความเป็น Emerald Accent
-            change="+10 งาน (เทียบกับช่วงก่อนหน้า)"
+            change="+10 งานทั้งหมดที่เสร็จ "
           />
         </div>
 
@@ -297,7 +297,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={328} 
             icon={<Briefcase size={22} />} 
             color="default" 
-            change="+2.5% จากเดือนที่แล้ว" 
+            change="+2.5% งานเติบโตจากเดือนที่แล้ว" 
           />
           
           {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
@@ -306,7 +306,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={85}
             icon={<Clock size={22} />} 
             color="blue" 
-            change="+1.2% จากเดือนที่แล้ว" 
+            change="+1.2% กำลังดำเนินงานเติบโตจากเดือนที่แล้ว" 
           />
           
           {/* ✅ KpiCard ที่ถูกประกาศใหม่: ไม่มี Animation ตัวเลข */}
@@ -315,7 +315,7 @@ export default function OverviewPanel({ activeRange }: { activeRange: string }) 
             numericValue={77}
             icon={<CheckCircle size={22} />} 
             color="green" 
-            change="+3.0% จากเดือนที่แล้ว" 
+            change="+3.0% งานเสร็จเติบโตจากเดือนที่แล้ว" 
           />
         </div>
 
