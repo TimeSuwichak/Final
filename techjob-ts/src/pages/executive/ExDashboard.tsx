@@ -82,7 +82,7 @@ function TimeRangeButton({ label, isActive, onClick }: any) {
   )
 }
 
-// --- DashboardFilters (Reduced transitions, removed calendar animation) ---
+// --- DashboardFilters (Increased Z-index for Calendar) ---
 function DashboardFilters({ activeRange, onRangeChange }: any) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date()) 
@@ -161,8 +161,8 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
           </button>
         </div>
         {isCalendarOpen && (
-          // Removed animation: transform origin-top-left animate-in fade-in zoom-in-95
-          <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px]">
+          // ✅ เพิ่ม Z-index สูงสุด (z-[999]) เพื่อป้องกันการซ้อนทับ
+          <div className="absolute top-full left-0 mt-2 z-[999] bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px]">
             <div className="flex justify-between items-center mb-4">
               <button onClick={() => changeMonth(-1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#1f2133] text-gray-600 dark:text-gray-300 transition-colors"><ChevronLeft size={18} /></button>
               <span className="font-bold text-sm text-gray-900 dark:text-white">{currentMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}</span>
@@ -245,7 +245,8 @@ function DashboardHeaderCard({
   `;
   
   return (
-    <header className={`mb-8 ${cardStyle} relative overflow-hidden`}>
+    // ✅ ลบ overflow-hidden ออก เพื่อให้ปฏิทินที่ใช้ absolute position สามารถล้นออกมาได้
+    <header className={`mb-8 ${cardStyle} relative`}>
       
       {/* 1. Vertical Accent Line Removed */}
 
