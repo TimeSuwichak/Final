@@ -42,7 +42,6 @@ import {
   ExternalLink,
   Save,
 } from "lucide-react";
-import { TaskDetailsLocked } from "@/components/leader/TaskDetailsLocked";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { TechSelectMultiDept } from "@/components/leader/TechSelectMultiDept";
 import { Textarea } from "@/components/ui/textarea";

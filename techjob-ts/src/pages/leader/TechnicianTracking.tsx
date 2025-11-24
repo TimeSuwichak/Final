@@ -13,7 +13,7 @@ import { user as ALL_USERS } from '@/Data/user';
 import { MapPin, Users, Briefcase, Clock, CheckCircle2, AlertCircle, User, Phone, X, Fingerprint, ChevronDown, ChevronRight, TrendingUp, Lock, LockOpen } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { TaskDetailsLocked } from '@/components/leader/TaskDetailsLocked';
+import { TaskManagement } from '@/components/leader/TaskManagement';
 
 // Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -711,7 +711,7 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
                     รายละเอียดงานย่อย ({selectedJob.tasks.length})
                   </h4>
                   
-                  <TaskDetailsLocked tasks={selectedJob.tasks} />
+                  <TaskManagement job={selectedJob} mode="admin" />
                 </div>
               </CardContent>
             </Card>

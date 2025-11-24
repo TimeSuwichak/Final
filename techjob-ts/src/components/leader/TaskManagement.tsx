@@ -60,7 +60,7 @@ import { showWarning } from "@/lib/sweetalert";
 
 interface TaskManagementProps {
   job: Job;
-  mode?: "leader" | "user";
+  mode?: "leader" | "user" | "admin";
   onFinishJob?: () => void;
 }
 

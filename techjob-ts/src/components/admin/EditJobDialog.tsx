@@ -56,7 +56,7 @@ import {
 } from "@/components/ui/card";
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
-import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
+import { TaskManagement } from "../leader/TaskManagement";
 import { Briefcase, Users, UserCheck, Download,ImageIcon } from "lucide-react";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 import { PdfViewer } from "@/components/common/PdfViewer";  
@@ -511,7 +511,7 @@ export function EditJobDialog({
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <TaskDetailsLocked tasks={job.tasks} />
+                        <TaskManagement job={job} mode="admin" />
                       </CardContent>
                     </Card>
                   )}
