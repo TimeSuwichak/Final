@@ -264,6 +264,15 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
         // 🔥 FIX: Merge server jobs with existing local-only jobs
         // Instead of overwriting, we keep jobs that are marked as isLocal: true
         setJobs((prevJobs) => {
+          // 🛡️ SAFETY GUARD: If server returns EMPTY list, but we have local data,
+          // it might be a sync glitch, auth issue, or wrong project.
+          // We preserve local data to prevent "Disappearing" issue.
+          if (serverJobs.length === 0 && prevJobs.length > 0) {
+            console.warn("Server returned empty list. Preserving local jobs.");
+            // Keep all previous jobs, marking them as local to persist them
+            return prevJobs.map((job) => ({ ...job, isLocal: true }));
+          }
+
           const localOnlyJobs = prevJobs.filter((job) => job.isLocal);
 
           // Filter out local jobs that might have been synced successfully (if ID matches)
