@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useMemo, createContext, useContext } from 'react'
-import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase } from 'lucide-react' // ลบ BarChart2 ออกเนื่องจากไม่ได้ใช้ในโค้ดที่เหลือ
+import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
 
 // Components (split) - Assuming these are accessible
 import OverviewPanel from '../../components/dashboard/OverviewPanel'
 import RightPanel from '../../components/dashboard/RightPanel'
-// import TechnicianPerformance from '../../components/dashboard/TechnicianPerformance' // ถูกคอมเมนต์ในโค้ดเดิม
 
 // --- ThemeProvider Code (Included for context) ---
+// ... (ThemeProvider code remains unchanged) ...
 type Theme = "dark" | "light" | "system"
 type ThemeProviderProps = { children: React.ReactNode; defaultTheme?: Theme; storageKey?: string }
 type ThemeProviderState = { theme: Theme; setTheme: (theme: Theme) => void }
@@ -47,7 +47,7 @@ export function ThemeProvider({
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+      setTheme(setTheme)
     },
   }
 
@@ -67,12 +67,12 @@ export const useTheme = () => {
 // --- END ThemeProvider Code ---
 
 
-// --- TimeRangeButton (Adjusted for better fit) ---
+// --- TimeRangeButton (Reduced transitions) ---
 function TimeRangeButton({ label, isActive, onClick }: any) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
         isActive 
           ? 'bg-indigo-600 text-white dark:bg-violet-600 shadow-sm hover:bg-indigo-700 dark:hover:bg-violet-700'
           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1f2133]'
@@ -82,7 +82,7 @@ function TimeRangeButton({ label, isActive, onClick }: any) {
   )
 }
 
-// --- DashboardFilters (Adjusted for better fit) ---
+// --- DashboardFilters (Reduced transitions, removed calendar animation) ---
 function DashboardFilters({ activeRange, onRangeChange }: any) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date()) 
@@ -118,7 +118,8 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
     const days = [] as React.ReactNode[]
     for (let i = 0; i < startDayOfWeek; i++) days.push(<div key={`pad-${i}`} className="w-8 h-8" />)
     for (let i = 1; i <= daysInMonth; i++) {
-      const dayClasses = `w-8 h-8 flex items-center justify-center text-sm rounded-full cursor-pointer transition-colors duration-150 ease-in-out 
+      // Reduced animation complexity
+      const dayClasses = `w-8 h-8 flex items-center justify-center text-sm rounded-full cursor-pointer transition-colors 
         ${isToday(i) ? 'border-2 border-indigo-500 dark:border-violet-500' : ''} 
         ${isSelected(i) 
           ? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-violet-600 dark:hover:bg-violet-700 font-bold'
@@ -133,7 +134,8 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
     return days
   }, [currentMonth, selectedDate]) 
 
-  const filterBoxStyle = "bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg px-3 py-1.5 min-w-[170px] transition-all duration-200 hover:border-indigo-300 dark:hover:border-violet-500 shadow-sm"
+  // Reduced transition and hover effects
+  const filterBoxStyle = "bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg px-3 py-1.5 min-w-[170px] shadow-sm"
   const labelStyle = "text-xs font-medium text-gray-500 dark:text-gray-400 block tracking-wider uppercase"
   const selectStyle = "bg-transparent text-sm font-bold text-gray-900 dark:text-white w-full focus:outline-none appearance-none cursor-pointer"
   const optionStyle = "bg-white text-black dark:bg-[#1a1c2e] dark:text-white"
@@ -154,11 +156,13 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
           <button className="flex items-center gap-2 mt-1 w-full text-left" onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
             <Calendar size={16} className="text-indigo-500 dark:text-violet-400" /> 
             <span className="text-sm font-bold text-gray-900 dark:text-white flex-1">{selectedDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            {/* Reduced transition on ChevronDown */}
             <ChevronDown size={16} className={`${iconStyle} transition-transform ${isCalendarOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
         {isCalendarOpen && (
-          <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px] transform origin-top-left animate-in fade-in zoom-in-95">
+          // Removed animation: transform origin-top-left animate-in fade-in zoom-in-95
+          <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px]">
             <div className="flex justify-between items-center mb-4">
               <button onClick={() => changeMonth(-1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#1f2133] text-gray-600 dark:text-gray-300 transition-colors"><ChevronLeft size={18} /></button>
               <span className="font-bold text-sm text-gray-900 dark:text-white">{currentMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}</span>
@@ -201,13 +205,16 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
   )
 }
 
-// --- DashboardActions ---
+// --- DashboardActions (Removed spin animation and excessive transitions) ---
 function DashboardActions({ onExportClick, isExporting }: any) {
   return (
     <div className="flex items-center gap-3">
-      <button onClick={onExportClick} disabled={isExporting} className="flex items-center justify-center gap-2 text-sm bg-indigo-600 dark:bg-violet-600 hover:bg-indigo-700 dark:hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-all duration-200 font-semibold shadow-md disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed min-w-[140px]">
+      <button onClick={onExportClick} disabled={isExporting} 
+        // Reduced transition-all duration-200 to transition-colors
+        className="flex items-center justify-center gap-2 text-sm bg-indigo-600 dark:bg-violet-600 hover:bg-indigo-700 dark:hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold shadow-md disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed min-w-[140px]">
         {isExporting ? (
-          <><Clock size={16} className="animate-spin text-white" /><span>กำลัง Export</span></>
+          // Removed animate-spin from Clock icon
+          <><Clock size={16} className="text-white" /><span>กำลัง Export</span></>
         ) : (
           <><Download size={16} className="text-white" /><span>Export PDF</span></>
         )}
@@ -216,7 +223,7 @@ function DashboardActions({ onExportClick, isExporting }: any) {
   )
 }
 
-// --- DashboardHeaderCard (รวม Icon Style ใหม่) ---
+// --- DashboardHeaderCard (Removed Glass Sphere Icon Style and Vertical Accent) ---
 function DashboardHeaderCard({ 
     activeRange, 
     onRangeChange, 
@@ -224,45 +231,30 @@ function DashboardHeaderCard({
     isExporting 
 }: any) {
   
-  const cardStyle = "bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl dark:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 border border-gray-100 dark:border-[#2A2C40]";
+  // Reduced card complexity (removed dark shadow and transition-all duration-300)
+  const cardStyle = "bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2C40]";
   const titleStyle = "text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug";
   const descStyle = "text-sm text-gray-500 dark:text-gray-400 mt-0.5 font-medium";
   
-  // ✅ [UPDATED ICON STYLE] Glass Sphere with Complex Shadow
+  // Simplified Icon Style (Solid background, simple shadow)
   const iconWrapperStyle = `
     w-14 h-14 md:w-16 md:h-16 flex items-center justify-center 
     rounded-full 
-    bg-gradient-to-br from-indigo-500 to-violet-600 
-    dark:from-indigo-700 dark:to-violet-800 
-    shadow-[
-      0_5px_15px_rgba(0,0,0,0.3), 
-      0_0_0_1px_rgba(255,255,255,0.1), 
-      inset_0_2px_5px_rgba(255,255,255,0.3), 
-      inset_0_-2px_5px_rgba(0,0,0,0.2) 
-    ]
-    dark:shadow-[
-      0_5px_15px_rgba(0,0,0,0.6), 
-      0_0_0_1px_rgba(255,255,255,0.05),
-      inset_0_2px_5px_rgba(255,255,255,0.1),
-      inset_0_-2px_5px_rgba(0,0,0,0.3)
-    ]
-    transform transition-all duration-300 ease-in-out
+    bg-indigo-600 dark:bg-violet-600 
+    shadow-lg shadow-indigo-500/50 dark:shadow-violet-700/50 
   `;
   
   return (
     <header className={`mb-8 ${cardStyle} relative overflow-hidden`}>
       
-      {/* 1. Vertical Accent Line (สอดคล้องกับ Card Style) */}
-      {/* ✅ [ADDED] Vertical Accent Line */}
-      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 to-violet-600 rounded-l-2xl"></div>
+      {/* 1. Vertical Accent Line Removed */}
 
       {/* 2. Header Row (Title & Action) */}
-      {/* ✅ [ADJUSTED] p-5 md:p-6 p-6 -> p-5 md:p-6 (เพื่อไม่ให้ซ้ำกับ padding ของ cardStyle) */}
       <div className="p-5 md:p-6 border-b border-gray-100 dark:border-[#2A2C40]">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           
           <div className="flex items-center gap-3">
-            {/* ✅ [UPDATED ICON] ใช้ Glass Sphere Style */}
+            {/* ✅ ใช้ Icon Style แบบเรียบง่าย */}
             <div className={iconWrapperStyle}>
               <Briefcase size={28} className="text-white drop-shadow-sm" /> 
             </div>
@@ -304,7 +296,6 @@ export default function ExDashboard() {
   const dashboardRef = useRef<HTMLDivElement | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [activeRange, setActiveRange] = useState('Monthly')
-  // ลบ [loading, setLoading] = useState(true) และ useEffect ที่เกี่ยวข้องออกไป
 
   const handleExportPDF = () => {
     if (isExporting) return
@@ -340,15 +331,13 @@ export default function ExDashboard() {
     }).catch(err => { console.error('Error exporting PDF:', err); alert('เกิดข้อผิดพลาดในการ Export PDF:\n\n' + err.message) }).finally(() => setIsExporting(false))
   }
 
-  const baseContainerClass = 'flex-1 p-6 md:p-8 bg-gray-50 dark:bg-[#0D0E15] text-gray-900 dark:text-gray-100 min-h-screen'
-
-  // ลบเงื่อนไข if (loading) ออก ทำให้แสดงเนื้อหาหลักทันที
+  // Removed min-h-screen for less 'fill-the-view' feeling
+  const baseContainerClass = 'flex-1 p-6 md:p-8 bg-gray-50 dark:bg-[#0D0E15] text-gray-900 dark:text-gray-100'
 
   return (
     <ThemeProvider>
       <div ref={dashboardRef} className={baseContainerClass}>
         
-        {/* ✅ ใช้ DashboardHeaderCard ที่รวม Glass Sphere Icon Style และ Vertical Accent Line แล้ว */}
         <DashboardHeaderCard 
           activeRange={activeRange} 
           onRangeChange={setActiveRange}
@@ -358,12 +347,14 @@ export default function ExDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <OverviewPanel activeRange={activeRange} />
+            {/* OverviewPanel: ต้องแก้โค้ดในไฟล์นี้ (OverviewPanel.tsx) ให้แสดงตัวเลขโดยตรง */}
+            <OverviewPanel activeRange={activeRange} /> 
             {/* <TechnicianPerformance /> */}
           </div>
 
           <div className="lg:col-span-1 space-y-8">
-            <RightPanel />
+            {/* RightPanel: ต้องแก้โค้ดในไฟล์นี้ (RightPanel.tsx) ให้แสดงตัวเลขโดยตรง */}
+            <RightPanel /> 
           </div>
         </div>
       </div>
