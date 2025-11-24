@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useRef} from "react";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -69,6 +69,7 @@ import {
   } from "lucide-react";
   import { PdfViewer } from "@/components/common/PdfViewer";
 
+  
 interface LeaderJobDetailDialogProps {
   job: Job | null;
   open: boolean;
@@ -101,10 +102,10 @@ export function LeaderJobDetailDialog({
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
-    if (job) {
+    if (job && open) {
       setDraftTechs(job.assignedTechs);
     }
-  }, [job]);
+  }, [job, open]);
 
   if (!job || !user) return null;
 

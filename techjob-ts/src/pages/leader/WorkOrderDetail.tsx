@@ -635,16 +635,6 @@ const WorkOrderDetail: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-xs font-semibold">เลือกทีมช่าง</p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleSaveTeam}
-                            className="h-7 text-xs gap-1 bg-transparent"
-                            disabled={currentJob.status === "done"}
-                          >
-                            <Save className="h-3 w-3" />
-                            บันทึก
-                          </Button>
                         </div>
                         <TechSelectMultiDept
                           jobStartDate={currentJob.startDate}
@@ -657,6 +647,20 @@ const WorkOrderDetail: React.FC = () => {
                     </>
                   ) : null}
                 </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSaveTeam}
+                    className="h-7 text-xs gap-1 bg-transparent"
+                    disabled={currentJob.status === "done"}
+                  >
+                    <Save className="h-3 w-3" />
+                    บันทึก
+                  </Button>
+                </div>
+
               </CardContent>
             </Card>
           </div>
