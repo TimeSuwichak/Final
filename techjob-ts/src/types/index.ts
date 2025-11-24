@@ -103,6 +103,7 @@ export interface Job {
   completionPdfUrl?: string;
   completedAt?: Date;
   leaderCloser?: string;
+  isLocal?: boolean; // Flag to indicate if the job is only local (not yet synced to Firestore)
 }
 
 export type MaterialUsageType = "consumable" | "returnable";
