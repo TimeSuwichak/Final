@@ -19,6 +19,7 @@ import { leader as leaderData } from "@/Data/leader";
 import { admin as adminData } from "@/Data/admin";
 import { executive as executiveData } from "@/Data/executive";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { showError } from "@/lib/sweetalert";
 
 export default function UserChat({ userId, targetUserId }: { userId: string; targetUserId?: string }) {
   const [messages, setMessages] = useState<any[]>([]);
@@ -140,7 +141,7 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
       });
     } catch (error) {
       console.error("ส่งข้อความล้มเหลว:", error);
-      alert("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
+      showError("เกิดข้อผิดพลาดในการส่งข้อความ", "กรุณาลองใหม่อีกครั้ง");
     }
   }
 

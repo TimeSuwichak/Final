@@ -42,25 +42,15 @@ import {
   ExternalLink,
   Save,
 } from "lucide-react";
-import { TaskDetailsLocked } from "@/components/leader/TaskDetailsLocked";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { TechSelectMultiDept } from "@/components/leader/TechSelectMultiDept";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
 import { JobSummaryView } from "@/components/leader/JobSummaryView";
 import TechnicianTracking from "@/pages/leader/TechnicianTracking";
+import { showSuccess } from "@/lib/sweetalert";
 
 // Declare missing functions
 const getStatusColor = (status: string) => {
@@ -219,7 +209,6 @@ const WorkOrderDetail: React.FC = () => {
   const [showTechnicianView, setShowTechnicianView] = useState(false);
 
   const [draftTechs, setDraftTechs] = useState<string[]>([]);
-  const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false);
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
@@ -327,7 +316,7 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    setIsSaveSuccessOpen(true);
+    showSuccess("บันทึกเสร็จสิ้น");
   };
 
   const getTechDisplayName = (techId: string) => {
@@ -393,7 +382,7 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    alert("ปิดงานเรียบร้อย!");
+    showSuccess("ปิดงานเรียบร้อย!");
   };
 
   const workAreaRadius = 150;
@@ -447,6 +436,8 @@ const WorkOrderDetail: React.FC = () => {
                 </Button>
               </div>
             </div>
+           
+
           </CardHeader>
         </Card>
 
@@ -541,9 +532,11 @@ const WorkOrderDetail: React.FC = () => {
                         onClick={() =>
                           window.open(currentJob.imageUrl, "_blank")
                         }
+                        
                       />
                     </div>
                   </div>
+                  
                 )}
 
                 {currentJob.pdfFiles && currentJob.pdfFiles.length > 0 && (
@@ -587,6 +580,7 @@ const WorkOrderDetail: React.FC = () => {
                     <Badge className="bg-green-600 text-xs h-5">
                       รับทราบแล้ว
                     </Badge>
+                    
                   </div>
 
                   {canManageTeam ? null : (
@@ -603,38 +597,33 @@ const WorkOrderDetail: React.FC = () => {
                         คุณยังสามารถตรวจสอบความคืบหน้าและอนุมัติแต่ละขั้นตอนได้ตามปกติ
                       </p>
                     </div>
+                    
                   )}
 
                   {currentJob.status === "done" ? (
                     /* Show Summary View for Completed Jobs */
                     <JobSummaryView job={currentJob} />
                   ) : (
-                    /* Show Task Management for Active Jobs */
+                    /* Show Active Jobs */
                     <>
-                      {/* Task Management */}
-                      <div className="pt-4">
-                        <TaskManagement
-                          job={currentJob}
-                          onFinishJob={handleFinishJob}
-                        />
-                        <br />
-                        <TaskDetailsLocked tasks={currentJob.tasks} />
-                      </div>
+                      {/* Tech Selection - แสดงก่อนเสมอ */}
+                      {canManageTeam ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                          </div>
+                          <TechSelectMultiDept
+                            jobStartDate={currentJob.startDate}
+                            jobEndDate={currentJob.endDate}
+                            selectedTechIds={draftTechs}
+                            onTechsChange={setDraftTechs}
+                            disabled={currentJob.status === "done"}
+                          />
+                        </div>
+                        
+                      ) : null}
 
-                      <Separator />
-
-                      {/* Assigned Team List (Detailed View) */}
-                      <JobTeamDisplay job={currentJob} />
-                    </>
-                  )}
-
-                  {/* Tech Selection - ย้ายมาด้านล่าง */}
-                  {canManageTeam ? (
-                    <>
-                      <Separator />
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                       <div className="flex justify-end">
                           <Button
                             size="sm"
                             variant="outline"
@@ -646,17 +635,41 @@ const WorkOrderDetail: React.FC = () => {
                             บันทึก
                           </Button>
                         </div>
-                        <TechSelectMultiDept
-                          jobStartDate={currentJob.startDate}
-                          jobEndDate={currentJob.endDate}
-                          selectedTechIds={draftTechs}
-                          onTechsChange={setDraftTechs}
-                          disabled={currentJob.status === "done"}
-                        />
-                      </div>
+
+                      {/* แสดง Task Management และ Team Display เฉพาะเมื่อมีช่างแล้ว */}
+                      {currentJob.assignedTechs && currentJob.assignedTechs.length > 0 ? (
+                        <>
+                          <Separator />
+                          
+                          {/* Assigned Team List (Detailed View) */}
+                          <JobTeamDisplay job={currentJob} />
+                          
+                          <Separator />
+
+                          {/* Task Management */}
+                          <div className="pt-4">
+                            <TaskManagement
+                              job={currentJob}
+                              onFinishJob={handleFinishJob}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        canManageTeam && (
+                          <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-4 text-xs text-muted-foreground text-center space-y-1">
+                            <p className="font-semibold flex items-center justify-center gap-1">
+                              <AlertCircle className="h-3.5 w-3.5" />
+                              กรุณาเลือกทีมช่างก่อน
+                            </p>
+                            <p>หลังจากเลือกทีมช่างแล้ว ระบบ Task Management จะแสดงขึ้นมา</p>
+                          </div>
+                        )
+                      )}
                     </>
-                  ) : null}
+                  )}
                 </div>
+
+                
               </CardContent>
             </Card>
           </div>
@@ -670,29 +683,6 @@ const WorkOrderDetail: React.FC = () => {
           />
         )}
       </div>
-
-      {/* Save Success Dialog */}
-      <AlertDialog
-        open={isSaveSuccessOpen}
-        onOpenChange={setIsSaveSuccessOpen}
-      >
-        <AlertDialogContent className="max-w-sm text-center space-y-4">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base flex items-center gap-2 justify-center">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              บันทึกเสร็จสิ้น
-            </AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="justify-center">
-            <AlertDialogAction
-              className="h-8 text-xs"
-              onClick={() => setIsSaveSuccessOpen(false)}
-            >
-              ตกลง
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Job Completion Form Dialog */}
       <JobCompletionForm

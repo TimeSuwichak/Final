@@ -14,6 +14,7 @@ import { user } from "@/Data/user";
 import { leader } from "@/Data/leader";
 import { admin } from "@/Data/admin";
 import { executive } from "@/Data/executive";
+import { showError } from "@/lib/sweetalert";
 
 // --- 2. รวมข้อมูลทุก Role ไว้ในถังเดียว เพื่อง่ายต่อการค้นหา ---
 const allUsers = [...user, ...leader, ...admin, ...executive];
@@ -61,8 +62,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (updatedUserData) {
           // อัปเดตข้อมูล user โดยคงข้อมูลบางอย่างไว้ (เช่น password)
           const mergedUser = {
-            ...currentUserData,
             ...updatedUserData,
+            // 🔥 FIX: Preserve the original ID to prevent mismatch with assigned jobs
+            id: currentUserData.id,
             // ใช้ password เดิมถ้าไม่ได้แก้ไข
             password: updatedUserData.password || currentUserData.password,
             // ใช้ข้อมูลที่อัปเดตแล้ว
@@ -133,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return true;
     } else {
       // ถ้าไม่เจอ -> แจ้งเตือน
-      alert("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      showError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       return false;
     }
   };

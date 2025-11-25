@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaImage } from "react-icons/fa";
+import { showWarning, showSuccess } from "@/lib/sweetalert";
 
 const STORAGE_KEY = "techjob_personnel_data";
 
@@ -205,7 +206,7 @@ export default function MyProfile() {
 
   const handleUpdateProfile = () => {
     if (!fname || !lname || !department || !position) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      showWarning("กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
 
@@ -245,7 +246,7 @@ export default function MyProfile() {
     setPerson(normalizePerson(updatedUserData));
     setIsDialogOpen(false);
 
-    alert("บันทึกข้อมูลสำเร็จ");
+    showSuccess("บันทึกข้อมูลสำเร็จ");
   };
 
   // UI โหลดข้อมูล

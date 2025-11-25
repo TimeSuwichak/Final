@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { uploadChatImage } from "@/lib/firebase-storage";
 import { ImageIcon, Send } from "lucide-react";
+import { showError } from "@/lib/sweetalert";
 
 export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) => void; chatId?: string }) {
   const [text, setText] = useState("");
@@ -51,7 +52,7 @@ export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) =
       onSend({ type: "image", url });
     } catch (err) {
       console.error("อัปโหลดรูปภาพล้มเหลว", err);
-      alert("ไม่สามารถอัปโหลดรูปภาพได้ กรุณาลองใหม่");
+      showError("ไม่สามารถอัปโหลดรูปภาพได้", "กรุณาลองใหม่");
     } finally {
       setUploading(false);
       (e.target as HTMLInputElement).value = "";

@@ -9,7 +9,7 @@ import { format } from "date-fns"
 import { th } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { DialogFooter } from "@/components/ui/dialog"
-import InteractiveMap from "@/components/common/InteractiveMap"
+import { AdminMap } from "@/components/admin/AdminMap"
 import { PdfViewer } from "@/components/common/PdfViewer";
 
 
@@ -60,14 +60,13 @@ export const JobDetailsDialog = ({ job, lead, techs, creator, isOpen, onClose, o
                 )}
                 {job.location?.mapPosition && (
                   <div>
-                  <div className="h-64 w-full rounded-md border overflow-hidden">
-                    <InteractiveMap
-                      center={job.location.mapPosition}
-                      zoom={15}
-                      markerPosition={job.location.mapPosition}
-                      interactive={false}
-                    />
-                  </div>
+                    <div className="h-64 w-full rounded-md border overflow-hidden">
+                      <AdminMap
+                        initialAddress={job.location.address}
+                        initialPosition={job.location.mapPosition}
+                        readOnly
+                      />
+                    </div>
                   </div>
                 )}
                 {!job.location?.address && !job.location?.mapPosition && (

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { geocodeAddress, reverseGeocode } from "@/lib/geocoding"
+import { showWarning, showError } from "@/lib/sweetalert"
 import "leaflet/dist/leaflet.css"
 
 // Use direct imports from react-leaflet to avoid Suspense/lazy timing issues
@@ -153,7 +154,7 @@ export function AdminMap({
 
   const handleSearchAddress = async () => {
     if (!address.trim()) {
-      alert("กรุณากรอกที่อยู่ที่ต้องการค้นหา")
+      showWarning("กรุณากรอกที่อยู่ที่ต้องการค้นหา")
       return
     }
 
@@ -170,11 +171,11 @@ export function AdminMap({
           onAddressChange(address)
         }
       } else {
-        alert("ไม่พบที่อยู่ที่ค้นหา กรุณาลองใหม่อีกครั้ง")
+        showError("ไม่พบที่อยู่ที่ค้นหา", "กรุณาลองใหม่อีกครั้ง")
       }
     } catch (error) {
       console.error(error)
-      alert("เกิดข้อผิดพลาดในการค้นหา")
+      showError("เกิดข้อผิดพลาดในการค้นหา")
     } finally {
       setIsSearching(false)
     }

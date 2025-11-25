@@ -206,12 +206,12 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานทั้งหมด (All Tasks)
+                งานทั้งหมด All Tasks
               </p>
               <div className="text-3xl font-extrabold text-green-600 dark:text-green-400">
                 {finalCompletedCount} งาน
               </div>
-              <p className="text-sm text-muted-foreground">จำนวนงานที่คุณทำสำเร็จ</p>
+              <p className="text-sm text-muted-foreground">จำนวนงานที่คุณทำเสร็จสิ้น</p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
               <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
@@ -224,13 +224,13 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานใหม่ (New Jobs)
+                กำลังดำเนินการ Processing Tasks
               </p>
               <div className="text-3xl font-extrabold text-yellow-600 dark:text-yellow-400">
                 {finalInProgressCount} งาน
               </div>
               <p className="text-sm text-muted-foreground">
-                งานใหม่ที่รอรับ
+                งานที่คุณกำลังดำเนินการอยู่
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/30">
@@ -244,13 +244,13 @@ export default function UserDashboard() {
           <CardContent className="flex flex-row items-center justify-between p-6">
             <div className="space-y-1.5">
               <p className="text-base font-medium text-muted-foreground">
-                งานที่เสร็จเเล้ว (Completed Tasks)
+                งานที่เสร็จเเล้ว Completed Tasks
               </p>
               <div className="text-3xl font-extrabold text-orange-600 dark:text-orange-400">
                 {finalPendingCount} งาน
               </div>
               <p className="text-sm text-muted-foreground">
-                งานค้างที่ยังไม่ได้เริ่มทำ
+                งานที่เสร็จรอการอนุมัติ
               </p>
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">

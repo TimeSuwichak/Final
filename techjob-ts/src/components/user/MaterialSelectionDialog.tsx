@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Package, Plus, Minus, CheckCircle2, AlertCircle } from "lucide-react";
 import { useMaterials } from "@/contexts/MaterialContext";
+import { showWarning, showError } from "@/lib/sweetalert";
 
 interface MaterialSelectionDialogProps {
   open: boolean;
@@ -97,7 +98,7 @@ export function MaterialSelectionDialog({
     const isSelected = selectedMaterials.some((m) => m.id === materialId);
 
     if (!isSelected && material.stock <= 0) {
-      alert(`วัสดุ "${material.name}" หมดสต็อก`);
+      showWarning(`วัสดุ "${material.name}" หมดสต็อก`);
       return;
     }
 
@@ -126,7 +127,7 @@ export function MaterialSelectionDialog({
 
     const inventoryMaterial = getMaterialById(materialId);
     if (inventoryMaterial && quantity > inventoryMaterial.stock) {
-      alert(
+      showWarning(
         `สต็อก "${inventoryMaterial.name}" คงเหลือ ${inventoryMaterial.stock} ${inventoryMaterial.unit}`
       );
       quantity = inventoryMaterial.stock;
@@ -151,7 +152,7 @@ export function MaterialSelectionDialog({
 
   const handleWithdrawClick = () => {
     if (selectedMaterials.length === 0) {
-      alert("กรุณาเลือกวัสดุอย่างน้อย 1 รายการ");
+      showWarning("กรุณาเลือกวัสดุอย่างน้อย 1 รายการ");
       return;
     }
     setConfirmDialogOpen(true);
@@ -159,6 +160,11 @@ export function MaterialSelectionDialog({
 
   const handleWithdraw = () => {
     if (!user) return;
+    if (task.needsAcknowledgment) {
+      showWarning("กรุณารับทราบงานที่ถูกตีกลับ ");
+      setConfirmDialogOpen(false);
+      return;
+    }
 
     const withdrawRequests = selectedMaterials.map((material) => ({
       materialId: material.id,
@@ -167,7 +173,7 @@ export function MaterialSelectionDialog({
 
     const withdrawResult = withdrawMaterials(withdrawRequests);
     if (!withdrawResult.success) {
-      alert(withdrawResult.errors.join("\n"));
+      showError("เกิดข้อผิดพลาด", withdrawResult.errors.join("\n"));
       setConfirmDialogOpen(false);
       return;
     }

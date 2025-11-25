@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Camera, FileText, X, Upload } from "lucide-react";
 import type { Job } from "@/types/index";
+import { showWarning } from "@/lib/sweetalert";
 
 interface JobCompletionFormProps {
   job: Job;
@@ -85,7 +86,7 @@ export function JobCompletionForm({
 
   const handleSubmitClick = () => {
     if (!summary.trim()) {
-      alert("กรุณากรอกสรุปผลการทำงาน");
+      showWarning("กรุณากรอกสรุปผลการทำงาน");
       return;
     }
     setConfirmDialogOpen(true);
