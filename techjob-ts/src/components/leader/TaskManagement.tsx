@@ -195,7 +195,10 @@ export function TaskManagement({
       .some((t) => t.status !== "completed");
 
     if (hasUnfinishedPreviousStep) {
-      showWarning("ไม่สามารถข้ามขั้นตอนได้", "กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน");
+      showWarning(
+        "ไม่สามารถข้ามขั้นตอนได้",
+        "กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน"
+      );
       setStatusChangeDialogOpen(false);
       setPendingStatusChange(null);
       return;
@@ -510,8 +513,8 @@ export function TaskManagement({
           )}
       </div>
 
-      {/* Trello-like Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+      {/* Trello-like Grid - Responsive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
         {job.tasks.map((task, index) => {
           const isCompleted = task.status === "completed";
           const isInProgress = task.status === "in-progress";
@@ -543,9 +546,11 @@ export function TaskManagement({
             <Card
               key={task.id}
               className={cn(
-                "flex flex-col h-full transition-all duration-200",
+                "flex flex-col h-full transition-all duration-200 bg-white dark:bg-card",
                 cardBorderColor,
-                isPending && !isAwaitingAcknowledgement && "opacity-70 grayscale-[0.5]"
+                isPending &&
+                  !isAwaitingAcknowledgement &&
+                  "opacity-70 grayscale-[0.5]"
               )}
             >
               {/* Header */}
@@ -600,9 +605,7 @@ export function TaskManagement({
                       <p className="font-semibold text-sm text-amber-900">
                         งานถูกตีกลับโดยหัวหน้า
                       </p>
-                      <p>
-                        กรุณากดรับทราบก่อนเริ่มอัปเดตหรือเบิกวัสดุต่อ
-                      </p>
+                      <p>กรุณากดรับทราบก่อนเริ่มอัปเดตหรือเบิกวัสดุต่อ</p>
                     </div>
                   </div>
                 )}
@@ -676,42 +679,41 @@ export function TaskManagement({
                           <ArrowRight className="h-3 w-3" />
                         </Button>
                       </div>
+                    ) : isAwaitingAcknowledgement ? (
+                      <div className="space-y-2 text-xs text-amber-900">
+                        <p>
+                          หัวหน้าตีกลับงานนี้แล้ว
+                          กรุณากดรับทราบเพื่อเริ่มทำงานต่อ
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-1"
+                          onClick={() => handleAcknowledgeRejectedTask(task)}
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          รับทราบและเริ่มต่อ
+                        </Button>
+                      </div>
                     ) : (
-                      isAwaitingAcknowledgement ? (
-                        <div className="space-y-2 text-xs text-amber-900">
-                          <p>
-                            หัวหน้าตีกลับงานนี้แล้ว กรุณากดรับทราบเพื่อเริ่มทำงานต่อ
-                          </p>
-                          <Button
-                            size="sm"
-                            className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-1"
-                            onClick={() => handleAcknowledgeRejectedTask(task)}
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            รับทราบและเริ่มต่อ
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs gap-1"
-                            onClick={() => handleOpenMaterialDialog(task)}
-                          >
-                            <Plus className="h-3 w-3" />
-                            เบิกของ
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="text-xs gap-1"
-                            onClick={() => handleOpenUpdateDialog(task)}
-                          >
-                            <Send className="h-3 w-3" />
-                            อัปเดต
-                          </Button>
-                        </div>
-                      )
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => handleOpenMaterialDialog(task)}
+                        >
+                          <Plus className="h-3 w-3" />
+                          เบิกของ
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="text-xs gap-1"
+                          onClick={() => handleOpenUpdateDialog(task)}
+                        >
+                          <Send className="h-3 w-3" />
+                          อัปเดต
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}
