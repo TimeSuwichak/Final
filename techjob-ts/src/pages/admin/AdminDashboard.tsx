@@ -241,10 +241,10 @@ export default function AdminDashboardPage() {
   // ⭐️ [แก้ไข]: เปลี่ยน Logic ให้เรียงข้อมูลตาม requested value
   const materialUsageData = useMemo(() => {
     const rawData = [
-        { name: 'สาย LAN Cat6', requested: 25, unit: 'เมตร', lastUsed: '3 วันที่แล้ว' },
-        { name: 'ท่อ PVC', requested: 10, unit: 'เส้น', lastUsed: 'เมื่อวาน' },
-        { name: 'Access Point WiFi 6', requested: 8, unit: 'ตัว', lastUsed: '5 ชั่วโมงที่แล้ว' },
-        { name: 'น็อต', requested: 50, unit: 'ตัว', lastUsed: '1 สัปดาห์ที่แล้ว' },
+        { name: 'สายไฟ VAF 2x2.5', requested: 25, unit: 'เมตร', lastUsed: '3 วันที่แล้ว' },
+        { name: 'ท่อร้อยสายไฟ PVC', requested: 10, unit: 'เส้น', lastUsed: 'เมื่อวาน' },
+        { name: 'รางเก็บสายไฟ (Wireway)', requested: 8, unit: 'ตัว', lastUsed: '5 ชั่วโมงที่แล้ว' },
+        { name: 'สาย LAN Cat 6 (UTP)', requested: 50, unit: 'ตัว', lastUsed: '1 สัปดาห์ที่แล้ว' },
     ];
     // เรียงลำดับจากมากไปน้อย (Descending) ตาม 'requested'
     return rawData.sort((a, b) => b.requested - a.requested);
