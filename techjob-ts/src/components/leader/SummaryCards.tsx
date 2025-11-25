@@ -78,7 +78,7 @@ const SummaryCardsCompact: React.FC = () => {
       title: 'งานทั้งหมด', 
       value: totalCount, 
       label: 'TOTAL',
-      unit: 'รายการ',
+      unit: 'จำนวนงาน',
       bgClass: 'bg-emerald-50 dark:bg-slate-800/50',
       borderClass: 'border-emerald-300 dark:border-emerald-700',
       textClass: 'text-emerald-700 dark:text-emerald-400',
@@ -90,10 +90,10 @@ const SummaryCardsCompact: React.FC = () => {
       auxColor: 'text-emerald-500 dark:text-emerald-400'
     },
     { 
-      title: 'กำลังทำ', 
+      title: 'กำลังดำเนินการ', 
       value: inProgressCount, 
       label: 'IN PROGRESS',
-      unit: 'รายการ',
+      unit: 'งานที่กำลังทำ',
       bgClass: 'bg-amber-50 dark:bg-slate-800/50',
       borderClass: 'border-amber-300 dark:border-amber-700',
       textClass: 'text-amber-700 dark:text-amber-400',
@@ -108,7 +108,7 @@ const SummaryCardsCompact: React.FC = () => {
       title: 'เสร็จสิ้น', 
       value: completedCount, 
       label: 'COMPLETED',
-      unit: 'รายการ',
+      unit: 'งานที่เสร็จสิ้น',
       bgClass: 'bg-indigo-50 dark:bg-slate-800/50',
       borderClass: 'border-indigo-300 dark:border-indigo-700',
       textClass: 'text-indigo-700 dark:text-indigo-400',
@@ -116,7 +116,7 @@ const SummaryCardsCompact: React.FC = () => {
       iconBg: 'bg-indigo-100 dark:bg-indigo-900/30',
       icon: <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>,
       chart: <CompactMiniBarChart color="text-indigo-500 dark:text-indigo-400" />,
-      auxiliary: 'สมบูรณ์จากการทำงาน',
+      auxiliary: 'เสร็จสิ้นสมบูรณ์จากการทำงาน',
       auxColor: 'text-indigo-500 dark:text-indigo-400'
     },
   ];
