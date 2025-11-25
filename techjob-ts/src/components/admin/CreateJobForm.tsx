@@ -22,7 +22,7 @@ import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/Data/leader";
 import { AdminMap } from "./AdminMap";
-import { showWarning, showError } from "@/lib/sweetalert";
+import { showWarning, showError, showSuccess } from "@/lib/sweetalert";
 
 
 
@@ -186,6 +186,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
      adminName,
     )
 
+    showSuccess("สร้างใบงานเรียบร้อย", `ใบงาน "${title}" ถูกสร้างเรียบร้อยแล้ว`);
     onFinished()
   }
 

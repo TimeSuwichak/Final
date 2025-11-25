@@ -64,7 +64,7 @@ import { consumableMaterials } from "@/data/materials/consumables";
 import { useMaterials } from "@/contexts/MaterialContext";
 import type { Material } from "@/types";
 import { MaterialWithdrawalList } from "@/components/admin/MaterialWithdrawalList";
-import { showSuccess, showError } from "@/lib/sweetalert";
+import { showSuccess, showError, showPrompt } from "@/lib/sweetalert";
 
 interface PendingOrder {
   id: string;
@@ -249,10 +249,29 @@ export default function MaterialDashboard() {
     }
   };
 
-  const withdrawMaterial = () => {
-    if (withdrawMat && withdrawQuantity > 0) {
-      setOpenWithdraw(false);
-      setOpenConfirm(true);
+  const handleWithdraw = async (material: Material) => {
+    const res = await showPrompt(
+      `เบิกวัสดุ: ${material.name}`,
+      "จำนวนที่ต้องการเบิก",
+      "number",
+      "ใส่จำนวน",
+      1
+    );
+
+    if (res.isConfirmed) {
+      const value = Number(res.value);
+      if (!value || value <= 0) {
+        showError("จำนวนไม่ถูกต้อง", "กรุณากรอกจำนวนที่มากกว่า 0");
+        return;
+      }
+
+      const result = withdrawMaterials([{ materialId: material.id, quantity: value }]);
+
+      if (result.success) {
+        showSuccess("เบิกวัสดุสำเร็จ");
+      } else {
+        showError("เกิดข้อผิดพลาด", result.errors ? result.errors.join("\n") : "");
+      }
     }
   };
 
@@ -451,10 +470,7 @@ export default function MaterialDashboard() {
                                 size="icon"
                                 className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 title="เบิกวัสดุ"
-                                onClick={() => {
-                                  setWithdrawMat(material);
-                                  setOpenWithdraw(true);
-                                }}
+                                onClick={() => handleWithdraw(material)}
                               >
                                 <ShoppingCart className="h-4 w-4" />
                               </Button>
@@ -631,10 +647,7 @@ export default function MaterialDashboard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        setWithdrawMat(material);
-                        setOpenWithdraw(true);
-                      }}
+                      onClick={() => handleWithdraw(material)}
                       className="h-8 px-3"
                     >
                       <ShoppingCart className="w-3 h-3 mr-1" />
@@ -854,7 +867,7 @@ export default function MaterialDashboard() {
             </Button>
             <Button
               className="bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-400"
-              onClick={withdrawMaterial}
+              onClick={() => withdrawMat && handleWithdraw(withdrawMat)}
             >
               เบิกวัสดุ
             </Button>

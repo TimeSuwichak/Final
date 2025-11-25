@@ -60,7 +60,7 @@ import { admin } from "@/Data/admin";
 // ==========================================================
 import { departmentMap } from "@/Data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { showWarning, showConfirm } from "@/lib/sweetalert";
+import { showWarning, showConfirm, showSuccess } from "@/lib/sweetalert";
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -619,6 +619,7 @@ export default function Datauser() {
     });
     setIsDialogOpen(false);
     setEditingUser(null);
+    showSuccess("เพิ่มผู้ใช้สำเร็จ");
   };
 
   const handleUpdateUser = (updatedUserData: any) => {
@@ -684,6 +685,7 @@ export default function Datauser() {
     });
     setIsDialogOpen(false);
     setEditingUser(null);
+    showSuccess("บันทึกข้อมูลผู้ใช้เรียบร้อย");
   };
 
   const handleDeleteUser = async (userId: any) => {
