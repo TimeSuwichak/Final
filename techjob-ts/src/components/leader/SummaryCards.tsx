@@ -44,44 +44,55 @@ const SummaryCardsCompact: React.FC = () => {
   const totalCount = leaderJobs.length;
   const inProgressCount = leaderJobs.filter(j => j.status === 'in-progress').length;
   const completedCount = leaderJobs.filter(j => j.status === 'completed').length;
-  const completedPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  // const completedPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0; // ไม่ได้ใช้
   
-  // ⭐️ [ปรับปรุง] เปลี่ยน Class Names ให้ตรงกับภาพแรก (Dark Mode Emphasis) ⭐️
+  // ⭐️ [ปรับปรุง] เปลี่ยน Class Names สำหรับการสลับ Light/Dark Mode ⭐️
   const cards = [
     { 
       title: 'งานทั้งหมด All Tasks', 
       value: totalCount, 
       unit: 'งาน',
-      description: 'จำนวนงานที่คุณทำเสร็จสิ้น', // คำอธิบายที่ 3 (ล่างสุด)
-      bgClass: 'bg-[#1a1c2e] dark:bg-[#1a1c2e]',
-      borderClass: 'border-slate-700 dark:border-slate-700', 
-      valueClass: 'text-emerald-500 dark:text-emerald-500', 
-      iconBg: 'bg-emerald-700 dark:bg-emerald-700',
-      icon: <IconCompleted color="bg-emerald-700 dark:bg-emerald-700" />,
+      description: 'จำนวนงานที่คุณทำเสร็จสิ้น',
+      // ✅ Light Mode: bg-white | Dark Mode: dark:bg-[#1a1c2e]
+      bgClass: 'bg-white dark:bg-[#1a1c2e]', 
+      // ✅ Light Mode: border-gray-200 | Dark Mode: dark:border-slate-700
+      borderClass: 'border-gray-200 dark:border-slate-700', 
+      // สีตัวเลข ไม่ต้องมี dark: เพราะเราต้องการให้สีเหล่านี้คงที่
+      valueClass: 'text-emerald-500', 
+      iconBg: 'bg-emerald-700',
+      icon: <IconCompleted color="bg-emerald-700" />,
+      // ✅ สีข้อความ Title: Light=black/900, Dark=slate-300
+      titleClass: 'text-slate-900 dark:text-slate-300',
+      // ✅ สีข้อความ Description: Light=slate-500, Dark=slate-400
+      descClass: 'text-slate-500 dark:text-slate-400',
     },
     { 
       title: 'กำลังดำเนินการ Processing Tasks', 
       value: inProgressCount, 
       unit: 'งาน',
       description: 'งานที่คุณกำลังดำเนินการอยู่',
-      bgClass: 'bg-[#1a1c2e] dark:bg-[#1a1c2e]',
-      borderClass: 'border-slate-700 dark:border-slate-700',
-      valueClass: 'text-amber-500 dark:text-amber-500', 
-      iconBg: 'bg-amber-700 dark:bg-amber-700',
+      bgClass: 'bg-white dark:bg-[#1a1c2e]',
+      borderClass: 'border-gray-200 dark:border-slate-700',
+      valueClass: 'text-amber-500', 
+      iconBg: 'bg-amber-700',
       // ✅ [สลับ Icon]: ใช้ Hourglass (IconCompletedReview) สำหรับกำลังดำเนินการ
-      icon: <IconCompletedReview color="bg-amber-700 dark:bg-amber-700" />,
+      icon: <IconCompletedReview color="bg-amber-700" />,
+      titleClass: 'text-slate-900 dark:text-slate-300',
+      descClass: 'text-slate-500 dark:text-slate-400',
     },
     { 
       title: 'งานที่เสร็จแล้ว Completed Tasks', 
       value: completedCount, 
       unit: 'งาน',
       description: 'งานที่เสร็จรอการอนุมัติ',
-      bgClass: 'bg-[#1a1c2e] dark:bg-[#1a1c2e]',
-      borderClass: 'border-slate-700 dark:border-slate-700',
-      valueClass: 'text-orange-500 dark:text-orange-500', 
-      iconBg: 'bg-orange-700 dark:bg-orange-700',
+      bgClass: 'bg-white dark:bg-[#1a1c2e]',
+      borderClass: 'border-gray-200 dark:border-slate-700',
+      valueClass: 'text-orange-500', 
+      iconBg: 'bg-orange-700',
       // ✅ [สลับ Icon]: ใช้ Wrench (IconInProgress) สำหรับงานที่เสร็จแล้ว
-      icon: <IconInProgress color="bg-orange-700 dark:bg-orange-700" />,
+      icon: <IconInProgress color="bg-orange-700" />,
+      titleClass: 'text-slate-900 dark:text-slate-300',
+      descClass: 'text-slate-500 dark:text-slate-400',
     },
   ];
 
@@ -90,13 +101,14 @@ const SummaryCardsCompact: React.FC = () => {
       {cards.map((c, idx) => (
         <div 
           key={idx} 
-          // ⭐️ [สไตล์กรอบ] ปรับ border-width เป็น 1px (border) และใช้ shadow-xl น้อยลง
-          className={`relative p-5 rounded-xl border ${c.bgClass} ${c.borderClass} border-opacity-70 dark:border-opacity-30 shadow-md transition-all duration-300 transform hover:shadow-lg hover:border-opacity-100 overflow-hidden`}
+          // ⭐️ [สไตล์กรอบ] ปรับ border-opacity ให้เหมาะสมกับการสลับโหมด
+          className={`relative p-5 rounded-xl border ${c.bgClass} ${c.borderClass} border-opacity-100 dark:border-opacity-30 shadow-md transition-all duration-300 transform hover:shadow-lg hover:border-opacity-100 overflow-hidden`}
         >
           
           {/* 1. TOP ROW: Title */}
           <div className="flex justify-between items-start"> 
-            <h4 className="text-base font-bold text-slate-300 dark:text-slate-300">
+            {/* ✅ ใช้ titleClass ที่กำหนดการสลับสีแล้ว */}
+            <h4 className={`text-base font-bold ${c.titleClass}`}>
                 {c.title}
             </h4>
           </div>
@@ -106,12 +118,12 @@ const SummaryCardsCompact: React.FC = () => {
             
             {/* Left: Value & Unit */}
             <div className="flex items-baseline gap-2"> 
-                {/* ปรับขนาดตัวเลขให้ใหญ่และมีสีเฉพาะ */}
+                {/* สีตัวเลขใช้ valueClass ที่คงที่ */}
                 <span className={`text-4xl font-extrabold ${c.valueClass}`}>{c.value}</span>
                 <span className={`text-sm font-bold ${c.valueClass}`}>{c.unit}</span>
             </div>
 
-            {/* Right: Icon ⭐️ */}
+            {/* Right: Icon ⭐️ (Icon Components ถูกปรับให้ใช้สีพื้นหลังคงที่อยู่แล้ว) */}
             <div className="shrink-0">
               {c.icon}
             </div>
@@ -119,7 +131,8 @@ const SummaryCardsCompact: React.FC = () => {
           
           {/* 3. FOOTER SECTION: Description */}
           <div className={`mt-3 pt-2`}>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{c.description}</span>
+              {/* ✅ ใช้ descClass ที่กำหนดการสลับสีแล้ว */}
+              <span className={`text-xs ${c.descClass}`}>{c.description}</span>
           </div>
           
         </div>
