@@ -115,9 +115,9 @@ export default function UserWorks() {
         User Dashboard: {user.fname}
       </h2>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
         {/* (ปฏิทิน) */}
-        <div className="xl:col-span-1 order-2 xl:order-1">
+        <div className="lg:col-span-1 order-2 lg:order-1 h-full">
           <JobCalendar
             jobs={myJobs}
             selectedDate={selectedDate}
@@ -125,7 +125,7 @@ export default function UserWorks() {
           />
         </div>
         {/* (ตาราง) */}
-        <div className="xl:col-span-2 space-y-4 order-1 xl:order-2">
+        <div className="lg:col-span-2 space-y-4 order-1 lg:order-2 flex flex-col h-full">
           <div>
             <h3 className="text-xl font-semibold">
               {selectedDate
@@ -172,7 +172,9 @@ export default function UserWorks() {
             </div>
           </div>
 
-          <UserJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
+          <div className="flex-1 min-h-0">
+            <UserJobTable jobs={filteredJobs} onViewJob={handleViewJob} />
+          </div>
         </div>
       </div>
     </div>

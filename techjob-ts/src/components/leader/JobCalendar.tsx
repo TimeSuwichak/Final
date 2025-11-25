@@ -87,7 +87,7 @@ export function JobCalendar({
   };
 
   return (
-    <div className="rounded-md border bg-white dark:bg-card overflow-hidden">
+    <div className="rounded-md border bg-white dark:bg-card overflow-hidden h-full">
       <Calendar
         mode="single"
         selected={selectedDate}
