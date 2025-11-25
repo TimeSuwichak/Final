@@ -2,7 +2,11 @@
 
 import React, { useMemo, useState, useEffect } from "react"; 
 
-import { Zap, Users, TrendingUp, Package, BarChartBig, Gauge, Calendar, Crown, Clock } from 'lucide-react'; 
+// ✅ [แก้ไข] Import Icons: เพิ่ม CheckCircle และ Clock
+import { 
+    Zap, Users, TrendingUp, Package, BarChartBig, Gauge, Calendar, Crown, 
+    Clock, CheckCircle // ⭐️ เพิ่ม CheckCircle และ Clock
+} from 'lucide-react'; 
 
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +23,7 @@ const MetricCard = ({ icon, title, value, description, colorClass = "text-indigo
   <Card className="shadow-xl transition-transform duration-300 hover:scale-[1.02] dark:bg-card dark:border-border">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground dark:text-gray-300">{title}</CardTitle>
+      {/* ⭐️ ใช้ React.cloneElement เพื่อส่ง className เข้าไปใน Icon */}
       {React.cloneElement(icon, { className: `h-6 w-6 ${colorClass}` })}
     </CardHeader>
     <CardContent>
@@ -263,22 +268,47 @@ export default function AdminDashboardPage() {
 
       {/* KEY METRICS (แถวสรุปสถานะงานและบุคลากร) */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <MetricCard icon={<Zap />} title="งานทั้งหมด" value={jobStatusData.total} description="รวมทุกสถานะ" colorClass="text-indigo-400" />
-        <MetricCard icon={<TrendingUp />} title="งานใหม่" value={jobStatusData.new} description="งานใหม่ / มอบหมาย" colorClass="text-red-400" />
-        <MetricCard icon={<TrendingUp />} title="กำลังทำ" value={jobStatusData.inProgress} description="อยู่ระหว่างการปฏิบัติงาน" colorClass="text-yellow-400" />
-        <MetricCard icon={<TrendingUp />} title="เสร็จสิ้น" value={jobStatusData.completed} description="สำเร็จในเดือนนี้" colorClass="text-emerald-400" />
+        <MetricCard icon={<Zap />} title="งานทั้งหมด" value={jobStatusData.total} description="รวมงานทั้งหมด" colorClass="text-indigo-400" />
+        
+        {/* ⭐️ งานใหม่: Icon Zap, สีแดง */}
+        <MetricCard 
+            icon={<Zap />} 
+            title="งานใหม่" 
+            value={jobStatusData.new} 
+            description="งานใหม่ที่ได้รับมอบหมาย" 
+            colorClass="text-red-500 dark:text-red-400" 
+        />
+        
+        {/* ⭐️ กำลังทำ: Icon Clock, สีเหลือง */}
+        <MetricCard 
+            icon={<Clock />} 
+            title="กำลังทำ" 
+            value={jobStatusData.inProgress} 
+            description="อยู่ระหว่างการปฏิบัติงาน" 
+            colorClass="text-amber-500 dark:text-yellow-400" 
+        />
+        
+        {/* ⭐️ เสร็จสิ้น: Icon CheckCircle, สีเขียว */}
+        <MetricCard 
+            icon={<CheckCircle />} 
+            title="เสร็จสิ้น" 
+            value={jobStatusData.completed} 
+            description="งานที่เสร็จสิ้นทั้งหมด" 
+            colorClass="text-emerald-500 dark:text-emerald-400" 
+        />
+        
         <MetricCard 
             icon={<Users />} 
             title="ช่างที่ว่าง" 
             value={`${availableStaff}/${totalStaff}`} 
-            description={`พร้อมรับงาน (${((availableStaff / totalStaff) * 100).toFixed(0)}%)`} 
+            description={`พร้อมรับงาน (${availableStaff})`} 
             colorClass="text-blue-400" 
         />
         <MetricCard 
             icon={<Crown />} 
             title="หัวหน้างานว่าง" 
             value={availableSupervisor} 
-            description="หัวหน้างานพร้อมดูแลทีม" 
+            description="หัวหน้างานพร้อมดูแลช่าง" 
             colorClass="text-pink-400" 
         />
       </div>
