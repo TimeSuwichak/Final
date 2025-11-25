@@ -175,8 +175,8 @@ export default function LeaderWorks() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทั้งหมด</SelectItem>
-                  <SelectItem value="new">รอรับทราบ</SelectItem>
-                  <SelectItem value="in-progress">กำลังดำเนินการ</SelectItem>
+                  <SelectItem value="new">งานใหม่</SelectItem>
+                  <SelectItem value="in-progress">กำลังทำ</SelectItem>
                   <SelectItem value="done">เสร็จสิ้น</SelectItem>
                 </SelectContent>
               </Select>
