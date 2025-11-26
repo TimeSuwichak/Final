@@ -53,6 +53,7 @@ const Report = () => {
   const [reports, setReports] = useState<ReportData[]>([])
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [dragOverColumn, setDragOverColumn] = useState<"normal" | "urgent" | null>(null)
 
   useEffect(() => {
     loadReportsFromStorage()
@@ -170,6 +171,55 @@ const Report = () => {
     }
   }
 
+  const handleDragStart = (e: React.DragEvent, reportId: number) => {
+    e.dataTransfer.setData("reportId", reportId.toString())
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent, column: "normal" | "urgent") => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    setDragOverColumn(column)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, targetUrgency: "normal" | "urgent") => {
+    e.preventDefault()
+    setDragOverColumn(null)
+    const reportId = parseInt(e.dataTransfer.getData("reportId"))
+    if (isNaN(reportId)) return
+
+    const newUrgency = targetUrgency === "urgent" ? "medium" : undefined
+
+    try {
+      const updatedReports = reports.map((report) =>
+        report.id === reportId ? { ...report, urgency: newUrgency } : report
+      )
+      setReports(updatedReports)
+
+      const storedReports = localStorage.getItem("problemReports")
+      if (storedReports) {
+        const allReports = JSON.parse(storedReports)
+        const updatedAllReports = allReports.map((report: any) =>
+          report.id === reportId ? { ...report, urgency: newUrgency } : report
+        )
+        localStorage.setItem("problemReports", JSON.stringify(updatedAllReports))
+      }
+
+      if (selectedReport?.id === reportId) {
+        setSelectedReport({ ...selectedReport, urgency: newUrgency })
+      }
+
+      loadReportsFromStorage()
+    } catch (error) {
+      console.error("[v0] Failed to update urgency:", error)
+      showError("เกิดข้อผิดพลาดในการอัปเดตสถานะ")
+    }
+  }
+
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString)
@@ -190,7 +240,17 @@ const Report = () => {
   }
 
   const ReportCard = ({ report }: { report: ReportData }) => (
-    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow">
+    <div
+      draggable
+      onDragStart={(e) => {
+        handleDragStart(e, report.id)
+        e.currentTarget.style.opacity = "0.5"
+      }}
+      onDragEnd={(e) => {
+        e.currentTarget.style.opacity = "1"
+      }}
+      className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-move"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -251,7 +311,14 @@ const Report = () => {
           </Card>
 
           {/* Content Card */}
-          <Card className="overflow-hidden border-0 shadow-md">
+          <Card
+            className={`overflow-hidden border-0 shadow-md transition-colors ${
+              dragOverColumn === "normal" ? "bg-green-50 dark:bg-green-950/20" : ""
+            }`}
+            onDragOver={(e) => handleDragOver(e, "normal")}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, "normal")}
+          >
             <div className="h-1.5 bg-green-500"></div>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -288,7 +355,14 @@ const Report = () => {
           </Card>
 
           {/* Content Card */}
-          <Card className="overflow-hidden border-0 shadow-md">
+          <Card
+            className={`overflow-hidden border-0 shadow-md transition-colors ${
+              dragOverColumn === "urgent" ? "bg-orange-50 dark:bg-orange-950/20" : ""
+            }`}
+            onDragOver={(e) => handleDragOver(e, "urgent")}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, "urgent")}
+          >
             <div className="h-1.5 bg-orange-500"></div>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
