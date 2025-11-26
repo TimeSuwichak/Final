@@ -77,7 +77,6 @@ const getStatusText = (status: string) => {
   }
 };
 
-
 const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
   pdfFiles = [],
 }) => {
@@ -191,13 +190,12 @@ const UserWorkOrderDetail: React.FC = () => {
     );
   }
 
-
   const assignedTechs = currentJob.assignedTechs
     .map((techId: string) => ALL_USERS.find((u) => String(u.id) === techId))
     .filter((tech: any) => tech !== undefined);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
+    <div className="min-h-[calc(100vh-4rem)] h-auto lg:h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
       {/* Header */}
       <Card>
         <CardHeader className="pb-3">
@@ -226,13 +224,13 @@ const UserWorkOrderDetail: React.FC = () => {
         </CardHeader>
       </Card>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-3 gap-4 min-h-0">
         {/* Left: Job Info */}
-        <Card className="lg:col-span-1 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-1 flex flex-col overflow-hidden h-auto lg:h-full">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">ข้อมูลใบงาน</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-3 text-sm">
+          <CardContent className="flex-1 lg:overflow-y-auto space-y-3 text-sm">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-semibold">
                 สถานะ
@@ -338,7 +336,7 @@ const UserWorkOrderDetail: React.FC = () => {
         </Card>
 
         {/* Right: Task Management & Team */}
-        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-2 flex flex-col overflow-hidden h-auto lg:h-full">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -347,7 +345,7 @@ const UserWorkOrderDetail: React.FC = () => {
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-4">
+          <CardContent className="flex-1 lg:overflow-y-auto space-y-4">
             {/* Task Management Board */}
             <TaskManagement job={currentJob} mode="user" />
 
