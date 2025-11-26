@@ -41,6 +41,7 @@ import {
   Download,
   ExternalLink,
   Save,
+  PenTool,
 } from "lucide-react";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { TechSelectMultiDept } from "@/components/leader/TechSelectMultiDept";
@@ -49,6 +50,7 @@ import { Separator } from "@/components/ui/separator";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
 import { JobSummaryView } from "@/components/leader/JobSummaryView";
+import { SignatureDialog } from "@/components/common/SignatureDialog";
 import TechnicianTracking from "@/pages/leader/TechnicianTracking";
 import { showSuccess } from "@/lib/sweetalert";
 
@@ -212,6 +214,7 @@ const WorkOrderDetail: React.FC = () => {
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   useEffect(() => {
@@ -339,7 +342,7 @@ const WorkOrderDetail: React.FC = () => {
     updateJobWithActivity(
       currentJob.id,
       {
-        status: "done",
+        status: currentJob.status === "new" ? "in-progress" : currentJob.status,
         completionSummary: data.summary,
         completionIssues: data.issues,
         completionIssueImage: data.issueImage || undefined,
@@ -348,7 +351,7 @@ const WorkOrderDetail: React.FC = () => {
         leaderCloser: user.fname,
       },
       "status_changed",
-      "หัวหน้าสรุปและปิดงานเรียบร้อย",
+      "หัวหน้าสรุปงานเรียบร้อย - รอลายเซ็นลูกค้า",
       user.fname,
       "leader",
       {
@@ -358,20 +361,69 @@ const WorkOrderDetail: React.FC = () => {
     );
 
     addNotification({
-      title: "หัวหน้าปิดงานเรียบร้อย",
-      message: `งาน ${currentJob.title} ถูกปิดโดย ${user.fname}`,
+      title: "หัวหน้าสรุปงานเรียบร้อย",
+      message: `งาน ${currentJob.title} รอลายเซ็นลูกค้าเพื่อปิดงาน`,
       recipientRole: "admin",
       relatedJobId: currentJob.id,
       metadata: {
-        type: "job_completed",
+        type: "job_summary_completed",
         jobId: currentJob.id,
       },
     });
 
     currentJob.assignedTechs.forEach((techId: string) => {
       addNotification({
-        title: "งานที่คุณอยู่เสร็จสิ้นแล้ว",
-        message: `หัวหน้า ${user.fname} ปิดงาน ${currentJob.title}`,
+        title: "หัวหน้าสรุปงานเรียบร้อย",
+        message: `หัวหน้า ${user.fname} สรุปงาน ${currentJob.title} - รอลายเซ็นลูกค้า`,
+        recipientRole: "user",
+        recipientId: techId,
+        relatedJobId: currentJob.id,
+        metadata: {
+          type: "job_summary_completed",
+          jobId: currentJob.id,
+        },
+      });
+    });
+
+    showSuccess("สรุปงานเรียบร้อย! รอลายเซ็นลูกค้าเพื่อปิดงาน");
+  };
+
+  const handleCustomerSignature = (
+    signatureData: string,
+    signerName: string
+  ) => {
+    // อัปเดตงานให้เป็น done และบันทึกลายเซ็น
+    updateJobWithActivity(
+      currentJob.id,
+      {
+        status: "done",
+        lastSignedAt: new Date(),
+        lastSignedBy: signerName,
+        customerSignatureData: signatureData,
+        signatureCount: (currentJob.signatureCount || 0) + 1,
+      },
+      "status_changed",
+      `ลูกค้า "${signerName}" เซ็นรับทราบงาน`,
+      signerName,
+      "leader"
+    );
+
+    addNotification({
+      title: "ลูกค้าเซ็นรับทราบงานแล้ว",
+      message: `งาน ${currentJob.title} ปิดงานเรียบร้อย`,
+      recipientRole: "admin",
+      relatedJobId: currentJob.id,
+      metadata: {
+        type: "job_completed",
+        jobId: currentJob.id,
+        signerName: signerName,
+      },
+    });
+
+    currentJob.assignedTechs.forEach((techId: string) => {
+      addNotification({
+        title: "งานเสร็จสิ้นแล้ว",
+        message: `งาน ${currentJob.title} ได้รับลายเซ็นจากลูกค้าและปิดงานเรียบร้อย`,
         recipientRole: "user",
         recipientId: techId,
         relatedJobId: currentJob.id,
@@ -382,7 +434,7 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    showSuccess("ปิดงานเรียบร้อย!");
+    showSuccess("บันทึกลายเซ็นและปิดงานเรียบร้อย!");
   };
 
   const workAreaRadius = 150;
@@ -594,9 +646,65 @@ const WorkOrderDetail: React.FC = () => {
                     </div>
                   )}
 
-                  {currentJob.status === "done" ? (
+                  {/* Check if waiting for customer signature */}
+                  {currentJob.completedAt && !currentJob.lastSignedAt ? (
+                    /* Waiting for Customer Signature */
+                    <>
+                      <div className="rounded-lg border border-dashed border-yellow-300 bg-yellow-50/60 p-4 text-xs text-yellow-800 space-y-2">
+                        <p className="font-semibold flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4" />
+                          รอลายเซ็นลูกค้า
+                        </p>
+                        <p>
+                          หัวหน้าได้สรุปงานเรียบร้อยแล้ว
+                          กรุณาขอลายเซ็นจากลูกค้าเพื่อปิดงาน
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => setSignatureDialogOpen(true)}
+                          className="w-full gap-2 bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          <PenTool className="h-4 w-4" />
+                          ขอลายเซ็นลูกค้า
+                        </Button>
+                      </div>
+
+                      {/* Show summary info */}
+                      {currentJob.completionSummary && (
+                        <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-semibold">
+                            สรุปผลการทำงาน:
+                          </p>
+                          <p className="text-xs">
+                            {currentJob.completionSummary}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : currentJob.status === "done" ? (
                     /* Show Summary View for Completed Jobs */
-                    <JobSummaryView job={currentJob} />
+                    <>
+                      <JobSummaryView job={currentJob} />
+
+                      {/* Allow re-signing */}
+                      <div className="pt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSignatureDialogOpen(true)}
+                          className="w-full gap-2"
+                        >
+                          <PenTool className="h-4 w-4" />
+                          เซ็นอีกครั้ง
+                        </Button>
+                        {currentJob.signatureCount &&
+                          currentJob.signatureCount > 1 && (
+                            <p className="text-xs text-muted-foreground text-center mt-2">
+                              เซ็นรับทราบแล้ว {currentJob.signatureCount} ครั้ง
+                            </p>
+                          )}
+                      </div>
+                    </>
                   ) : (
                     /* Show Active Jobs */
                     <>
@@ -689,6 +797,15 @@ const WorkOrderDetail: React.FC = () => {
         open={completionDialogOpen}
         onOpenChange={setCompletionDialogOpen}
         onSubmit={handleSubmitCompletion}
+      />
+
+      {/* Customer Signature Dialog */}
+      <SignatureDialog
+        open={signatureDialogOpen}
+        onOpenChange={setSignatureDialogOpen}
+        onSubmit={handleCustomerSignature}
+        jobTitle={currentJob.title}
+        defaultSignerName={currentJob.customerName}
       />
     </>
   );

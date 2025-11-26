@@ -133,7 +133,7 @@ export function JobCompletionForm({
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 rows={5}
-                className="resize-none"
+                className="resize-none bg-white border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
@@ -148,7 +148,7 @@ export function JobCompletionForm({
                 value={issues}
                 onChange={(e) => setIssues(e.target.value)}
                 rows={4}
-                className="resize-none"
+                className="resize-none bg-white border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
 

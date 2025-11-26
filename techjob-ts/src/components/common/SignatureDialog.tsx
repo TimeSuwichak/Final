@@ -152,6 +152,7 @@ export function SignatureDialog({
               placeholder="กรอกชื่อผู้เซ็นรับทราบ..."
               value={signerName}
               onChange={(e) => setSignerName(e.target.value)}
+              className="bg-white border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
 

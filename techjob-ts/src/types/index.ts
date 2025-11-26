@@ -47,9 +47,9 @@ export interface Task {
   description: string;
   imageUrl?: string;
   status: "pending" | "in-progress" | "completed";
-   needsAcknowledgment: boolean;
-   lasrtAcknowledgedBy?: String;
-   lastAcknowledgedAt?: String;
+  needsAcknowledgment: boolean;
+  lasrtAcknowledgedBy?: String;
+  lastAcknowledgedAt?: String;
   updates: {
     message: string;
     imageUrl?: string;
@@ -113,6 +113,7 @@ export interface Job {
   lastSignedAt?: Date;
   lastSignedBy?: string;
   signatureCount?: number;
+  customerSignatureData?: string; // base64 encoded signature image
 
   isLocal?: boolean; // Flag to indicate if the job is only local (not yet synced to Firestore)
 }
