@@ -38,17 +38,27 @@ export function JobSummaryView({ job }: JobSummaryViewProps) {
   const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
 
   const handleDownloadReport = () => {
-    generateCompletionReportPdf(job);
+    // ถ้ามีลายเซ็นที่บันทึกไว้ ให้ใช้ลายเซ็นนั้น
+    if (job.customerSignatureData && job.lastSignedBy) {
+      generateSignedCompletionReportPdf(
+        job,
+        job.customerSignatureData,
+        job.lastSignedBy
+      );
+    } else {
+      generateCompletionReportPdf(job);
+    }
   };
 
   const handleSignatureSubmit = (signatureData: string, signerName: string) => {
-    // เปลี่ยนสถานะเป็น done และบันทึก metadata
+    // บันทึกลายเซ็นและเปลี่ยนสถานะเป็น done
     updateJobWithActivity(
       job.id,
       {
         status: "done",
         lastSignedAt: new Date(),
         lastSignedBy: signerName,
+        customerSignatureData: signatureData, // บันทึกลายเซ็นไว้
         signatureCount: (job.signatureCount || 0) + 1,
       },
       "status_changed",
