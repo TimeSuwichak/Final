@@ -168,9 +168,18 @@ const LeaderReport: React.FC = () => {
         showWarning("ไฟล์มีขนาดใหญ่เกินไป", "กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5 MB")
         return
       }
-      const mockUrl = URL.createObjectURL(file)
-      setAttachmentUrl(mockUrl)
-      setAttachmentName(file.name)
+      
+      // แปลงไฟล์
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setAttachmentUrl(base64String)
+        setAttachmentName(file.name)
+      }
+      reader.onerror = () => {
+        showWarning("เกิดข้อผิดพลาด", "ไม่สามารถอ่านไฟล์ได้")
+      }
+      reader.readAsDataURL(file)
     }
   }
 

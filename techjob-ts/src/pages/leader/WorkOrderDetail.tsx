@@ -97,7 +97,36 @@ const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
   const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
 
   const handleOpenPdf = (url: string) => {
-    window.open(url, "_blank", "noopener,noreferrer");
+    // เปิดในหน้าต่างใหม่
+    if (url.startsWith('data:application/pdf') || url.startsWith('data:application/octet-stream')) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>PDF Viewer</title>
+              <style>
+                body {      
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;
+                }
+                iframe {
+                  width: 100%;
+                  height: 100vh;
+                  border: none;
+                }
+              </style>
+            </head>
+            <body>
+              <iframe src="${url}"></iframe>
+            </body>
+          </html>
+        `);
+      }
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   };
 
   const handleDownloadPdf = (url: string, index: number) => {
@@ -129,7 +158,7 @@ const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
             <div className="flex-1 min-w-0">
               <p className="font-medium text-xs truncate">เอกสาร {index + 1}</p>
               <p className="text-[10px] text-muted-foreground truncate">
-                {pdfUrl.split("/").pop() || "document.pdf"}
+                {pdfUrl.startsWith('data:') ? 'document.pdf' : (pdfUrl.split("/").pop() || "document.pdf")}
               </p>
             </div>
           </div>
@@ -168,7 +197,7 @@ const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
           <div className="flex-1 overflow-auto bg-gray-50">
             {selectedPdfUrl && (
               <iframe
-                src={`${selectedPdfUrl}#toolbar=0`}
+                src={selectedPdfUrl.startsWith('data:') ? selectedPdfUrl : `${selectedPdfUrl}#toolbar=0`}
                 className="w-full h-full"
                 title="PDF Preview"
               />

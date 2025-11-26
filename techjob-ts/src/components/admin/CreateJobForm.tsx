@@ -106,19 +106,32 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     const files = Array.from(e.target.files || []);
     setPdfFiles(files);
     
-    const previews = files.map(file => ({
-      name: file.name,
-      url: URL.createObjectURL(file)
-    }));
-    setPdfPreviews(previews);
+    // แปลงไฟล์ PDF 
+    const loadFiles = async () => {
+      const previews = await Promise.all(
+        files.map((file) => {
+          return new Promise<{ name: string; url: string }>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              resolve({
+                name: file.name,
+                url: reader.result as string, // base64 string
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        })
+      );
+      setPdfPreviews(previews);
+    };
+    
+    loadFiles();
   };
 
   const removePdf = (index: number) => {
     setPdfFiles(prev => prev.filter((_, i) => i !== index));
-    setPdfPreviews(prev => {
-      URL.revokeObjectURL(prev[index].url);
-      return prev.filter((_, i) => i !== index);
-    });
+    setPdfPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   

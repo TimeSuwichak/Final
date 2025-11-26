@@ -12,6 +12,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ReportData {
   id: number
@@ -53,7 +68,9 @@ const Report = () => {
   const [reports, setReports] = useState<ReportData[]>([])
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [dragOverColumn, setDragOverColumn] = useState<"normal" | "urgent" | null>(null)
+  const [problemTypeFilter, setProblemTypeFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [urgencyFilter, setUrgencyFilter] = useState<string>("all")
 
   useEffect(() => {
     loadReportsFromStorage()
@@ -71,12 +88,55 @@ const Report = () => {
     }
   }
 
-  // แยกรายงานตาม urgency
-  const { normalReports, urgentReports } = useMemo(() => {
+  // คำนวณตัวเลขทั้งหมด (ไม่ผ่าน filter)
+  const { allNormalReports, allUrgentReports } = useMemo(() => {
     const normal: ReportData[] = []
     const urgent: ReportData[] = []
 
     reports.forEach((report) => {
+      if (report.urgency === "medium") {
+        urgent.push(report)
+      } else {
+        normal.push(report)
+      }
+    })
+
+    return {
+      allNormalReports: normal,
+      allUrgentReports: urgent,
+    }
+  }, [reports])
+
+  // แยกรายงานตาม urgency และ filter
+  const { normalReports, urgentReports, filteredReports } = useMemo(() => {
+    const normal: ReportData[] = []
+    const urgent: ReportData[] = []
+    let allFiltered: ReportData[] = []
+
+    reports.forEach((report) => {
+      // Filter by problem type
+      if (problemTypeFilter !== "all" && report.problemType !== problemTypeFilter) {
+        return
+      }
+
+      // Filter by status
+      if (statusFilter === "resolved" && !report.isResolved) {
+        return
+      }
+      if (statusFilter === "unresolved" && report.isResolved) {
+        return
+      }
+
+      // Filter by urgency
+      if (urgencyFilter === "urgent" && report.urgency !== "medium") {
+        return
+      }
+      if (urgencyFilter === "normal" && report.urgency === "medium") {
+        return
+      }
+
+      allFiltered.push(report)
+
       if (report.urgency === "medium") {
         urgent.push(report)
       } else {
@@ -94,8 +154,9 @@ const Report = () => {
     return {
       normalReports: normal.sort(sortByDate),
       urgentReports: urgent.sort(sortByDate),
+      filteredReports: allFiltered.sort(sortByDate),
     }
-  }, [reports])
+  }, [reports, problemTypeFilter, statusFilter, urgencyFilter])
 
   const handleViewDetail = (report: ReportData) => {
     setSelectedReport(report)
@@ -171,52 +232,24 @@ const Report = () => {
     }
   }
 
-  const handleDragStart = (e: React.DragEvent, reportId: number) => {
-    e.dataTransfer.setData("reportId", reportId.toString())
-    e.dataTransfer.effectAllowed = "move"
+  const getStatusColor = (report: ReportData) => {
+    if (report.urgency === "medium") {
+      return "bg-orange-500" // เร่งด่วน
+    } else {
+      return "bg-green-500" // ไม่เร่งด่วน
+    }
   }
 
-  const handleDragOver = (e: React.DragEvent, column: "normal" | "urgent") => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = "move"
-    setDragOverColumn(column)
-  }
-
-  const handleDragLeave = () => {
-    setDragOverColumn(null)
-  }
-
-  const handleDrop = (e: React.DragEvent, targetUrgency: "normal" | "urgent") => {
-    e.preventDefault()
-    setDragOverColumn(null)
-    const reportId = parseInt(e.dataTransfer.getData("reportId"))
-    if (isNaN(reportId)) return
-
-    const newUrgency = targetUrgency === "urgent" ? "medium" : undefined
-
-    try {
-      const updatedReports = reports.map((report) =>
-        report.id === reportId ? { ...report, urgency: newUrgency } : report
-      )
-      setReports(updatedReports)
-
-      const storedReports = localStorage.getItem("problemReports")
-      if (storedReports) {
-        const allReports = JSON.parse(storedReports)
-        const updatedAllReports = allReports.map((report: any) =>
-          report.id === reportId ? { ...report, urgency: newUrgency } : report
-        )
-        localStorage.setItem("problemReports", JSON.stringify(updatedAllReports))
-      }
-
-      if (selectedReport?.id === reportId) {
-        setSelectedReport({ ...selectedReport, urgency: newUrgency })
-      }
-
-      loadReportsFromStorage()
-    } catch (error) {
-      console.error("[v0] Failed to update urgency:", error)
-      showError("เกิดข้อผิดพลาดในการอัปเดตสถานะ")
+  const handleStatusColorClick = (report: ReportData, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (report.urgency === "medium") {
+      // คลิกที่สีส้ม -> กรองเฉพาะเร่งด่วน
+      setStatusFilter("all")
+      setUrgencyFilter("urgent")
+    } else {
+      // คลิกที่สีเขียว -> กรองเฉพาะไม่เร่งด่วน
+      setStatusFilter("all")
+      setUrgencyFilter("normal")
     }
   }
 
@@ -239,149 +272,152 @@ const Report = () => {
     }
   }
 
-  const ReportCard = ({ report }: { report: ReportData }) => (
-    <div
-      draggable
-      onDragStart={(e) => {
-        handleDragStart(e, report.id)
-        e.currentTarget.style.opacity = "0.5"
-      }}
-      onDragEnd={(e) => {
-        e.currentTarget.style.opacity = "1"
-      }}
-      className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-move"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-semibold text-foreground">
-              {report.title || `ID: ${report.id}`}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">ส่งโดย: {report.userId}</p>
-          <p className="text-xs text-muted-foreground mb-3">{formatDate(report.submittedAt || report.reportDate)}</p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleViewDetail(report)}
-              className="h-7 px-2 text-xs"
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              ดูรายละเอียด
-            </Button>
-          </div>
-        </div>
-        <div className="flex-shrink-0">
-          {report.isResolved ? (
-            <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 rounded">แก้ไขแล้ว</Badge>
-          ) : report.urgency === "medium" ? (
-            <Badge variant="destructive" className="text-xs px-2 py-0.5 rounded">ยังไม่แก้ไข</Badge>
-            ) : (
-            <Badge variant="outline" className="text-xs px-2 py-0.5 rounded font-medium">
-              {mapProblemTypeToLabel(report.problemType)}
-            </Badge>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-
   return (
     <div className="w-full space-y-6 p-6 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">การแจ้งปัญหา</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* คอลัมน์ซ้าย: แจ้งปัญหา */}
-        <div className="space-y-4">
-          {/* Summary Card */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-                </div>
-                <div>
-                  <p className="text-primary font-medium">ไม้เร่งด่วน</p>
-                  <p className="text-2xl font-bold text-foreground">{normalReports.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Content Card */}
-          <Card
-            className={`overflow-hidden border-0 shadow-md transition-colors ${
-              dragOverColumn === "normal" ? "bg-green-50 dark:bg-green-950/20" : ""
-            }`}
-            onDragOver={(e) => handleDragOver(e, "normal")}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, "normal")}
-          >
-            <div className="h-1.5 bg-green-500"></div>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-foreground">ไม่เร่งด่วน</CardTitle>
-                <span className="text-sm text-muted-foreground">{normalReports.length}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {normalReports.length > 0 ? (
-                normalReports.map((report) => <ReportCard key={report.id} report={report} />)
-              ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
-                  ไม่มีรายการ
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">ประเภทปัญหา:</label>
+          <Select value={problemTypeFilter} onValueChange={setProblemTypeFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="ทั้งหมด" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทั้งหมด</SelectItem>
+              <SelectItem value="data-correction">แก้ไขข้อมูลใบงาน</SelectItem>
+              <SelectItem value="person-issue">ปัญหาบุคคล</SelectItem>
+              <SelectItem value="system-error">ระบบล้ม/Error</SelectItem>
+              <SelectItem value="suggestion">ข้อเสนอแนะ</SelectItem>
+              <SelectItem value="feature-request">แนะนำฟีเจอร์ใหม่</SelectItem>
+              <SelectItem value="other">อื่นๆ</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-
-        {/* คอลัมน์ขวา: เหตุด่วน */}
-        <div className="space-y-4">
-          {/* Summary Card */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center">
-                </div>
-                <div>
-                  <p className="text-primary font-medium">เร่งด่วน</p>
-                  <p className="text-2xl font-bold text-foreground">{urgentReports.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Content Card */}
-          <Card
-            className={`overflow-hidden border-0 shadow-md transition-colors ${
-              dragOverColumn === "urgent" ? "bg-orange-50 dark:bg-orange-950/20" : ""
-            }`}
-            onDragOver={(e) => handleDragOver(e, "urgent")}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, "urgent")}
-          >
-            <div className="h-1.5 bg-orange-500"></div>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold text-foreground">เร่งด่วน</CardTitle>
-                <span className="text-sm text-muted-foreground">{urgentReports.length}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {urgentReports.length > 0 ? (
-                urgentReports.map((report) => <ReportCard key={report.id} report={report} />)
-              ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
-                  ไม่มีรายการ
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">สถานะ:</label>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="ทั้งหมด" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทั้งหมด</SelectItem>
+              <SelectItem value="resolved">แก้ไขแล้ว</SelectItem>
+              <SelectItem value="unresolved">ยังไม่แก้ไข</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
+      {/* Summary Status */}
+      <div className="flex items-center gap-4">
+        <div 
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            setUrgencyFilter("all")
+            setStatusFilter("all")
+          }}
+        >
+          <div className="w-4 h-4 rounded-full bg-gray-400"></div>
+          <span className="text-sm text-muted-foreground">ทั้งหมด: {reports.length}</span>
+        </div>
+        <div 
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            setUrgencyFilter("normal")
+            setStatusFilter("all")
+          }}
+        >
+          <div className="w-4 h-4 rounded-full bg-green-500"></div>
+          <span className="text-sm text-muted-foreground">ไม่เร่งด่วน: {allNormalReports.length}</span>
+        </div>
+        <div 
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            setUrgencyFilter("urgent")
+            setStatusFilter("all")
+          }}
+        >
+          <div className="w-4 h-4 rounded-full bg-orange-500"></div>
+          <span className="text-sm text-muted-foreground">เร่งด่วน: {allUrgentReports.length}</span>
+        </div>
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ปัญหา</TableHead>
+                  <TableHead>ประเภท</TableHead>
+                  <TableHead>ส่งโดย</TableHead>
+                  <TableHead>วันที่ส่ง</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="text-right">การดำเนินการ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReports.length > 0 ? (
+                  filteredReports.map((report) => (
+                    <TableRow key={report.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className={`w-3 h-3 rounded-full ${getStatusColor(report)} cursor-pointer hover:scale-125 transition-transform`}
+                            onClick={(e) => handleStatusColorClick(report, e)}
+                            title="คลิกเพื่อกรองตามสถานะนี้"
+                          ></div>
+                          <span>{report.title || "ไม่มีชื่อปัญหา"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {mapProblemTypeToLabel(report.problemType)}
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-sm">{report.userName}</p>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDate(report.submittedAt || report.reportDate)}
+                      </TableCell>
+                      <TableCell>
+                        {report.isResolved ? (
+                          <Badge className="bg-green-500 text-white">แก้ไขแล้ว</Badge>
+                        ) : (
+                          <Badge variant="outline">ยังไม่แก้ไข</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDetail(report)}
+                            className="h-8 px-2"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            ดู
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      ไม่พบข้อมูล
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Dialog สำหรับดูรายละเอียด */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -389,7 +425,7 @@ const Report = () => {
           <DialogHeader>
             <DialogTitle>รายละเอียดการแจ้งปัญหา</DialogTitle>
             <DialogDescription>
-              {selectedReport?.title || `ID: ${selectedReport?.id}`}
+              {selectedReport?.title || "ไม่มีชื่อปัญหา"}
             </DialogDescription>
           </DialogHeader>
 
@@ -476,11 +512,57 @@ const Report = () => {
               {selectedReport.attachmentUrl && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">รูปภาพแนบ:</p>
-                  <img
-                    src={selectedReport.attachmentUrl}
-                    alt="Attachment"
-                    className="max-h-60 rounded border border-border w-full object-contain"
-                  />
+                  <div className="border border-border rounded-lg overflow-hidden bg-muted/30">
+                    <img
+                      src={selectedReport.attachmentUrl}
+                      alt="Attachment"
+                      className="w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => {
+                        const newWindow = window.open()
+                        if (newWindow) {
+                          newWindow.document.write(`
+                            <html>
+                              <head>
+                                <title>รูปภาพแนบ</title>
+                                <style>
+                                  body {
+                                    margin: 0;
+                                    padding: 20px;
+                                    background: #000;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                    min-height: 100vh;
+                                  }
+                                  img {
+                                    max-width: 100%;
+                                    max-height: 100vh;
+                                    object-fit: contain;
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                <img src="${selectedReport.attachmentUrl}" alt="Attachment" />
+                              </body>
+                            </html>
+                          `)
+                        }
+                      }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const parent = target.parentElement
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="p-8 text-center text-muted-foreground">
+                              <p class="text-sm">ไม่สามารถแสดงรูปภาพได้</p>
+                              <p class="text-xs mt-2">อาจเป็นเพราะไฟล์เสียหายหรือรูปแบบไม่รองรับ</p>
+                            </div>
+                          `
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
