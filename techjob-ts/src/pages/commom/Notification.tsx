@@ -48,9 +48,10 @@ const formatDateTime = (date: Date) =>
 
 // แยกรายการการแจ้งเตือนออกเป็น 2 กลุ่ม: ยังไม่ได้อ่าน (unread) และ อ่านแล้ว (read)
 // คืนค่าเป็น object { unread, read }
-function splitNotifications(
-  notifications: NotificationItem[]
-): { unread: NotificationItem[]; read: NotificationItem[] } {
+function splitNotifications(notifications: NotificationItem[]): {
+  unread: NotificationItem[];
+  read: NotificationItem[];
+} {
   return notifications.reduce(
     (result, notification) => {
       if (notification.read) {
@@ -70,45 +71,29 @@ function NotificationPage() {
   const navigate = useNavigate();
   // useSearchParams ใช้เก็บค่า query string ของURL (เราใช้เก็บ selected notification id)
   const [searchParams, setSearchParams] = useSearchParams();
-  const {
-    getNotificationsForUser,
-    markAsRead,
-    markAllAsReadForUser,
-  } = useNotifications();
+  const { getNotificationsForUser, markAsRead, markAllAsReadForUser } =
+    useNotifications();
 
   // ถ้า user ยังไม่ได้ล็อกอิน ให้แสดงข้อความและหยุดการเรนเดอร์หน้าจอแจ้งเตือน
   if (!user) {
     return (
-      <div className="mx-auto max-w-4xl rounded-xl border border-muted-foreground/20 bg-card p-6 text-center text-muted-foreground">
+      <div className="mx-auto max-w-4xl rounded-xl border bg-white dark:bg-card p-6 text-center text-muted-foreground">
         กรุณาเข้าสู่ระบบเพื่อดูการแจ้งเตือน
       </div>
     );
   }
 
   // กำหนด role ของผู้ใช้งาน (ใช้เพื่อกรองการแจ้งเตือนตามบทบาท)
-  // ตัวอย่าง: ถ้า user.role = "Leader" → หลังจากทำให้ lowercase จะเป็น "leader"
   const role = (user.role || "user").toLowerCase() as
     | "admin"
     | "leader"
     | "user"
     | "executive";
-  
+
   // recipientId คือ id ของผู้รับ (จะใช้ในการดึงการแจ้งเตือนเฉพาะคน)
-  // ตัวอย่าง: ถ้า user.id = 101 → จะแปลงเป็น String "101"
-  //          ถ้า user.id ไม่มี → recipientId จะเป็น undefined
   const recipientId = user.id ? String(user.id) : undefined;
 
-  // 🔥 DEBUG: แสดงข้อมูลว่ากำลังค้นหาอะไร
-  // ใช้ console.log เพื่อตรวจสอบในหน้า Inspect (F12 → Console)
-  // ถ้าเห็น "role: leader, recipientId: 101" แสดงว่าการอ่าน user ถูกต้อง
-  // debug logs removed
-
   // ดึงรายการการแจ้งเตือนโดยใช้ useMemo เพื่อหลีกเลี่ยงการคำนวณซ้ำเมื่อ dependencies ไม่เปลี่ยน
-  // เราเรียงจากใหม่ -> เก่า (desc by createdAt)
-  // ขั้นตอน:
-  // 1. เรียก getNotificationsForUser(role, recipientId) 
-  //    → ค้นหา notification ที่มี role="leader" AND recipientId="101" (ตัวอย่าง)
-  // 2. .sort(...) → เรียงจากใหม่สุดไปเก่าสุด (descending by timestamp)
   const notifications = useMemo(
     () =>
       getNotificationsForUser(role, recipientId).sort(
@@ -116,11 +101,6 @@ function NotificationPage() {
       ),
     [getNotificationsForUser, role, recipientId]
   );
-
-  // 🔥 DEBUG: แสดงการแจ้งเตือนที่พบ
-  // ลูกศรไป→ ถ้ามี notifications ให้ปรินต์ทั้ง array และเนื้อหา
-  // เพื่อตรวจสอบว่าค้นหาเจอจริง ๆ หรือไม่
-  // debug logs removed
 
   // แยกรายการที่ยังไม่ได้อ่านออกมา (นำมาแสดงตัวเลขบน badge)
   const { unread } = useMemo(
@@ -161,21 +141,25 @@ function NotificationPage() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <div className="flex flex-col justify-between gap-4 rounded-xl border border-border/60 bg-background px-6 py-5 shadow-sm md:flex-row md:items-center">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:p-6">
+      {/* Header Section */}
+      <div className="flex flex-col justify-between gap-4 rounded-xl border bg-white dark:bg-background px-6 py-5 shadow-sm md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">การแจ้งเตือน</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold text-foreground">การแจ้งเตือน</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             ตรวจสอบเหตุการณ์สำคัญล่าสุดที่เกี่ยวข้องกับคุณ
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1 px-3 py-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
             <MailWarning className="h-4 w-4" />
-            ยังไม่ได้อ่าน {unread.length} รายการ
+            <span className="font-medium">
+              ยังไม่ได้อ่าน {unread.length} รายการ
+            </span>
           </Badge>
           <Button
             variant="outline"
+            size="sm"
             onClick={handleMarkAllAsRead}
             disabled={unread.length === 0}
           >
@@ -184,13 +168,18 @@ function NotificationPage() {
         </div>
       </div>
 
+      {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)]">
-        <Card className="border-border/60">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">
+        {/* Notification List Card */}
+        <Card className="bg-white dark:bg-card">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
+            <CardTitle className="text-lg font-bold">
               รายการแจ้งเตือนทั้งหมด
             </CardTitle>
-            <Badge variant="secondary" className="gap-1 px-3 py-1 text-xs">
+            <Badge
+              variant="secondary"
+              className="gap-1 px-2.5 py-1 text-xs font-medium"
+            >
               รวม {notifications.length} รายการ
             </Badge>
           </CardHeader>
@@ -199,27 +188,35 @@ function NotificationPage() {
               defaultValue={unread.length > 0 ? "unread" : "all"}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="unread" className="gap-2">
-                  <MailWarning className="h-4 w-4" /> ยังไม่ได้อ่าน
+              <TabsList className="mx-4 mb-2 grid w-auto grid-cols-2 bg-muted/50">
+                <TabsTrigger
+                  value="unread"
+                  className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-background"
+                >
+                  <MailWarning className="h-4 w-4" />
+                  <span className="font-medium">ยังไม่ได้อ่าน</span>
                   {unread.length > 0 && (
-                    <Badge className="ml-1 rounded-full bg-red-500 px-2 text-[10px]">
+                    <Badge className="ml-1 rounded-full bg-red-500 px-1.5 py-0 text-[10px] font-semibold">
                       {unread.length}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="all" className="gap-2">
-                  <MailOpen className="h-4 w-4" /> ทั้งหมด
+                <TabsTrigger
+                  value="all"
+                  className="gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-background"
+                >
+                  <MailOpen className="h-4 w-4" />
+                  <span className="font-medium">ทั้งหมด</span>
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="unread">
+              <TabsContent value="unread" className="mt-0">
                 <NotificationList
                   notifications={unread}
                   onSelect={handleOpenNotification}
                   selectedId={selectedId}
                 />
               </TabsContent>
-              <TabsContent value="all">
+              <TabsContent value="all" className="mt-0">
                 <NotificationList
                   notifications={notifications}
                   onSelect={handleOpenNotification}
@@ -230,61 +227,74 @@ function NotificationPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-lg font-semibold">
+        {/* Notification Detail Card */}
+        <Card className="bg-white dark:bg-card">
+          <CardHeader className="space-y-1.5 pb-4">
+            <CardTitle className="text-lg font-bold">
               รายละเอียดการแจ้งเตือน
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               เลือกการแจ้งเตือนจากรายการเพื่อดูรายละเอียด
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {selectedNotification ? (
               <>
-                <div className="flex flex-col gap-2 rounded-md border border-border/50 bg-muted/30 p-4">
+                <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-semibold text-foreground">
+                    <h3 className="text-base font-bold text-foreground leading-tight">
                       {selectedNotification.title}
                     </h3>
                     <Badge
-                      variant={selectedNotification.read ? "outline" : "default"}
+                      variant={
+                        selectedNotification.read ? "outline" : "default"
+                      }
+                      className="shrink-0"
                     >
-                      {selectedNotification.read ? "อ่านแล้ว" : "ยังไม่ได้อ่าน"}
+                      {selectedNotification.read ? "อ่านแล้ว" : "ใหม่"}
                     </Badge>
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-sm leading-relaxed text-foreground/80">
                     {selectedNotification.message}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
-                    {formatDateTime(selectedNotification.createdAt)}
+                    <span>
+                      {formatDateTime(selectedNotification.createdAt)}
+                    </span>
                   </div>
                 </div>
                 {selectedNotification.relatedJobId && (
                   <Button
-                    variant="secondary"
+                    variant="default"
                     className="w-full"
                     onClick={() => {
                       const jobLink =
                         role === "admin"
                           ? `/admin/workoders?jobId=${selectedNotification.relatedJobId}`
                           : role === "leader"
-                            ? `/leader/leaderworks?jobId=${selectedNotification.relatedJobId}`
-                            : `/user/userworks?jobId=${selectedNotification.relatedJobId}`;
+                          ? `/leader/leaderworks?jobId=${selectedNotification.relatedJobId}`
+                          : `/user/userworks?jobId=${selectedNotification.relatedJobId}`;
                       navigate(jobLink);
                     }}
                   >
                     ไปที่ใบงานที่เกี่ยวข้อง
                   </Button>
                 )}
-                <Button variant="ghost" className="w-full" onClick={handleClearSelection}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleClearSelection}
+                >
                   ปิดรายละเอียด
                 </Button>
               </>
             ) : (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
-                ยังไม่ได้เลือกการแจ้งเตือน
+              <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/10 p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  ยังไม่ได้เลือกการแจ้งเตือน
+                </p>
               </div>
             )}
           </CardContent>
@@ -355,4 +365,3 @@ function NotificationList({
 }
 
 export default NotificationPage;
-

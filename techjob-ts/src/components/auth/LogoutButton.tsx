@@ -6,14 +6,24 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import { showConfirm } from '@/lib/sweetalert';
 
 const LogoutButton = () => {
     const { logout } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
+    const handleLogout = async () => {
+        const result = await showConfirm(
+            'ยืนยันการออกจากระบบ',
+            'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?',
+            'ออกจากระบบ',
+            'ยกเลิก'
+        );
+        
+        if (result.isConfirmed) {
+            logout();
+            navigate('/login');
+        }
     };
 
     return (

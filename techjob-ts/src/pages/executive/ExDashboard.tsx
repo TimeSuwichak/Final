@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo, createContext, useContext } from 'react'
-import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, BarChart2, Briefcase } from 'lucide-react'
+import { Download, Calendar, ChevronDown, ChevronLeft, ChevronRight, Clock, Briefcase } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import { showError } from '@/lib/sweetalert'
 
 // Components (split) - Assuming these are accessible
 import OverviewPanel from '../../components/dashboard/OverviewPanel'
 import RightPanel from '../../components/dashboard/RightPanel'
-import TechnicianPerformance from '../../components/dashboard/TechnicianPerformance'
 
 // --- ThemeProvider Code (Included for context) ---
+// ... (ThemeProvider code remains unchanged) ...
 type Theme = "dark" | "light" | "system"
 type ThemeProviderProps = { children: React.ReactNode; defaultTheme?: Theme; storageKey?: string }
 type ThemeProviderState = { theme: Theme; setTheme: (theme: Theme) => void }
@@ -47,7 +48,7 @@ export function ThemeProvider({
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+      setTheme(setTheme)
     },
   }
 
@@ -67,26 +68,25 @@ export const useTheme = () => {
 // --- END ThemeProvider Code ---
 
 
-// --- TimeRangeButton ---
+// --- TimeRangeButton (Reduced transitions) ---
 function TimeRangeButton({ label, isActive, onClick }: any) {
-  // 💡 ปรับปรุง: Dark mode ใช้ Deep Navy Accent, Light Mode ใช้ Indigo/Violet
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 ${
+      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
         isActive 
-          ? 'bg-indigo-600 text-white dark:bg-[#7c3aed] shadow-sm' // Light: Indigo-600, Dark: Violet-600 (#7c3aed)
-          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2A2C40]' // Light: Gray Hover, Dark: Deep Navy Hover
+          ? 'bg-indigo-600 text-white dark:bg-violet-600 shadow-sm hover:bg-indigo-700 dark:hover:bg-violet-700'
+          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#1f2133]'
       }`}>
       {label}
     </button>
   )
 }
 
-// --- DashboardFilters ---
+// --- DashboardFilters (Increased Z-index for Calendar) ---
 function DashboardFilters({ activeRange, onRangeChange }: any) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(new Date()) 
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate.getFullYear(), selectedDate.getMonth()))
   const calendarRef = useRef<HTMLDivElement | null>(null)
   const weekdays = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส']
@@ -119,33 +119,33 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
     const days = [] as React.ReactNode[]
     for (let i = 0; i < startDayOfWeek; i++) days.push(<div key={`pad-${i}`} className="w-8 h-8" />)
     for (let i = 1; i <= daysInMonth; i++) {
-      // 💡 [ปรับปรุง] Calendar day classes ให้รองรับ Light/Deep Navy Theme
-      const dayClasses = `w-8 h-8 flex items-center justify-center rounded-full cursor-pointer transition-colors 
-        ${isToday(i) ? 'border border-indigo-500 dark:border-violet-500' : ''} 
+      // Reduced animation complexity
+      const dayClasses = `w-8 h-8 flex items-center justify-center text-sm rounded-full cursor-pointer transition-colors 
+        ${isToday(i) ? 'border-2 border-indigo-500 dark:border-violet-500' : ''} 
         ${isSelected(i) 
-          ? 'bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-[#7c3aed] dark:hover:bg-violet-500' // Selected State
-          : 'hover:bg-gray-100 dark:hover:bg-[#2A2C40]'} 
+          ? 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-violet-600 dark:hover:bg-violet-700 font-bold'
+          : 'hover:bg-gray-100 dark:hover:bg-[#1f2133]'} 
         ${!isSelected(i) 
           ? (isToday(i) 
-            ? 'text-indigo-600 dark:text-violet-400' // Today, Not Selected
-            : 'text-gray-700 dark:text-gray-300') // Default Day
+            ? 'text-indigo-600 dark:text-violet-400'
+            : 'text-gray-800 dark:text-gray-200')
           : ''}`
       days.push(<div key={`day-${i}`} className={dayClasses} onClick={() => handleDateClick(i)}>{i}</div>)
     }
     return days
   }, [currentMonth, selectedDate]) 
 
-  // 💡 [ปรับปรุง] Filter Box Styles สำหรับ Dark/Light Mode
-  const filterBoxStyle = "bg-white dark:bg-[#131422] border border-gray-300 dark:border-[#2A2C40] rounded-lg px-4 py-2 min-w-[180px] transition-colors hover:border-gray-400 dark:hover:border-[#383a54]"
-  const labelStyle = "text-xs text-gray-500 dark:text-gray-400 block"
-  const selectStyle = "bg-transparent text-sm font-semibold text-gray-900 dark:text-white w-full focus:outline-none appearance-none"
-  const optionStyle = "bg-white text-black dark:bg-[#131422] dark:text-white" // Options need explicit Light/Dark
-  const iconStyle = "text-gray-500 dark:text-gray-400"
+  // Reduced transition and hover effects
+  const filterBoxStyle = "bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg px-3 py-1.5 min-w-[170px] shadow-sm"
+  const labelStyle = "text-xs font-medium text-gray-500 dark:text-gray-400 block tracking-wider uppercase"
+  const selectStyle = "bg-transparent text-sm font-bold text-gray-900 dark:text-white w-full focus:outline-none appearance-none cursor-pointer"
+  const optionStyle = "bg-white text-black dark:bg-[#1a1c2e] dark:text-white"
+  const iconStyle = "text-gray-400 dark:text-gray-500"
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      {/* 💡 [ปรับปรุง] Background ของ Time Range Button Group */}
-      <div className="bg-white dark:bg-[#131422] border border-gray-300 dark:border-[#2A2C40] rounded-lg p-1 flex space-x-1">
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Time Range Button Group */}
+      <div className="bg-gray-50 dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg p-1 flex space-x-1 shadow-inner">
         <TimeRangeButton label="รายวัน" isActive={activeRange === 'Daily'} onClick={() => onRangeChange('Daily')} />
         <TimeRangeButton label="รายเดือน" isActive={activeRange === 'Monthly'} onClick={() => onRangeChange('Monthly')} />
         <TimeRangeButton label="รายปี" isActive={activeRange === 'Yearly'} onClick={() => onRangeChange('Yearly')} />
@@ -155,20 +155,23 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
         <div className={filterBoxStyle}>
           <span className={labelStyle}>Date range</span>
           <button className="flex items-center gap-2 mt-1 w-full text-left" onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
-            <Calendar size={16} className={iconStyle} />
-            <span className="text-sm font-semibold text-gray-900 dark:text-white flex-1">{selectedDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+            <Calendar size={16} className="text-indigo-500 dark:text-violet-400" /> 
+            <span className="text-sm font-bold text-gray-900 dark:text-white flex-1">{selectedDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            {/* Reduced transition on ChevronDown */}
             <ChevronDown size={16} className={`${iconStyle} transition-transform ${isCalendarOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
         {isCalendarOpen && (
-          // 💡 [ปรับปรุง] Calendar Box Background/Border
-          <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#131422] border border-gray-300 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px]">
+          // ✅ เพิ่ม Z-index สูงสุด (z-[999]) เพื่อป้องกันการซ้อนทับ
+          <div className="absolute top-full left-0 mt-2 z-[999] bg-white dark:bg-[#1a1c2e] border border-gray-200 dark:border-[#2A2C40] rounded-lg shadow-xl p-4 w-[280px]">
             <div className="flex justify-between items-center mb-4">
-              <button onClick={() => changeMonth(-1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2A2C40] text-gray-600 dark:text-gray-300"><ChevronLeft size={18} /></button>
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">{currentMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}</span>
-              <button onClick={() => changeMonth(1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#2A2C40] text-gray-600 dark:text-gray-300"><ChevronRight size={18} /></button>
+              <button onClick={() => changeMonth(-1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#1f2133] text-gray-600 dark:text-gray-300 transition-colors"><ChevronLeft size={18} /></button>
+              <span className="font-bold text-sm text-gray-900 dark:text-white">{currentMonth.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' })}</span>
+              <button onClick={() => changeMonth(1)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-[#1f2133] text-gray-600 dark:text-gray-300 transition-colors"><ChevronRight size={18} /></button>
             </div>
-            <div className="grid grid-cols-7 gap-1 mb-2 text-center">{weekdays.map(day => (<div key={day} className="text-xs font-medium text-gray-500 dark:text-gray-400">{day}</div>))}</div>
+            <div className="grid grid-cols-7 gap-1 mb-2 text-center">
+              {weekdays.map(day => (<div key={day} className="text-xs font-bold text-gray-500 dark:text-gray-400">{day}</div>))}
+            </div>
             <div className="grid grid-cols-7 gap-1 text-center">{renderCalendarDays}</div> 
           </div>
         )}
@@ -178,7 +181,7 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
         <label htmlFor="services-filter" className={labelStyle}>Services</label>
         <div className="relative mt-1">
           <select id="services-filter" className={selectStyle}>
-            <option className={optionStyle}>Work</option>
+            <option className={optionStyle}>All Services</option>
             <option className={optionStyle}>ติดตั้ง (Installation)</option>
             <option className={optionStyle}>ซ่อมบำรุง (Maintenance)</option>
             <option className={optionStyle}>ซ่อมด่วน (Urgent Repair)</option>
@@ -191,7 +194,7 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
         <label htmlFor="teams-filter" className={labelStyle}>Artisan</label>
         <div className="relative mt-1">
           <select id="teams-filter" className={selectStyle}>
-            <option className={optionStyle}>Technician</option>
+            <option className={optionStyle}>All Technician</option>
             <option className={optionStyle}>ช่าง A</option>
             <option className={optionStyle}>ช่าง B</option>
             <option className={optionStyle}>ช่าง C</option>
@@ -203,45 +206,91 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
   )
 }
 
-// --- DashboardActions ---
+// --- DashboardActions (Removed spin animation and excessive transitions) ---
 function DashboardActions({ onExportClick, isExporting }: any) {
   return (
     <div className="flex items-center gap-3">
-      {/* 💡 [ปรับปรุง] Export Button Style */}
-      <button onClick={onExportClick} disabled={isExporting} className="flex items-center justify-center gap-2 text-sm bg-white dark:bg-[#131422] hover:bg-gray-100 dark:hover:bg-[#1f2133] text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-lg transition-colors border border-gray-300 dark:border-[#2A2C40] disabled:opacity-50 disabled:cursor-not-allowed w-40">
+      <button onClick={onExportClick} disabled={isExporting} 
+        // Reduced transition-all duration-200 to transition-colors
+        className="flex items-center justify-center gap-2 text-sm bg-indigo-600 dark:bg-violet-600 hover:bg-indigo-700 dark:hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold shadow-md disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed min-w-[140px]">
         {isExporting ? (
-          <><Clock size={16} className="animate-spin text-indigo-600 dark:text-violet-400" /><span>กำลัง Export</span></>
+          // Removed animate-spin from Clock icon
+          <><Clock size={16} className="text-white" /><span>กำลัง Export</span></>
         ) : (
-          <><Download size={16} className="text-indigo-600 dark:text-violet-400" /><span>Export PDF</span></>
+          <><Download size={16} className="text-white" /><span>Export PDF</span></>
         )}
       </button>
     </div>
   )
 }
 
-// --- Skeletons ---
-function KpiCardSkeleton() {
+// --- DashboardHeaderCard (Removed Glass Sphere Icon Style and Vertical Accent) ---
+function DashboardHeaderCard({ 
+    activeRange, 
+    onRangeChange, 
+    onExportClick, 
+    isExporting 
+}: any) {
+  
+  // Reduced card complexity (removed dark shadow and transition-all duration-300)
+  const cardStyle = "bg-white dark:bg-[#1a1c2e] rounded-2xl shadow-xl border border-gray-100 dark:border-[#2A2C40]";
+  const titleStyle = "text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-snug";
+  const descStyle = "text-sm text-gray-500 dark:text-gray-400 mt-0.5 font-medium";
+  
+  // Simplified Icon Style (Solid background, simple shadow)
+  const iconWrapperStyle = `
+    w-14 h-14 md:w-16 md:h-16 flex items-center justify-center 
+    rounded-full 
+    bg-indigo-600 dark:bg-violet-600 
+    shadow-lg shadow-indigo-500/50 dark:shadow-violet-700/50 
+  `;
+  
   return (
-    // 💡 [ปรับปรุง] Skeleton Background/Border ให้เข้ากับธีม Light/Deep Navy
-    <div className="bg-white dark:bg-[#131422] p-5 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <div className="h-4 bg-gray-200 dark:bg-[#2A2C40] rounded w-3/4 mb-2"></div>
-          <div className="h-10 bg-gray-300 dark:bg-[#383a54] rounded w-1/2"></div>
+    // ✅ ลบ overflow-hidden ออก เพื่อให้ปฏิทินที่ใช้ absolute position สามารถล้นออกมาได้
+    <header className={`mb-8 ${cardStyle} relative`}>
+      
+      {/* 1. Vertical Accent Line Removed */}
+
+      {/* 2. Header Row (Title & Action) */}
+      <div className="p-5 md:p-6 border-b border-gray-100 dark:border-[#2A2C40]">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          
+          <div className="flex items-center gap-3">
+            {/* ✅ ใช้ Icon Style แบบเรียบง่าย */}
+            <div className={iconWrapperStyle}>
+              <Briefcase size={28} className="text-white drop-shadow-sm" /> 
+            </div>
+            
+            <div>
+              <h1 className={titleStyle}>
+                CEO Dashboard
+              </h1>
+              <p className={descStyle}>
+                ภาพรวมสถิติการทำงานและสถานะทีมช่าง
+              </p>
+            </div>
+          </div>
+          
+          <div className="shrink-0">
+            <DashboardActions 
+              onExportClick={onExportClick} 
+              isExporting={isExporting} 
+            />
+          </div>
+          
         </div>
-        <div className="p-3 rounded-full bg-gray-200 dark:bg-[#2A2C40] w-12 h-12"></div>
       </div>
-      <div className="h-3 bg-gray-200 dark:bg-[#2A2C40] rounded w-full"></div>
-    </div>
+      
+      {/* 3. Filters Row (Bottom Layer) */}
+      <div className="p-5 md:p-6 pt-4"> 
+        <DashboardFilters 
+          activeRange={activeRange} 
+          onRangeChange={onRangeChange} 
+        />
+      </div>
+      
+    </header>
   )
-}
-function ChartSkeleton() { 
-  // 💡 [ปรับปรุง] Skeleton Background/Border ให้เข้ากับธีม Light/Deep Navy
-  return (<div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]"><div className="h-6 bg-gray-300 dark:bg-[#383a54] rounded w-1/2 mb-4"></div><div className="h-64 bg-gray-200 dark:bg-[#2A2C40] rounded-lg"></div></div>) 
-}
-function TableSkeleton() { 
-  // 💡 [ปรับปรุง] Skeleton Background/Border ให้เข้ากับธีม Light/Deep Navy
-  return (<div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]"><div className="h-6 bg-gray-300 dark:bg-[#383a54] rounded w-1/3 mb-4"></div><div className="space-y-3"><div className="h-8 bg-gray-200 dark:bg-[#2A2C40] rounded"></div><div className="h-8 bg-gray-200 dark:bg-[#2A2C40] rounded"></div><div className="h-8 bg-gray-200 dark:bg-[#2A2C40] rounded"></div><div className="h-8 bg-gray-200 dark:bg-[#2A2C40] rounded"></div></div></div>) 
 }
 
 // --- ExDashboard page ---
@@ -249,12 +298,6 @@ export default function ExDashboard() {
   const dashboardRef = useRef<HTMLDivElement | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [activeRange, setActiveRange] = useState('Monthly')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200)
-    return () => clearTimeout(timer)
-  }, [])
 
   const handleExportPDF = () => {
     if (isExporting) return
@@ -262,97 +305,58 @@ export default function ExDashboard() {
     const input = dashboardRef.current
     if (!input) { setIsExporting(false); return }
 
-    // [แก้ไข] เปลี่ยนสีพื้นหลังในการ Export PDF ให้รองรับ Light/Dark mode
     const options = { 
         scale: 2, 
         useCORS: true, 
-        backgroundColor: document.documentElement.classList.contains('dark') ? '#0D0E15' : '#f9fafb' 
+        backgroundColor: document.documentElement.classList.contains('dark') ? '#0A0B11' : '#ffffff' 
     }
     html2canvas(input, options).then(canvas => {
       const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('l', 'mm', 'a4')
+      const pdf = new jsPDF('p', 'mm', 'a4') 
       const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight()
       const imgWidth = canvas.width; const imgHeight = canvas.height
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-      const imgX = (pdfWidth - imgWidth * ratio) / 2; const imgY = (pdfHeight - imgHeight * ratio) / 2
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+      const ratio = pdfWidth / imgWidth
+      const imgScaledHeight = imgHeight * ratio
+      
+      let y = 0
+      let pageNumber = 1
+      while (y < imgScaledHeight) {
+          if (pageNumber > 1) {
+              pdf.addPage()
+          }
+          pdf.addImage(imgData, 'PNG', 0, -y, pdfWidth, imgScaledHeight)
+          y += pdfHeight
+          pageNumber++
+      }
+      
       pdf.save('executive-dashboard-export.pdf')
-    }).catch(err => { console.error('Error exporting PDF:', err); alert('เกิดข้อผิดพลาดในการ Export PDF:\n\n' + err.message) }).finally(() => setIsExporting(false))
+    }).catch(err => { console.error('Error exporting PDF:', err); showError('เกิดข้อผิดพลาดในการ Export PDF', err.message) }).finally(() => setIsExporting(false))
   }
 
-  // 💡 [ปรับปรุง] baseContainerClass: Light Mode bg-gray-100, Dark Mode bg-[#0D0E15]
-  const baseContainerClass = 'flex-1 p-6 md:p-8 bg-gray-100 dark:bg-[#0D0E15] text-gray-900 dark:text-gray-100 min-h-screen'
-
-  if (loading) {
-    return (
-      <div className={`${baseContainerClass} animate-pulse`}>
-        <header className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
-            <div>
-              <div className="h-9 bg-gray-300 dark:bg-[#2A2C40] rounded w-48 mb-2"></div>
-              <div className="h-5 bg-gray-200 dark:bg-[#383a54] rounded w-72"></div>
-            </div>
-            <div className="h-12 bg-gray-300 dark:bg-[#2A2C40] rounded-lg w-40"></div>
-          </div>
-          <div className="h-12 bg-gray-200 dark:bg-[#2A2C40] rounded-lg w-full"></div>
-        </header>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="space-y-6">
-              <div className="h-6 bg-gray-300 dark:bg-[#2A2C40] rounded w-1/3"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <KpiCardSkeleton />
-                <KpiCardSkeleton />
-                <KpiCardSkeleton />
-              </div>
-              <ChartSkeleton />
-            </div>
-            <TableSkeleton />
-          </div>
-          <div className="lg:col-span-1 space-y-8">
-            <ChartSkeleton />
-            <ChartSkeleton />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Removed min-h-screen for less 'fill-the-view' feeling
+  const baseContainerClass = 'flex-1 p-6 md:p-8 bg-gray-50 dark:bg-[#0D0E15] text-gray-900 dark:text-gray-100'
 
   return (
-    // 💡 Wrapper component with ThemeProvider
     <ThemeProvider>
       <div ref={dashboardRef} className={baseContainerClass}>
-        <header className="mb-8">
-          <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              {/* 💡 [ปรับปรุง] Icon สีม่วงสว่าง */}
-              <Briefcase size={36} className="text-indigo-600 dark:text-violet-400" /> 
-              <div>
-                {/* [UPGRADE] ปรับขนาดและสีของหัวข้อ */}
-                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">
-                  CEO Dashboard
-                </h1>
-                {/* [UPGRADE] ปรับสีและขนาดคำอธิบาย */}
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-1">
-                  ภาพรวมสถิติการทำงานและสถานะทีมช่าง
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0">
-                <DashboardActions onExportClick={handleExportPDF} isExporting={isExporting} />
-            </div>
-          </div>
-          <div><DashboardFilters activeRange={activeRange} onRangeChange={setActiveRange} /></div>
-        </header>
+        
+        <DashboardHeaderCard 
+          activeRange={activeRange} 
+          onRangeChange={setActiveRange}
+          onExportClick={handleExportPDF} 
+          isExporting={isExporting}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <OverviewPanel activeRange={activeRange} />
+            {/* OverviewPanel: ต้องแก้โค้ดในไฟล์นี้ (OverviewPanel.tsx) ให้แสดงตัวเลขโดยตรง */}
+            <OverviewPanel activeRange={activeRange} /> 
             {/* <TechnicianPerformance /> */}
           </div>
 
           <div className="lg:col-span-1 space-y-8">
-            <RightPanel />
+            {/* RightPanel: ต้องแก้โค้ดในไฟล์นี้ (RightPanel.tsx) ให้แสดงตัวเลขโดยตรง */}
+            <RightPanel /> 
           </div>
         </div>
       </div>

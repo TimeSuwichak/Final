@@ -45,6 +45,7 @@ import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
 import { isDateRangeOverlapping } from "@/lib/utils";
 import { leader as ALL_LEADERS } from "@/data/leader";
 import { user as ALL_USERS } from "@/data/user";
+import { showInfo, showError, showWarning } from "@/lib/sweetalert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -55,7 +56,7 @@ import {
 } from "@/components/ui/card";
 import type { Job } from "@/types/index";
 import { AdminMap } from "./AdminMap"
-import { TaskDetailsLocked } from "../leader/TaskDetailsLocked";
+import { TaskManagement } from "../leader/TaskManagement";
 import { Briefcase, Users, UserCheck, Download,ImageIcon } from "lucide-react";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 import { PdfViewer } from "@/components/common/PdfViewer";  
@@ -193,7 +194,7 @@ export function EditJobDialog({
     }
 
     if (Object.keys(changes).length === 0) {
-      alert("ไม่มีข้อมูลเปลี่ยนแปลง");
+      showInfo("ไม่มีข้อมูลเปลี่ยนแปลง");
       onOpenChange(false); // ปิด Dialog
       return;
     }
@@ -204,7 +205,7 @@ export function EditJobDialog({
 
   const handleConfirmSave = () => {
     if (!job || !user || !editReason) {
-      alert("เกิดข้อผิดพลาด หรือยังไม่ได้กรอกเหตุผล");
+      showError("เกิดข้อผิดพลาด", "ยังไม่ได้กรอกเหตุผล");
       return;
     }
     updateJob(job.id, pendingChanges, editReason, user.fname);
@@ -510,7 +511,7 @@ export function EditJobDialog({
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <TaskDetailsLocked tasks={job.tasks} />
+                        <TaskManagement job={job} mode="admin" />
                       </CardContent>
                     </Card>
                   )}
@@ -709,7 +710,7 @@ export function EditJobDialog({
             <AlertDialogCancel>ยกเลิก</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               if (!deleteReason.trim()) {
-                alert('กรุณาระบุเหตุผลการลบ');
+                showWarning('กรุณาระบุเหตุผลการลบ');
                 return;
               }
               if (!job || !user) return;

@@ -1,6 +1,8 @@
 // src/types/index.ts
 // (คุณสามารถเพิ่มรายละเอียดอื่นๆ ได้ตามต้องการ)
 
+import type { S } from "node_modules/tailwindcss/dist/types-WlZgYgM8.d.mts";
+
 // พิมพ์เขียวสำหรับ "ประวัติการแก้ไข" (โดย Admin เท่านั้น)
 export interface EditHistory {
   adminName: string;
@@ -45,6 +47,9 @@ export interface Task {
   description: string;
   imageUrl?: string;
   status: "pending" | "in-progress" | "completed";
+   needsAcknowledgment: boolean;
+   lasrtAcknowledgedBy?: String;
+   lastAcknowledgedAt?: String;
   updates: {
     message: string;
     imageUrl?: string;
@@ -103,6 +108,13 @@ export interface Job {
   completionPdfUrl?: string;
   completedAt?: Date;
   leaderCloser?: string;
+
+  // ลายเซ็นลูกค้า (metadata only - ไม่เก็บรูปจริง)
+  lastSignedAt?: Date;
+  lastSignedBy?: string;
+  signatureCount?: number;
+
+  isLocal?: boolean; // Flag to indicate if the job is only local (not yet synced to Firestore)
 }
 
 export type MaterialUsageType = "consumable" | "returnable";
@@ -115,4 +127,5 @@ export interface Material {
   unit: string;
   stock: number;
   minStock: number;
+  isLocal?: boolean;
 }

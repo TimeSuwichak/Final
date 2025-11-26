@@ -22,6 +22,7 @@ import { isDateRangeOverlapping } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { leader as ALL_LEADERS } from "@/Data/leader";
 import { AdminMap } from "./AdminMap";
+import { showWarning, showError, showSuccess } from "@/lib/sweetalert";
 
 
 
@@ -123,23 +124,23 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   
   const validateForm = (): boolean => {
     if (!title || !jobType) {
-      alert("กรุณากรอกหัวข้องานและประเภทงาน")
+      showWarning("กรุณากรอกหัวข้องานและประเภทงาน")
       return false
     }
     if (!startDate || !endDate || !selectedLeadId) {
-      alert("กรุณาระบุวันที่และเลือกหัวหน้างาน")
+      showWarning("กรุณาระบุวันที่และเลือกหัวหน้างาน")
       return false
     }
     if (!customerName) {
-      alert("กรุณากรอกชื่อลูกค้า")
+      showWarning("กรุณากรอกชื่อลูกค้า")
       return false
     }
     if (!assignmentMode) {
-      alert("กรุณาเลือกวิธีการมอบหมายงาน")
+      showWarning("กรุณาเลือกวิธีการมอบหมายงาน")
       return false
     }
     if (assignmentMode === "direct" && selectedTechIds.length === 0) {
-      alert("กรุณาเลือกช่างที่จะมอบหมายงาน")
+      showWarning("กรุณาเลือกช่างที่จะมอบหมายงาน")
       return false
     }
     return true
@@ -154,7 +155,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     }
 
     if (!user) {
-      alert("เกิดข้อผิดพลาด: ไม่พบข้อมูลผู้ใช้");
+      showError("เกิดข้อผิดพลาด", "ไม่พบข้อมูลผู้ใช้");
       return;
     }
 
@@ -185,6 +186,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
      adminName,
     )
 
+    showSuccess("สร้างใบงานเรียบร้อย", `ใบงาน "${title}" ถูกสร้างเรียบร้อยแล้ว`);
     onFinished()
   }
 

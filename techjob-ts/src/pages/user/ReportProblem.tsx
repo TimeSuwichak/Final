@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from "react-router-dom"
 import { Upload } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { showWarning, showSuccess, showError } from "@/lib/sweetalert"
 
 // Interface สำหรับเก็บข้อมูลการแจ้งปัญหา
 interface ReportData {
@@ -71,7 +72,7 @@ const LeaderReport: React.FC = () => {
     e.preventDefault()
 
     if (!problemType || !description) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน")
+      showWarning("กรุณากรอกข้อมูลให้ครบถ้วน")
       return
     }
 
@@ -96,13 +97,13 @@ const LeaderReport: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false)
         if (success) {
-        alert("ส่งรายงานปัญหาเรียบร้อยแล้ว")
+        showSuccess("ส่งรายงานปัญหาเรียบร้อยแล้ว")
         setProblemType("")
         setDescription("")
         setAttachmentUrl("")
         navigate("/leader/leaderdashboard")
       } else {
-        alert("เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง")
+        showError("เกิดข้อผิดพลาดในการส่งรายงาน", "กรุณาลองใหม่อีกครั้ง")
       }
     }, 1000)
   }

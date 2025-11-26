@@ -1,9 +1,9 @@
 // src/components/user/UserJobTable.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -13,8 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -23,22 +23,26 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import type { Job } from '@/types/index';
+import type { Job } from "@/types/index";
 
 interface UserJobTableProps {
   jobs: Job[];
   onViewJob: (job: Job) => void;
 }
 
-const statusClasses: Record<'new' | 'in-progress' | 'done', string> = {
-  new: 'bg-blue-100 text-blue-800 border-blue-200',
-  'in-progress': 'bg-amber-100 text-amber-800 border-amber-200',
-  done: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+const statusClasses: Record<"new" | "in-progress" | "done", string> = {
+  new: "bg-blue-100 text-blue-800 border-blue-200",
+  "in-progress": "bg-amber-100 text-amber-800 border-amber-200",
+  done: "bg-emerald-100 text-emerald-800 border-emerald-200",
 };
 
-const getStatusBadge = (status: 'new' | 'in-progress' | 'done') => {
+const getStatusBadge = (status: "new" | "in-progress" | "done") => {
   const label =
-    status === 'new' ? 'งานใหม่' : status === 'in-progress' ? 'กำลังทำ' : 'เสร็จสิ้น';
+    status === "new"
+      ? "งานใหม่"
+      : status === "in-progress"
+      ? "กำลังทำ"
+      : "เสร็จสิ้น";
   return (
     <Badge
       variant="outline"
@@ -64,32 +68,48 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       {/* Mobile Card View */}
       <div className="block md:hidden space-y-3">
         {currentJobs.length > 0 ? (
           currentJobs.map((job) => (
-            <div key={job.id} className="rounded-md border bg-white dark:bg-card p-4 space-y-3">
+            <div
+              key={job.id}
+              className="rounded-md border bg-white dark:bg-card p-4 space-y-3"
+            >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">รหัสใบงาน</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  รหัสใบงาน
+                </span>
                 <span className="font-semibold">{job.id}</span>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-sm text-muted-foreground">ชื่องาน</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  ชื่องาน
+                </span>
                 <p className="font-medium">{job.title}</p>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">วันที่</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  วันที่
+                </span>
                 <span className="text-sm">
-                  {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                  {format(job.startDate, "dd/MM/yy")} -{" "}
+                  {format(job.endDate, "dd/MM/yy")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">สถานะ</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  สถานะ
+                </span>
                 {getStatusBadge(job.status)}
               </div>
               <div className="flex justify-end pt-2">
-                <Button variant="ghost" size="sm" onClick={() => onViewJob(job)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onViewJob(job)}
+                >
                   <Eye className="h-4 w-4 mr-2" />
                   ดูรายละเอียด
                 </Button>
@@ -104,7 +124,7 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block rounded-md border bg-white dark:bg-card overflow-hidden min-h-[485px]">
+      <div className="hidden md:block rounded-md border bg-white dark:bg-card overflow-hidden flex-1">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -119,16 +139,24 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
             <TableBody>
               {currentJobs.length > 0 ? (
                 currentJobs.map((job, index) => (
-                  <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
+                  <TableRow
+                    key={job.id}
+                    className="[&>td]:border-b [&>td]:border-gray-200 "
+                  >
                     <TableCell className="font-medium">{job.id}</TableCell>
                     <TableCell>{job.title}</TableCell>
                     <TableCell>
-                      {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                      {format(job.startDate, "dd/MM/yy")} -{" "}
+                      {format(job.endDate, "dd/MM/yy")}
                     </TableCell>
                     <TableCell>{getStatusBadge(job.status)}</TableCell>
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center">
-                        <Button variant="ghost" size="icon" onClick={() => onViewJob(job)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewJob(job)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
@@ -137,7 +165,7 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
                 ))
               ) : (
                 <TableRow className="border-b border-gray-200">
-                <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     ไม่พบใบงาน
                   </TableCell>
                 </TableRow>
@@ -152,7 +180,11 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -168,8 +200,14 @@ export function UserJobTable({ jobs, onViewJob }: UserJobTableProps) {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() =>
+                  handlePageChange(Math.min(totalPages, currentPage + 1))
+                }
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>

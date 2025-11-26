@@ -60,6 +60,7 @@ import { admin } from "@/Data/admin";
 // ==========================================================
 import { departmentMap } from "@/Data/departmentMapping"; // ✨ 1. Import พจนานุกรมเข้ามา
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { showWarning, showConfirm, showSuccess } from "@/lib/sweetalert";
 
 // ==========================================================
 // 1. เตรียมข้อมูลเริ่มต้น (ทำนอก Component)
@@ -150,9 +151,14 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
 
   // สร้าง allDepartments และ positionsByDepartment จากข้อมูลจริง (รวมข้อมูลที่แก้ไขแล้ว)
   const allDepartmentsForForm = useMemo(() => {
-    const departments = [...new Set(allPersonnelData.map((p) => p.department))] as string[];
+    const departments = [
+      ...new Set(allPersonnelData.map((p) => p.department)),
+    ] as string[];
     // ถ้ามี initialData และ department ของมันไม่อยู่ใน list ให้เพิ่มเข้าไปด้วย
-    if (initialData?.department && !departments.includes(initialData.department)) {
+    if (
+      initialData?.department &&
+      !departments.includes(initialData.department)
+    ) {
       return [initialData.department, ...departments];
     }
     return departments;
@@ -173,7 +179,9 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
       if (!positionsMap[initialData.department]) {
         positionsMap[initialData.department] = [];
       }
-      if (!positionsMap[initialData.department].includes(initialData.position)) {
+      if (
+        !positionsMap[initialData.department].includes(initialData.position)
+      ) {
         positionsMap[initialData.department].push(initialData.position);
       }
     }
@@ -218,7 +226,11 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
     let positions = positionsByDepartmentForForm[department] || [];
 
     // ถ้ามี initialData และ department ตรงกัน ให้แน่ใจว่า position ของมันอยู่ใน list
-    if (initialData && initialData.department === department && initialData.position) {
+    if (
+      initialData &&
+      initialData.department === department &&
+      initialData.position
+    ) {
       if (!positions.includes(initialData.position)) {
         positions = [initialData.position, ...positions];
       }
@@ -241,7 +253,7 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
   const handleSubmit = (event: any) => {
     event.preventDefault();
     if (!fname || !lname || !department || !position) {
-      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      showWarning("กรุณากรอกข้อมูลให้ครบทุกช่อง");
       return;
     }
 
@@ -250,7 +262,9 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
     if (!finalEmail) {
       if (initialData?.id) {
         // ถ้าเป็นการแก้ไข ใช้ email เดิม หรือสร้างใหม่ถ้าไม่มี
-        finalEmail = initialData.email || `${fname.toLowerCase()}.${lname.toLowerCase()}@techjob.com`;
+        finalEmail =
+          initialData.email ||
+          `${fname.toLowerCase()}.${lname.toLowerCase()}@techjob.com`;
       } else {
         // ถ้าเป็นการเพิ่มใหม่ สร้าง email ใหม่
         const timestamp = Date.now();
@@ -266,7 +280,10 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
       password: password || initialData?.password || "user1234", // ถ้าไม่กรอกรหัสผ่าน ใช้ default หรือรหัสเดิม
       department,
       position,
-      urlImage: imagePreview || initialData?.urlImage || `https://api.dicebear.com/7.x/initials/svg?seed=${fname} ${lname}`,
+      urlImage:
+        imagePreview ||
+        initialData?.urlImage ||
+        `https://api.dicebear.com/7.x/initials/svg?seed=${fname} ${lname}`,
       role: initialData?.role || "user",
       // เก็บข้อมูลเพิ่มเติม
       fname: fname,
@@ -446,7 +463,11 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="col-span-3"
-            placeholder={initialData ? "เว้นว่างไว้เพื่อไม่เปลี่ยนรหัสผ่าน" : "เช่น user1234"}
+            placeholder={
+              initialData
+                ? "เว้นว่างไว้เพื่อไม่เปลี่ยนรหัสผ่าน"
+                : "เช่น user1234"
+            }
           />
         </div>
 
@@ -454,7 +475,7 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
         <div className="grid grid-cols-4 items-center gap-4">
           <Label className="text-right">แผนก</Label>
           <Select
-            key={`dept-${initialData?.id || 'new'}-${department}`}
+            key={`dept-${initialData?.id || "new"}-${department}`}
             value={department || undefined}
             onValueChange={(value) => {
               setDepartment(value);
@@ -485,7 +506,7 @@ function UserForm({ initialData, onSubmit, onClose, allPersonnelData }) {
         <div className="grid grid-cols-4 items-center gap-4">
           <Label className="text-right">ตำแหน่ง</Label>
           <Select
-            key={`pos-${initialData?.id || 'new'}-${department}-${position}`}
+            key={`pos-${initialData?.id || "new"}-${department}-${position}`}
             value={position || undefined}
             onValueChange={setPosition}
             disabled={!department}
@@ -577,7 +598,10 @@ export default function Datauser() {
       originalId: Date.now(), // สร้าง originalId สำหรับ user ใหม่
       // เก็บข้อมูลเพิ่มเติมตาม mock data
       fname: newUserData.fname || newUserData.name?.split(" ")[0] || "",
-      lname: newUserData.lname || newUserData.name?.split(" ").slice(1).join(" ") || "",
+      lname:
+        newUserData.lname ||
+        newUserData.name?.split(" ").slice(1).join(" ") ||
+        "",
       phone: newUserData.phone || "",
       address: newUserData.address || "",
       religion: newUserData.religion || "",
@@ -595,6 +619,7 @@ export default function Datauser() {
     });
     setIsDialogOpen(false);
     setEditingUser(null);
+    showSuccess("เพิ่มผู้ใช้สำเร็จ");
   };
 
   const handleUpdateUser = (updatedUserData: any) => {
@@ -602,24 +627,56 @@ export default function Datauser() {
       const updated = prev.map((user) =>
         user.id === updatedUserData.id
           ? {
-            ...user,
-            ...updatedUserData,
-            // เก็บข้อมูลเพิ่มเติม
-            fname: updatedUserData.fname || user.fname || updatedUserData.name?.split(" ")[0] || "",
-            lname: updatedUserData.lname || user.lname || updatedUserData.name?.split(" ").slice(1).join(" ") || "",
-            phone: updatedUserData.phone !== undefined ? updatedUserData.phone : user.phone,
-            address: updatedUserData.address !== undefined ? updatedUserData.address : user.address,
-            religion: updatedUserData.religion !== undefined ? updatedUserData.religion : user.religion,
-            nationality: updatedUserData.nationality !== undefined ? updatedUserData.nationality : user.nationality,
-            idCard: updatedUserData.idCard !== undefined ? updatedUserData.idCard : user.idCard,
-            startDate: updatedUserData.startDate !== undefined ? updatedUserData.startDate : user.startDate,
-            // อัปเดต email ถ้ามีการเปลี่ยนแปลง
-            email: updatedUserData.email !== undefined ? updatedUserData.email : user.email,
-            // อัปเดต password เฉพาะเมื่อมีการกรอกใหม่ (ถ้าไม่กรอกจะเก็บรหัสเดิม)
-            password: updatedUserData.password && updatedUserData.password !== "" ? updatedUserData.password : user.password,
-            // เก็บ status เดิมไว้ ไม่ให้เปลี่ยน
-            status: user.status,
-          }
+              ...user,
+              ...updatedUserData,
+              // เก็บข้อมูลเพิ่มเติม
+              fname:
+                updatedUserData.fname ||
+                user.fname ||
+                updatedUserData.name?.split(" ")[0] ||
+                "",
+              lname:
+                updatedUserData.lname ||
+                user.lname ||
+                updatedUserData.name?.split(" ").slice(1).join(" ") ||
+                "",
+              phone:
+                updatedUserData.phone !== undefined
+                  ? updatedUserData.phone
+                  : user.phone,
+              address:
+                updatedUserData.address !== undefined
+                  ? updatedUserData.address
+                  : user.address,
+              religion:
+                updatedUserData.religion !== undefined
+                  ? updatedUserData.religion
+                  : user.religion,
+              nationality:
+                updatedUserData.nationality !== undefined
+                  ? updatedUserData.nationality
+                  : user.nationality,
+              idCard:
+                updatedUserData.idCard !== undefined
+                  ? updatedUserData.idCard
+                  : user.idCard,
+              startDate:
+                updatedUserData.startDate !== undefined
+                  ? updatedUserData.startDate
+                  : user.startDate,
+              // อัปเดต email ถ้ามีการเปลี่ยนแปลง
+              email:
+                updatedUserData.email !== undefined
+                  ? updatedUserData.email
+                  : user.email,
+              // อัปเดต password เฉพาะเมื่อมีการกรอกใหม่ (ถ้าไม่กรอกจะเก็บรหัสเดิม)
+              password:
+                updatedUserData.password && updatedUserData.password !== ""
+                  ? updatedUserData.password
+                  : user.password,
+              // เก็บ status เดิมไว้ ไม่ให้เปลี่ยน
+              status: user.status,
+            }
           : user
       );
       // บันทึกทันที
@@ -628,10 +685,15 @@ export default function Datauser() {
     });
     setIsDialogOpen(false);
     setEditingUser(null);
+    showSuccess("บันทึกข้อมูลผู้ใช้เรียบร้อย");
   };
 
-  const handleDeleteUser = (userId: any) => {
-    if (window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?")) {
+  const handleDeleteUser = async (userId: any) => {
+    const result = await showConfirm(
+      "ยืนยันการลบ",
+      "คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานนี้?"
+    );
+    if (result.isConfirmed) {
       setPersonnelData((prev) => {
         const updated = prev.filter((user) => user.id !== userId);
         // บันทึกทันที
@@ -725,7 +787,7 @@ export default function Datauser() {
       </div>
 
       {/* ✅ ตาราง / รายการ */}
-      <div className="rounded-xl border shadow-sm w-full overflow-hidden">
+      <div className="rounded-xl border shadow-sm w-full overflow-hidden bg-white dark:bg-background">
         {/* 📱 Mobile View */}
         <div className="flex flex-col gap-3 md:hidden p-2">
           {pagedData.length > 0 ? (
@@ -755,7 +817,11 @@ export default function Datauser() {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="p-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="p-1 shrink-0"
+                    >
                       <MoreHorizontal className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -811,25 +877,33 @@ export default function Datauser() {
                     onClick={() =>
                       navigate(`/admin/user-detail/${item.originalId}`)
                     }
-                    key={item.id}>
+                    key={item.id}
+                  >
                     <TableCell className="min-w-0 cursor-pointer">
-                      <div
-
-                        className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         <img
                           src={item.urlImage}
                           className="w-8 h-8 rounded-full object-cover bg-muted"
                           alt={item.name}
                         />
-                        <span className="font-medium truncate">{item.name}</span>
+                        <span className="font-medium truncate">
+                          {item.name}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell className="min-w-0 truncate">{item.email}</TableCell>
+                    <TableCell className="min-w-0 truncate">
+                      {item.email}
+                    </TableCell>
                     <TableCell className="min-w-0 truncate">
                       {departmentMap[item.department] || item.department}
                     </TableCell>
-                    <TableCell className="min-w-0 truncate">{item.role}</TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="min-w-0 truncate">
+                      {item.role}
+                    </TableCell>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -919,7 +993,6 @@ export default function Datauser() {
       </Dialog>
     </div>
   );
-
 }
 
 function PaginationDemo({

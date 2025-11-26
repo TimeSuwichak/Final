@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 import { user } from "@/data/user"
+import { showWarning, showConfirm, showError } from "@/lib/sweetalert"
 
 const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่", "อื่นๆ"]
 
@@ -69,7 +70,7 @@ const Report = () => {
 
   const handleAddReport = () => {
     if (!selectedUserId || !selectedReportCategory || !reportDescription.trim()) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน")
+      showWarning("กรุณากรอกข้อมูลให้ครบถ้วน")
       return
     }
 
@@ -114,8 +115,9 @@ const Report = () => {
     setReportDescription("")
   }
 
-  const handleDeleteReport = (reportId: number) => {
-    if (!confirm("คุณต้องการลบรายงานนี้หรือไม่?")) {
+  const handleDeleteReport = async (reportId: number) => {
+    const result = await showConfirm("ยืนยันการลบ", "คุณต้องการลบรายงานนี้หรือไม่?");
+    if (!result.isConfirmed) {
       return
     }
 
@@ -140,7 +142,7 @@ const Report = () => {
       }
     } catch (error) {
       console.error("[v0] Failed to delete report:", error)
-      alert("เกิดข้อผิดพลาดในการลบรายงาน")
+      showError("เกิดข้อผิดพลาดในการลบรายงาน")
     }
   }
 

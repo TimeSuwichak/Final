@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
+import { showWarning } from "@/lib/sweetalert"
 
 interface AddTaskSectionProps {
   onTaskAdd?: (task: { title: string; description: string }) => void
@@ -19,7 +20,7 @@ export function AddTask({ onTaskAdd }: AddTaskSectionProps) {
 
   const handleAddTask = () => {
     if (!taskTitle.trim()) {
-      alert("กรุณากรอกหัวข้อ Task")
+      showWarning("กรุณากรอกหัวข้อ Task")
       return
     }
 

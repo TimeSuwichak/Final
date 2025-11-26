@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AdminMap } from "@/components/admin/AdminMap"
-import { TaskDetailsLocked } from "@/components/leader/TaskDetailsLocked"
+import { TaskManagement } from "@/components/leader/TaskManagement"
 import { Briefcase, Users, UserCheck, Download, ImageIcon, ArrowLeft } from "lucide-react"
 import { generateCompletionReportPdf } from "@/utils/jobReport"
 import { PdfViewer } from "@/components/common/PdfViewer"
@@ -377,7 +377,7 @@ export default function JobViewPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <TaskDetailsLocked tasks={job.tasks} />
+                <TaskManagement job={job} mode="admin" />
               </CardContent>
             </Card>
           )}

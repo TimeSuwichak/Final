@@ -88,6 +88,31 @@ const legendIconMap: Record<string, React.ElementType> = {
   'เปลี่ยนอะไหล่': RefreshCw,
 };
 
+// Custom Tooltip Component (เพื่อควบคุมกรอบ Tooltip ได้ด้วย Tailwind CSS)
+const CustomChartTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    // 💡 [ปรับปรุง]: ใช้ min-w-max เพื่อให้กรอบขยายตามเนื้อหา
+    return (
+      // 💡 Light: bg-white, border-gray-300 | Dark: bg-[#282b3d], border-[#3d4158]
+      <div className="p-3 bg-white dark:bg-[#282b3d] border border-gray-300 dark:border-[#3d4158] rounded-lg shadow-xl text-sm min-w-max">
+        {/* Pie Chart Tooltip ไม่มี Label (Category) แต่ Bar Chart มี */}
+        {label && <p className="font-bold text-gray-900 dark:text-white mb-1">{`Category: ${label}`}</p>}
+        <ul className="list-none p-0 m-0 space-y-1">
+          {payload.map((item: any, index: number) => (
+            <li key={`item-${index}`} className="flex justify-between items-center">
+              <span style={{ color: item.fill, fontWeight: 'bold' }}>{item.name}:</span>
+              {/* 💡 Light: text-gray-800 | Dark: text-gray-200 */}
+              <span className="ml-2 font-medium text-gray-800 dark:text-gray-200">{`${item.value} ${label ? 'งาน' : '%'}`}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  return null;
+};
+
+
 export default function RightPanel() {
   
   // Mock Data สำหรับ 6 ประเภทงาน (Pie Chart)
@@ -116,7 +141,7 @@ export default function RightPanel() {
       {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-200 | Dark: #131422, border-[#2A2C40] */}
       <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]">
         {/* 💡 [ปรับปรุง] Icon Light: indigo-500 | Dark: violet-400 */}
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h3 className="text-x font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <PieChartIcon size={20} className="text-indigo-500 dark:text-violet-400" /> 
           สัดส่วนประเภทงาน (Job Type Distribution)
         </h3>
@@ -136,15 +161,8 @@ export default function RightPanel() {
               </defs>
 
               <Tooltip 
-                // 💡 Tooltip Light Mode Style (ใช้ CSS properties ที่ถูกต้อง)
-                contentStyle={{ 
-                  backgroundColor: 'white', borderColor: '#e5e7eb', borderRadius: '12px', boxShadow: '0 8px 25px rgba(0,0,0,0.1)', 
-                  // 💡 Dark mode style (ใช้ Custom Properties ที่ต้องมี CSS ภายนอกรองรับ)
-                  '--recharts-tooltip-bg': '#282b3d', 
-                  '--recharts-tooltip-border': '#3d4158', 
-                  '--recharts-tooltip-color': '#e2e8f0', 
-                } as React.CSSProperties} 
-                formatter={(value: any, name: string) => [`${value}%`, name]} 
+                // 💡 [แก้ไข] ใช้ Custom Tooltip Component ที่รองรับ Tailwind CSS Width
+                content={<CustomChartTooltip />}
                 // 💡 Label color Light: #4f46e5 (Indigo)
                 labelStyle={{ fontWeight: 'bold', color: '#4f46e5' }} 
               />
@@ -157,9 +175,7 @@ export default function RightPanel() {
                 filter="url(#shadow)" 
               >
                 {jobTypeData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={PALETTE[index % PALETTE.length]} 
+                  <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} 
                     stroke="none" 
                   />
                 ))}
@@ -168,7 +184,8 @@ export default function RightPanel() {
           </ResponsiveContainer>
         </div>
         {/* Legend */}
-        <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        {/* 💡 [ปรับปรุง]: ใช้ grid-cols-2 และเพิ่ม gap-x ให้มากขึ้น เพื่อให้คำยาวๆ ไม่ถูกบีบ */}
+        <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4"> {/* เพิ่ม gap-x เป็น 8 */}
           {jobTypeData.map((entry, index) => {
             const color = PALETTE[index % PALETTE.length];
             const Icon = legendIconMap[entry.name] || Wrench; 
@@ -195,7 +212,7 @@ export default function RightPanel() {
       {/* --- Card 3: Bar Chart (Completed Works) --- */}
       {/* 💡 [ปรับปรุง] พื้นหลัง Light: white, border-gray-200 | Dark: #131422, border-[#2A2C40] */}
       <div className="bg-white dark:bg-[#131422] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-[#2A2C40]">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <h3 className="text-x font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <CheckCircle size={20} className="text-green-500 dark:text-emerald-400" /> 
           Completed Works (จำนวนงานที่ทำเสร็จ)
         </h3>
@@ -204,7 +221,8 @@ export default function RightPanel() {
             <BarChart 
               data={completedWorksData} 
               layout="vertical" 
-              margin={{ top: 10, right: 30, left: 20, bottom: 0 }} 
+              // 💡 [แก้ไข]: ปรับ margin right เป็น 40 และ bottom เป็น 40 เพื่อให้ X-axis label ไม่ตกขอบและเพิ่มพื้นที่ว่างด้านล่าง
+              margin={{ top: 10, right: 40, left: 20, bottom: 40 }} 
             >
               {/* 💡 ปรับเส้น Grid Light: #e5e7eb, strokeOpacity 0.1 | Dark: #3d4158, strokeOpacity 0.15 */}
               <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} stroke="#e5e7eb" className="dark:stroke-[#3d4158] dark:stroke-opacity-[0.15]" horizontal={false} />
@@ -213,6 +231,10 @@ export default function RightPanel() {
                 type="number" 
                 tickLine={false}
                 axisLine={false}
+                // 💡 [แก้ไข]: กำหนด Domain และ Ticks ให้ชัดเจน
+                domain={[0, 60]} // กำหนดขอบเขตสูงสุดที่ 60
+                ticks={[0, 15, 30, 45, 60]} // บังคับให้แสดงเฉพาะตัวเลขที่ต้องการ
+                
                 // 💡 Tick color Light: #6b7280 | Dark: #a0aec0
                 tick={{ fill: '#6b7280', fontSize: '12px' }} 
                 className="dark:fill-[#a0aec0]" // Apply dark mode to tick text
@@ -232,14 +254,8 @@ export default function RightPanel() {
               />
               
               <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', 
-                  // 💡 Dark mode style
-                  '--recharts-tooltip-bg': '#282b3d',
-                  '--recharts-tooltip-border': '#3d4158',
-                  '--recharts-tooltip-color': '#e2e8f0',
-                } as React.CSSProperties} 
-                formatter={(value: any) => [`${value} งาน`, "Completed Works"]} 
+                // 💡 [แก้ไข] ใช้ Custom Tooltip Component ที่รองรับ Tailwind CSS Width
+                content={<CustomChartTooltip />}
               />
               
               <Bar 

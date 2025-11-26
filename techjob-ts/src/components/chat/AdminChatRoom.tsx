@@ -17,6 +17,7 @@ import ChatInput from "./ChatInput";
 import ChatBubble from "./ChatBubble";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { user as userData } from "@/Data/user";
+import { showError } from "@/lib/sweetalert";
 
 export default function AdminChatRoom({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<any[]>(() => {
@@ -146,7 +147,7 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
+      showError("เกิดข้อผิดพลาดในการส่งข้อความ", "กรุณาลองใหม่อีกครั้ง");
     }
   }
 

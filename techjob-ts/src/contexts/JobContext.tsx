@@ -40,6 +40,7 @@ const createDefaultTasks = (): Task[] => {
       description: "",
       status: "in-progress", // เริ่มต้นให้ขั้นตอนแรกอยู่ในสถานะกำลังทำ
       imageUrl: undefined,
+      needsAcknowledgment: false,
       updates: [],
       materials: [],
     },
@@ -49,6 +50,7 @@ const createDefaultTasks = (): Task[] => {
       description: "",
       status: "pending",
       imageUrl: undefined,
+      needsAcknowledgment: false,
       updates: [],
       materials: [],
     },
@@ -58,6 +60,7 @@ const createDefaultTasks = (): Task[] => {
       description: "",
       status: "pending",
       imageUrl: undefined,
+      needsAcknowledgment: false,
       updates: [],
       materials: [],
     },
@@ -67,6 +70,7 @@ const createDefaultTasks = (): Task[] => {
       description: "",
       status: "pending",
       imageUrl: undefined,
+      needsAcknowledgment: false,
       updates: [],
       materials: [],
     },
@@ -200,7 +204,11 @@ export const migrateLocalJobsToFirestore = async () => {
   for (const job of local) {
     try {
       const ref = doc(db, "jobs", job.id);
-      await setDoc(ref, { ...job, createdAt: job.createdAt || serverTimestamp() }, { merge: true });
+      await setDoc(
+        ref,
+        { ...job, createdAt: job.createdAt || serverTimestamp() },
+        { merge: true }
+      );
     } catch (e) {
       console.error("migrateLocalJobsToFirestore failed for", job.id, e);
     }
@@ -219,7 +227,8 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const toDate = (v: any) => (v && typeof v.toDate === "function" ? v.toDate() : v);
+        const toDate = (v: any) =>
+          v && typeof v.toDate === "function" ? v.toDate() : v;
 
         const serverJobs: Job[] = snap.docs.map((d) => {
           const data: any = d.data();
@@ -256,7 +265,29 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           return revivedJob;
         });
 
-        setJobs(serverJobs);
+        // 🔥 FIX: Merge server jobs with existing local-only jobs
+        // Instead of overwriting, we keep jobs that are marked as isLocal: true
+        setJobs((prevJobs) => {
+          // 🛡️ SAFETY GUARD: If server returns EMPTY list, but we have local data,
+          // it might be a sync glitch, auth issue, or wrong project.
+          // We preserve local data to prevent "Disappearing" issue.
+          if (serverJobs.length === 0 && prevJobs.length > 0) {
+            console.warn("Server returned empty list. Preserving local jobs.");
+            // Keep all previous jobs, marking them as local to persist them
+            return prevJobs.map((job) => ({ ...job, isLocal: true }));
+          }
+
+          const localOnlyJobs = prevJobs.filter((job) => job.isLocal);
+
+          // Filter out local jobs that might have been synced successfully (if ID matches)
+          // (Though usually IDs won't match if generated locally vs server, but good to be safe)
+          const uniqueLocalJobs = localOnlyJobs.filter(
+            (localJob) =>
+              !serverJobs.some((serverJob) => serverJob.id === localJob.id)
+          );
+
+          return [...serverJobs, ...uniqueLocalJobs];
+        });
       },
       (err) => console.error("jobs onSnapshot error", err)
     );
@@ -316,9 +347,9 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       // 3. ค้นหาชื่อของหัวหน้างานจากฟังก์ชัน findLeaderName()
       //    findLeaderName() จะหา ID ใน database leader มา
       const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
-      
+
       // no debug log
-      
+
       // 5. สร้าง object notification
       //    object นี้จะถูกเก็บไว้ใน notificationsToSend array
       //    แล้วจึงส่งไปให้ NotificationContext จัดการลงใน localStorage
@@ -346,7 +377,9 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       } catch (e) {
         console.error("Failed to create job in Firestore", e);
         // ตกกลับเป็น local update เพื่อ UX ชั่วคราว
-        setJobs((prevJobs) => [newJob, ...prevJobs]);
+        // 🔥 FIX: Mark as local-only so it doesn't get wiped by next snapshot
+        const localJob = { ...newJob, isLocal: true };
+        setJobs((prevJobs) => [localJob, ...prevJobs]);
       }
     })();
 
@@ -571,6 +604,20 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       metadata,
     };
 
+    // 🔥 FIX: Optimistic Update - Update local state IMMEDIATELY
+    setJobs((prevJobs) =>
+      prevJobs.map((job) => {
+        if (job.id === jobId) {
+          return {
+            ...job,
+            ...updatedData,
+            activityLog: [...(job.activityLog || []), newActivity],
+          };
+        }
+        return job;
+      })
+    );
+
     (async () => {
       try {
         await updateDoc(doc(db, "jobs", jobId), {
@@ -579,18 +626,6 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
         } as any);
       } catch (e) {
         console.error("Failed to update job with activity in Firestore", e);
-        setJobs((prevJobs) =>
-          prevJobs.map((job) => {
-            if (job.id === jobId) {
-              return {
-                ...job,
-                ...updatedData,
-                activityLog: [...(job.activityLog || []), newActivity],
-              };
-            }
-            return job;
-          })
-        );
       }
     })();
   };
@@ -599,7 +634,8 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (import.meta.env.DEV) {
       try {
-        (window as any).migrateLocalJobsToFirestore = migrateLocalJobsToFirestore;
+        (window as any).migrateLocalJobsToFirestore =
+          migrateLocalJobsToFirestore;
       } catch (e) {
         // ปิดเงียบถ้าไม่สามารถแนบได้
       }

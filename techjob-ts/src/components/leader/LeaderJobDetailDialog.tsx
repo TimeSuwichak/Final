@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -47,27 +47,28 @@ import { user as ALL_USERS } from "@/Data/user";
 import { generateCompletionReportPdf } from "@/utils/jobReport";
 import { useNavigate } from "react-router-dom";
 import {
-   Calendar, 
-   MapPin, 
-   User, 
-   Phone, 
-   FileText, 
-   Users, 
-   CheckCircle2, 
-   AlertCircle, 
-   Briefcase, 
-   Clock,
-   Save, 
-   Trash2, 
-   X, 
-   Building2, 
-   MessageSquare, 
-   Map, 
-   ClipboardList, 
-   ExternalLink,
-    ImageIcon
-  } from "lucide-react";
-  import { PdfViewer } from "@/components/common/PdfViewer";
+  Calendar,
+  MapPin,
+  User,
+  Phone,
+  FileText,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Briefcase,
+  Clock,
+  Save,
+  Trash2,
+  X,
+  Building2,
+  MessageSquare,
+  Map,
+  ClipboardList,
+  ExternalLink,
+  ImageIcon,
+} from "lucide-react";
+import { PdfViewer } from "@/components/common/PdfViewer";
+import { showWarning } from "@/lib/sweetalert";
 
 interface LeaderJobDetailDialogProps {
   job: Job | null;
@@ -96,15 +97,17 @@ export function LeaderJobDetailDialog({
   const [isCompletionSuccessOpen, setIsCompletionSuccessOpen] = useState(false);
   const [completionSummary, setCompletionSummary] = useState("");
   const [completionIssues, setCompletionIssues] = useState("");
-  const [completionIssueImage, setCompletionIssueImage] = useState<string | null>(null);
+  const [completionIssueImage, setCompletionIssueImage] = useState<
+    string | null
+  >(null);
   const [completionIssueImageName, setCompletionIssueImageName] = useState("");
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
-    if (job) {
+    if (job && open) {
       setDraftTechs(job.assignedTechs);
     }
-  }, [job]);
+  }, [job, open]);
 
   if (!job || !user) return null;
 
@@ -133,7 +136,7 @@ export function LeaderJobDetailDialog({
     if (JSON.stringify(normalizedDraft) === JSON.stringify(normalizedCurrent)) {
       return;
     }
-    
+
     const added = draftTechs.filter(
       (techId) => !job.assignedTechs.includes(techId)
     );
@@ -220,7 +223,7 @@ export function LeaderJobDetailDialog({
 
   const handleSubmitCompletion = () => {
     if (!completionSummary.trim()) {
-      alert("กรุณากรอกสรุปผลการทำงาน");
+      showWarning("กรุณากรอกสรุปผลการทำงาน");
       return;
     }
     setIsGeneratingReport(true);
@@ -228,15 +231,15 @@ export function LeaderJobDetailDialog({
     updateJobWithActivity(
       job.id,
       {
-        status: "done",
+        status: "in-progress", // ยังคงเป็นกำลังทำ รอลูกค้าเซ็น
         completionSummary: completionSummary.trim(),
         completionIssues: completionIssues.trim(),
         completionIssueImage: completionIssueImage || undefined,
         completedAt: new Date(),
         leaderCloser: user.fname,
       },
-      "status_changed",
-      "หัวหน้าสรุปและปิดงานเรียบร้อย",
+      "other",
+      "หัวหน้าสรุปงาน - รอลูกค้าเซ็นรับทราบ",
       user.fname,
       "leader",
       {
@@ -291,13 +294,20 @@ export function LeaderJobDetailDialog({
 
   const isAcknowledged = job.status !== "new";
   const isCompleted = job.status === "done";
+  const isWaitingForSignature = job.completedAt && !job.lastSignedAt;
+
   const statusLabel = isCompleted
     ? "เสร็จสิ้น"
+    : isWaitingForSignature
+    ? "รอลูกค้าเซ็น"
     : isAcknowledged
     ? "กำลังดำเนินการ"
     : "รอรับทราบ";
+
   const statusBadgeClass = isCompleted
     ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+    : isWaitingForSignature
+    ? "bg-yellow-100 text-yellow-800 border-yellow-200"
     : isAcknowledged
     ? "bg-amber-100 text-amber-800 border-amber-200"
     : "bg-blue-100 text-blue-800 border-blue-200";
@@ -315,7 +325,7 @@ export function LeaderJobDetailDialog({
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                <DialogTitle className="text-lg sm:text-xl font-bold truncate">
+                  <DialogTitle className="text-lg sm:text-xl font-bold truncate">
                     {job.title}
                   </DialogTitle>
                   <Badge
@@ -352,7 +362,7 @@ export function LeaderJobDetailDialog({
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">ดูรายละเอียดแบบเต็ม</span>
                 </Button>
-    {/*------------------------------------- เเบบเก่า  -----------------------------------------   */}
+                {/*------------------------------------- เเบบเก่า  -----------------------------------------   */}
                 {/* {isAcknowledged && (
                   <Button
                     size="sm"
@@ -364,16 +374,16 @@ export function LeaderJobDetailDialog({
                     <span className="hidden sm:inline">ติดตามช่าง</span>
                   </Button>
                 )} */}
-              {!isAcknowledged && (
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 shrink-0"
-                  onClick={handleAcknowledge}
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5 sm:mr-2" />
-                  <span className="hidden sm:inline">ยืนยันรับทราบ</span>
-                </Button>
-              )}
+                {!isAcknowledged && (
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 shrink-0"
+                    onClick={handleAcknowledge}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5 sm:mr-2" />
+                    <span className="hidden sm:inline">ยืนยันรับทราบ</span>
+                  </Button>
+                )}
               </div>
             </div>
           </DialogHeader>
@@ -412,7 +422,7 @@ export function LeaderJobDetailDialog({
                             {format(job.endDate, "dd/MM")}
                           </p>
                         </div>
-                      </div>  
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -468,7 +478,6 @@ export function LeaderJobDetailDialog({
                           </div>
                         )}
                       </div>
-                      
                     </CardContent>
                   </Card>
 
@@ -487,7 +496,7 @@ export function LeaderJobDetailDialog({
                             "รวมตรวจอัตราการผลิตการยอมรับงานทั่วไปในด้านต่างๆ และยังได้วิเคราะห์ส่วนเสริม"}
                         </p>
                       </div>
-                        {job.imageUrl && (
+                      {job.imageUrl && (
                         <div className="pt-2">
                           <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1">
                             <ImageIcon className="h-3 w-3" />
@@ -498,21 +507,19 @@ export function LeaderJobDetailDialog({
                               src={job.imageUrl || "/placeholder.svg"}
                               alt="รูปภาพหน้างาน"
                               className="w-full h-auto max-h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => window.open(job.imageUrl, '_blank')}
+                              onClick={() =>
+                                window.open(job.imageUrl, "_blank")
+                              }
                             />
                           </div>
                         </div>
                       )}
-                      
-                      
-                      
                     </CardContent>
                   </Card>
 
                   {job.pdfFiles && job.pdfFiles.length > 0 && (
                     <PdfViewer pdfFiles={job.pdfFiles} />
                   )}
-
                 </div>
 
                 {/* Right Column */}
@@ -919,7 +926,7 @@ export function LeaderJobDetailDialog({
               className="bg-destructive hover:bg-destructive/90 h-8 text-xs"
               onClick={() => {
                 if (!deleteReason.trim()) {
-                  alert("กรุณาระบุเหตุผลการลบ");
+                  showWarning("กรุณาระบุเหตุผลการลบ");
                   return;
                 }
                 deleteJob(job.id, deleteReason.trim(), user.fname);
@@ -935,10 +942,7 @@ export function LeaderJobDetailDialog({
       </AlertDialog>
 
       {/* Save Success Dialog */}
-      <AlertDialog
-        open={isSaveSuccessOpen}
-        onOpenChange={setIsSaveSuccessOpen}
-      >
+      <AlertDialog open={isSaveSuccessOpen} onOpenChange={setIsSaveSuccessOpen}>
         <AlertDialogContent className="max-w-sm text-center space-y-4">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base flex items-center gap-2 justify-center">
@@ -1042,7 +1046,9 @@ export function LeaderJobDetailDialog({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold">ปัญหาที่พบ (ถ้ามี)</label>
+              <label className="text-xs font-semibold">
+                ปัญหาที่พบ (ถ้ามี)
+              </label>
               <Textarea
                 value={completionIssues}
                 onChange={(e) => setCompletionIssues(e.target.value)}
@@ -1101,7 +1107,10 @@ export function LeaderJobDetailDialog({
             >
               ยกเลิก
             </Button>
-            <Button onClick={handleSubmitCompletion} disabled={isGeneratingReport}>
+            <Button
+              onClick={handleSubmitCompletion}
+              disabled={isGeneratingReport}
+            >
               {isGeneratingReport ? "กำลังบันทึก..." : "ยืนยันปิดงาน"}
             </Button>
           </DialogFooter>
@@ -1161,4 +1170,3 @@ export function LeaderJobDetailDialog({
     </>
   );
 }
-

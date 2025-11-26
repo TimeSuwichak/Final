@@ -1,7 +1,7 @@
 // src/components/leader/TaskManagement.tsx
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { type Job, type Task } from "@/types/index";
 import { useJobs } from "@/contexts/JobContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +24,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,15 +51,17 @@ import {
   Plus,
   Send,
   Camera,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
 import { user as ALL_USERS } from "@/Data/user";
 import { Users } from "lucide-react";
+import { showWarning } from "@/lib/sweetalert";
 
 interface TaskManagementProps {
   job: Job;
-  mode?: "leader" | "user";
+  mode?: "leader" | "user" | "admin";
   onFinishJob?: () => void;
 }
 
@@ -102,6 +105,24 @@ export function TaskManagement({
   const updateFileInputRef = useRef<HTMLInputElement>(null);
 
   const { materials: inventoryMaterials } = useMaterials();
+
+  useEffect(() => {
+    if (!selectedTask) return;
+    const latestTask = job.tasks.find((t) => t.id === selectedTask.id);
+    if (!latestTask) return;
+
+    if (latestTask !== selectedTask) {
+      setSelectedTask(latestTask);
+    }
+
+    if (
+      latestTask.needsAcknowledgment &&
+      (updateDialogOpen || materialDialogOpen)
+    ) {
+      setUpdateDialogOpen(false);
+      setMaterialDialogOpen(false);
+    }
+  }, [job.tasks, selectedTask, updateDialogOpen, materialDialogOpen]);
 
   const materialDictionary = useMemo(() => {
     const map = new Map<string, { name: string; unit?: string }>();
@@ -175,7 +196,10 @@ export function TaskManagement({
       .some((t) => t.status !== "completed");
 
     if (hasUnfinishedPreviousStep) {
-      alert("ไม่สามารถข้ามขั้นตอนได้ กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน");
+      showWarning(
+        "ไม่สามารถข้ามขั้นตอนได้",
+        "กรุณาดำเนินการขั้นก่อนหน้าให้เสร็จก่อน"
+      );
       setStatusChangeDialogOpen(false);
       setPendingStatusChange(null);
       return;
@@ -241,7 +265,7 @@ export function TaskManagement({
 
   const confirmRejectTask = () => {
     if (!pendingRejectTask || !pendingRejectTask.reason.trim()) {
-      alert("กรุณาใส่เหตุผลในการตีกลับงาน");
+      showWarning("กรุณาใส่เหตุผลในการตีกลับงาน");
       return;
     }
 
@@ -259,6 +283,9 @@ export function TaskManagement({
     const updatedTask: Task = {
       ...task,
       status: "pending",
+      needsAcknowledgment: true,
+      lastAcknowledgedAt: undefined,
+      lasrtAcknowledgedBy: undefined,
       updates: [...task.updates, newUpdate],
     };
 
@@ -294,6 +321,10 @@ export function TaskManagement({
   // --- User Actions ---
 
   const handleOpenUpdateDialog = (task: Task) => {
+    if (task.needsAcknowledgment) {
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
+      return;
+    }
     setSelectedTask(task);
     setUpdateMessage("");
     setUpdateImagePreview(null);
@@ -302,8 +333,61 @@ export function TaskManagement({
   };
 
   const handleOpenMaterialDialog = (task: Task) => {
+    if (task.needsAcknowledgment) {
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนเบิกวัสดุ");
+      return;
+    }
     setSelectedTask(task);
     setMaterialDialogOpen(true);
+  };
+
+  const handleAcknowledgeRejectedTask = (task: Task) => {
+    const now = new Date().toISOString();
+    const acknowledgementUpdate = {
+      message: `ช่าง ${user.fname} รับทราบการตีกลับและพร้อมดำเนินงานต่อ`,
+      updatedBy: user.fname,
+      updatedAt: now,
+    };
+
+    const updatedTask: Task = {
+      ...task,
+      status: "in-progress",
+      needsAcknowledgment: false,
+      lastAcknowledgedAt: now,
+      lasrtAcknowledgedBy: user.fname,
+      updates: [...(task.updates || []), acknowledgementUpdate],
+    };
+
+    const updatedTasks = job.tasks.map((t) =>
+      t.id === task.id ? updatedTask : t
+    );
+
+    updateJobWithActivity(
+      job.id,
+      { tasks: updatedTasks },
+      "acknowledge",
+      `ช่าง "${user.fname}" รับทราบการตีกลับของงาน "${task.title}"`,
+      user.fname,
+      "tech",
+      { taskId: task.id, taskTitle: task.title }
+    );
+
+    if (job.leadId) {
+      addNotification({
+        title: "ช่างรับทราบงานที่ถูกตีกลับ",
+        message: `${user.fname} รับทราบงาน "${task.title}" ในใบงาน "${job.title}" และจะดำเนินงานต่อ`,
+        recipientRole: "leader",
+        recipientId: String(job.leadId),
+        relatedJobId: job.id,
+        metadata: {
+          type: "task_acknowledged",
+          taskId: task.id,
+          taskTitle: task.title,
+          jobTitle: job.title,
+          techName: user.fname,
+        },
+      });
+    }
   };
 
   const handleUpdateFileChange = (
@@ -325,7 +409,12 @@ export function TaskManagement({
 
   const submitUpdate = () => {
     if (!selectedTask || !updateMessage.trim()) {
-      alert("กรุณากรอกข้อความอัปเดต");
+      showWarning("กรุณากรอกข้อความอัปเดต");
+      return;
+    }
+
+    if (selectedTask.needsAcknowledgment) {
+      showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
       return;
     }
 
@@ -425,12 +514,13 @@ export function TaskManagement({
           )}
       </div>
 
-      {/* Trello-like Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+      {/* Trello-like Grid - Responsive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
         {job.tasks.map((task, index) => {
           const isCompleted = task.status === "completed";
           const isInProgress = task.status === "in-progress";
           const isPending = task.status === "pending";
+          const isAwaitingAcknowledgement = Boolean(task.needsAcknowledgment);
 
           // Determine visual style based on status
           let cardBorderColor = "border-gray-200";
@@ -447,13 +537,21 @@ export function TaskManagement({
             icon = <Clock className="h-4 w-4 animate-pulse" />;
           }
 
+          if (isAwaitingAcknowledgement) {
+            cardBorderColor = "border-amber-300 ring-1 ring-amber-100";
+            headerColor = "bg-amber-50 text-amber-700";
+            icon = <AlertCircle className="h-4 w-4 text-amber-700" />;
+          }
+
           return (
             <Card
               key={task.id}
               className={cn(
-                "flex flex-col h-full transition-all duration-200",
+                "flex flex-col h-full transition-all duration-200 bg-white dark:bg-card",
                 cardBorderColor,
-                isPending && "opacity-70 grayscale-[0.5]"
+                isPending &&
+                  !isAwaitingAcknowledgement &&
+                  "opacity-70 grayscale-[0.5]"
               )}
             >
               {/* Header */}
@@ -477,9 +575,14 @@ export function TaskManagement({
                     กำลังดำเนินการ
                   </span>
                 )}
-                {isPending && (
+                {isPending && !isAwaitingAcknowledgement && (
                   <span className="text-xs bg-black/10 px-2 py-0.5 rounded-full">
                     รอเริ่ม
+                  </span>
+                )}
+                {isAwaitingAcknowledgement && (
+                  <span className="text-xs bg-white/40 px-2 py-0.5 rounded-full text-amber-900">
+                    รอช่างรับทราบ
                   </span>
                 )}
               </div>
@@ -495,6 +598,18 @@ export function TaskManagement({
                     </p>
                   )}
                 </div>
+
+                {isAwaitingAcknowledgement && (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
+                    <div className="space-y-1">
+                      <p className="font-semibold text-sm text-amber-900">
+                        งานถูกตีกลับโดยหัวหน้า
+                      </p>
+                      <p>กรุณากดรับทราบก่อนเริ่มอัปเดตหรือเบิกวัสดุต่อ</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Updates Summary */}
                 <div className="mt-auto space-y-3">
@@ -542,7 +657,9 @@ export function TaskManagement({
                   <Maximize2 className="h-3 w-3" />
                 </Button>
 
-                {isInProgress && (
+                {((mode === "leader" && isInProgress) ||
+                  (mode === "user" &&
+                    (isInProgress || isAwaitingAcknowledgement))) && (
                   <div className="w-full pt-2 border-t">
                     {mode === "leader" ? (
                       <div className="grid grid-cols-2 gap-2">
@@ -561,6 +678,21 @@ export function TaskManagement({
                         >
                           อนุมัติ
                           <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : isAwaitingAcknowledgement ? (
+                      <div className="space-y-2 text-xs text-amber-900">
+                        <p>
+                          หัวหน้าตีกลับงานนี้แล้ว
+                          กรุณากดรับทราบเพื่อเริ่มทำงานต่อ
+                        </p>
+                        <Button
+                          size="sm"
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-1"
+                          onClick={() => handleAcknowledgeRejectedTask(task)}
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          รับทราบและเริ่มต่อ
                         </Button>
                       </div>
                     ) : (
@@ -665,141 +797,184 @@ export function TaskManagement({
             </div>
           </DialogHeader>
 
-          {selectedTask && (
-            <ScrollArea className="max-h-[70vh] pr-4">
-              <div className="space-y-6">
-                {selectedTask.description && (
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {selectedTask.description}
-                    </p>
-                  </div>
-                )}
-                <Separator />
+          <Tabs
+            defaultValue="updates"
+            className="w-full flex-1 flex flex-col min-h-0"
+          >
+            <div className="px-6 border-b">
+              <TabsList className="w-full justify-start h-12 bg-transparent p-0 space-x-6">
+                <TabsTrigger
+                  value="updates"
+                  className="h-full rounded-none border-b-2 border-transparent px-0 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none bg-transparent"
+                >
+                  ความคืบหน้า ({selectedTask?.updates.length || 0})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="materials"
+                  className="h-full rounded-none border-b-2 border-transparent px-0 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none bg-transparent"
+                >
+                  วัสดุ ({selectedTask?.materials?.length || 0})
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-                {/* Materials Section */}
-                {selectedTask.materials &&
-                  selectedTask.materials.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-semibold flex items-center gap-2 text-sm">
-                        <Package className="h-4 w-4" /> รายการวัสดุที่เบิก (
-                        {selectedTask.materials.length})
-                      </h4>
-                      <div className="grid gap-2">
-                        {selectedTask.materials.map((m, i) => (
-                          <div
-                            key={i}
-                            className="flex justify-between items-center p-2 bg-muted/30 rounded text-sm"
-                          >
-                            <span>
-                              {resolveMaterialName(
-                                m.materialId,
-                                m.materialName
-                              )}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {m.quantity}{" "}
-                              {resolveMaterialUnit(m.materialId, m.unit)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                <Separator />
-
-                {/* Updates Timeline */}
-                <div className="space-y-4">
-                  <h4 className="font-semibold flex items-center gap-2 text-sm">
-                    <MessageSquare className="h-4 w-4" /> ความคืบหน้า (
-                    {selectedTask.updates.length})
-                  </h4>
-                  {selectedTask.updates.length > 0 ? (
-                    <div className="space-y-4">
-                      {selectedTask.updates.map((update, idx) => (
-                        <div key={idx} className="flex gap-3">
-                          <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
-                              {update.updatedBy[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-sm">
-                                {update.updatedBy}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {format(
-                                  new Date(update.updatedAt),
-                                  "dd/MM/yyyy HH:mm",
-                                  { locale: th }
+            <div className="flex-1 overflow-hidden bg-slate-50/50">
+              {/* Updates Tab */}
+              <TabsContent value="updates" className="h-full m-0 p-0">
+                <div className="h-full flex flex-col">
+                  <ScrollArea className="flex-1 h-[50vh]">
+                    <div className="p-6 space-y-6">
+                      {selectedTask?.updates &&
+                      selectedTask.updates.length > 0 ? (
+                        selectedTask.updates.map((update, idx) => (
+                          <div key={idx} className="flex gap-4 group">
+                            <Avatar className="h-8 w-8 shrink-0 border-2 border-white shadow-sm">
+                              <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                                {update.updatedBy[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm">
+                                  {update.updatedBy}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(
+                                    new Date(update.updatedAt),
+                                    "d MMM HH:mm",
+                                    { locale: th }
+                                  )}
+                                </span>
+                              </div>
+                              <div
+                                className={cn(
+                                  "rounded-2xl rounded-tl-none p-3 text-sm shadow-sm inline-block max-w-[90%]",
+                                  update.message.includes("ตีกลับ")
+                                    ? "bg-red-50 text-red-900 border border-red-100"
+                                    : "bg-white border border-slate-100"
                                 )}
-                              </span>
-                            </div>
-                            <div
-                              className={cn(
-                                "rounded-lg p-3 space-y-2",
-                                update.message.includes("ตีกลับ")
-                                  ? "bg-red-50 border border-red-100"
-                                  : "bg-muted/30"
-                              )}
-                            >
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                {update.message}
-                              </p>
-                              {update.imageUrl && (
-                                <div className="relative w-32 h-32 group overflow-hidden rounded-md border bg-muted shrink-0">
-                                  <img
-                                    src={update.imageUrl}
-                                    alt="attachment"
-                                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() =>
-                                      handleImageClick(update.imageUrl!)
-                                    }
-                                  />
-                                </div>
-                              )}
+                              >
+                                <p className="whitespace-pre-wrap leading-relaxed">
+                                  {update.message}
+                                </p>
+                                {update.imageUrl && (
+                                  <div className="mt-2 relative rounded-lg overflow-hidden border">
+                                    <img
+                                      src={update.imageUrl}
+                                      alt="attachment"
+                                      className="max-w-xs h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() =>
+                                        handleImageClick(update.imageUrl!)
+                                      }
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <div className="bg-slate-100 p-4 rounded-full mb-3">
+                            <MessageSquare className="h-6 w-6 text-slate-400" />
+                          </div>
+                          <p className="text-sm font-medium">
+                            ยังไม่มีการอัปเดต
+                          </p>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm">ยังไม่มีการอัปเดต</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </ScrollArea>
-          )}
+                  </ScrollArea>
 
-          {/* User Mode: Quick Actions in Detail Dialog */}
-          {mode === "user" &&
-            selectedTask &&
-            selectedTask.status === "in-progress" && (
-              <DialogFooter className="border-t pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setTaskDialogOpen(false);
-                    handleOpenMaterialDialog(selectedTask);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> เบิกวัสดุ
-                </Button>
-                <Button
-                  onClick={() => {
-                    setTaskDialogOpen(false);
-                    handleOpenUpdateDialog(selectedTask);
-                  }}
-                >
-                  <Send className="h-4 w-4 mr-2" /> อัปเดตงาน
-                </Button>
-              </DialogFooter>
-            )}
+                  {/* Quick Update Action */}
+                  {mode === "user" &&
+                    selectedTask?.status === "in-progress" && (
+                      <div className="p-4 border-t bg-white">
+                        <Button
+                          className="w-full gap-2"
+                          onClick={() => {
+                            setTaskDialogOpen(false);
+                            handleOpenUpdateDialog(selectedTask);
+                          }}
+                        >
+                          <Send className="h-4 w-4" />
+                          เขียนอัปเดตใหม่
+                        </Button>
+                      </div>
+                    )}
+                </div>
+              </TabsContent>
+
+              {/* Materials Tab */}
+              <TabsContent value="materials" className="h-full m-0 p-0">
+                <div className="h-full flex flex-col">
+                  <ScrollArea className="flex-1 h-[50vh]">
+                    <div className="p-6">
+                      {selectedTask?.materials &&
+                      selectedTask.materials.length > 0 ? (
+                        <div className="space-y-3">
+                          {selectedTask.materials.map((m, i) => (
+                            <div
+                              key={i}
+                              className="flex items-center justify-between p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="bg-blue-50 p-2 rounded-md">
+                                  <Package className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {resolveMaterialName(
+                                      m.materialId,
+                                      m.materialName
+                                    )}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    รหัส: {normalizeMaterialId(m.materialId)}
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge variant="secondary" className="font-mono">
+                                {m.quantity}{" "}
+                                {resolveMaterialUnit(m.materialId, m.unit)}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                          <div className="bg-slate-100 p-4 rounded-full mb-3">
+                            <Package className="h-6 w-6 text-slate-400" />
+                          </div>
+                          <p className="text-sm font-medium">
+                            ไม่มีรายการเบิกวัสดุ
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+
+                  {/* Quick Material Action */}
+                  {mode === "user" &&
+                    selectedTask?.status === "in-progress" && (
+                      <div className="p-4 border-t bg-white">
+                        <Button
+                          variant="outline"
+                          className="w-full gap-2 border-dashed"
+                          onClick={() => {
+                            setTaskDialogOpen(false);
+                            handleOpenMaterialDialog(selectedTask);
+                          }}
+                        >
+                          <Plus className="h-4 w-4" />
+                          เบิกวัสดุเพิ่ม
+                        </Button>
+                      </div>
+                    )}
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

@@ -1,10 +1,10 @@
 // src/components/leader/LeaderJobTable.tsx
 "use client";
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from '@/components/ui/button';
-import { Eye, ExternalLink } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Eye, ExternalLink } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -24,22 +24,26 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import type { Job } from '@/types/index';
+import type { Job } from "@/types/index";
 
 interface LeaderJobTableProps {
   jobs: Job[];
   onViewJob: (job: Job) => void;
 }
 
-const statusClasses: Record<'new' | 'in-progress' | 'done', string> = {
-  new: 'bg-blue-100 text-blue-800 border-blue-200',
-  'in-progress': 'bg-amber-100 text-amber-800 border-amber-200',
-  done: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+const statusClasses: Record<"new" | "in-progress" | "done", string> = {
+  new: "bg-blue-100 text-blue-800 border-blue-200",
+  "in-progress": "bg-amber-100 text-amber-800 border-amber-200",
+  done: "bg-emerald-100 text-emerald-800 border-emerald-200",
 };
 
-const getStatusBadge = (status: 'new' | 'in-progress' | 'done') => {
+const getStatusBadge = (status: "new" | "in-progress" | "done") => {
   const label =
-    status === 'new' ? 'งานใหม่' : status === 'in-progress' ? 'กำลังทำ' : 'เสร็จสิ้น';
+    status === "new"
+      ? "งานใหม่"
+      : status === "in-progress"
+      ? "กำลังทำ"
+      : "เสร็จสิ้น";
   return (
     <Badge
       variant="outline"
@@ -70,42 +74,54 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       {/* Mobile Card View */}
       <div className="block md:hidden space-y-3">
         {currentJobs.length > 0 ? (
           currentJobs.map((job) => (
-            <div key={job.id} className="rounded-md border bg-white dark:bg-card p-4 space-y-3">
+            <div
+              key={job.id}
+              className="rounded-md border bg-white dark:bg-card p-4 space-y-3"
+            >
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">รหัสใบงาน</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  รหัสใบงาน
+                </span>
                 <span className="font-semibold">{job.id}</span>
               </div>
               <div className="space-y-1">
-                <span className="font-medium text-sm text-muted-foreground">ชื่องาน</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  ชื่องาน
+                </span>
                 <p className="font-medium">{job.title}</p>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">วันที่</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  วันที่
+                </span>
                 <span className="text-sm">
-                  {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                  {format(job.startDate, "dd/MM/yy")} -{" "}
+                  {format(job.endDate, "dd/MM/yy")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm text-muted-foreground">สถานะ</span>
+                <span className="font-medium text-sm text-muted-foreground">
+                  สถานะ
+                </span>
                 {getStatusBadge(job.status)}
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => onViewJob(job)}
                   className="gap-1"
                 >
                   <Eye className="h-4 w-4" />
                   แก้ไข
                 </Button>
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   size="sm"
                   onClick={() => handleViewDetail(job.id)}
                   className="gap-1"
@@ -124,7 +140,7 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block rounded-md border bg-white dark:bg-card overflow-hidden min-h-[433px]">
+      <div className="hidden md:block rounded-md border bg-white dark:bg-card overflow-hidden flex-1">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -133,24 +149,30 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
                 <TableHead className="min-w-[200px]">ชื่องาน</TableHead>
                 <TableHead className="min-w-[140px]">วันที่</TableHead>
                 <TableHead className="min-w-[100px]">สถานะ</TableHead>
-                <TableHead className="w-[56px] text-center">จัดการงาน</TableHead>
+                <TableHead className="w-[56px] text-center">
+                  จัดการงาน
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentJobs.length > 0 ? (
                 currentJobs.map((job, index) => (
-                  <TableRow key={job.id} className="[&>td]:border-b [&>td]:border-gray-200 ">
+                  <TableRow
+                    key={job.id}
+                    className="[&>td]:border-b [&>td]:border-gray-200 "
+                  >
                     <TableCell className="font-medium">{job.id}</TableCell>
                     <TableCell>{job.title}</TableCell>
                     <TableCell>
-                      {format(job.startDate, "dd/MM/yy")} - {format(job.endDate, "dd/MM/yy")}
+                      {format(job.startDate, "dd/MM/yy")} -{" "}
+                      {format(job.endDate, "dd/MM/yy")}
                     </TableCell>
                     <TableCell>{getStatusBadge(job.status)}</TableCell>
 
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleViewDetail(job.id)}
                         >
@@ -177,7 +199,11 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -193,8 +219,14 @@ export function LeaderJobTable({ jobs, onViewJob }: LeaderJobTableProps) {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                onClick={() =>
+                  handlePageChange(Math.min(totalPages, currentPage + 1))
+                }
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>

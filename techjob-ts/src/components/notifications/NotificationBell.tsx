@@ -22,11 +22,8 @@ import { useNotifications } from "@/contexts/NotificationContext";
 export function NotificationBell() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    getNotificationsForUser,
-    getUnreadCount,
-    markAsRead,
-  } = useNotifications();
+  const { getNotificationsForUser, getUnreadCount, markAsRead } =
+    useNotifications();
 
   if (!user) return null;
 
@@ -45,7 +42,7 @@ export function NotificationBell() {
   const unreadCount = getUnreadCount(role, recipientId);
   // แสดงเฉพาะการแจ้งเตือนที่ยังไม่ได้อ่าน สูงสุด 4 รายการ
   const recentNotifications = notifications
-    .filter(notification => !notification.read)
+    .filter((notification) => !notification.read)
     .slice(0, 4);
 
   const handleViewAll = () => {
@@ -69,37 +66,36 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h4 className="text-sm font-semibold">การแจ้งเตือนล่าสุด</h4>
+      <PopoverContent className="w-80 p-0 bg-white dark:bg-popover" align="end">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
+          <h4 className="text-sm font-bold">การแจ้งเตือนล่าสุด</h4>
           {unreadCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs font-medium">
               {unreadCount} รายการใหม่
             </Badge>
           )}
         </div>
-        <Separator />
         {recentNotifications.length === 0 ? (
-          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             ไม่มีการแจ้งเตือนใหม่
           </div>
         ) : (
-          <ScrollArea className="">
-            <ul className="divide-y divide-muted/40">
+          <ScrollArea className="max-h-[320px]">
+            <ul className="divide-y">
               {recentNotifications.map((notification) => (
                 <li
                   key={notification.id}
-                  className="flex flex-col gap-2 px-4 py-3 text-sm"
+                  className="flex flex-col gap-2 px-4 py-3 text-sm hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="font-medium text-foreground">
+                    <p className="font-semibold text-foreground leading-tight">
                       {notification.title}
                     </p>
                     {!notification.read && (
-                      <span className="mt-0.5 h-2 w-2 rounded-full bg-primary" />
+                      <span className="mt-0.5 h-2 w-2 rounded-full bg-primary shrink-0" />
                     )}
                   </div>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground line-clamp-2">
                     {notification.message}
                   </p>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -111,7 +107,7 @@ export function NotificationBell() {
                     </span>
                     <Button
                       variant="link"
-                      className="h-auto p-0 text-xs"
+                      className="h-auto p-0 text-xs font-medium"
                       onClick={() => handleOpenNotification(notification.id)}
                     >
                       ดูรายละเอียด
@@ -122,9 +118,13 @@ export function NotificationBell() {
             </ul>
           </ScrollArea>
         )}
-        <Separator />
-        <div className="px-4 py-2">
-          <Button className="w-full" variant="secondary" onClick={handleViewAll}>
+        <div className="border-t px-3 py-2">
+          <Button
+            className="w-full"
+            variant="outline"
+            size="sm"
+            onClick={handleViewAll}
+          >
             ดูการแจ้งเตือนทั้งหมด
           </Button>
         </div>
@@ -132,4 +132,3 @@ export function NotificationBell() {
     </Popover>
   );
 }
-
