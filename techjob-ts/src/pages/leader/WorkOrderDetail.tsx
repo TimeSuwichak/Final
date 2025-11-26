@@ -41,6 +41,7 @@ import {
   Download,
   ExternalLink,
   Save,
+  PenTool,
 } from "lucide-react";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { TechSelectMultiDept } from "@/components/leader/TechSelectMultiDept";
@@ -49,6 +50,7 @@ import { Separator } from "@/components/ui/separator";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
 import { JobCompletionForm } from "@/components/leader/JobCompletionForm";
 import { JobSummaryView } from "@/components/leader/JobSummaryView";
+import { SignatureDialog } from "@/components/common/SignatureDialog";
 import TechnicianTracking from "@/pages/leader/TechnicianTracking";
 import { showSuccess } from "@/lib/sweetalert";
 
@@ -212,6 +214,7 @@ const WorkOrderDetail: React.FC = () => {
 
   const [currentJob, setCurrentJob] = useState<any | null>(null);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   useEffect(() => {
@@ -339,7 +342,7 @@ const WorkOrderDetail: React.FC = () => {
     updateJobWithActivity(
       currentJob.id,
       {
-        status: "done",
+        status: currentJob.status === "new" ? "in-progress" : currentJob.status,
         completionSummary: data.summary,
         completionIssues: data.issues,
         completionIssueImage: data.issueImage || undefined,
@@ -348,7 +351,7 @@ const WorkOrderDetail: React.FC = () => {
         leaderCloser: user.fname,
       },
       "status_changed",
-      "หัวหน้าสรุปและปิดงานเรียบร้อย",
+      "หัวหน้าสรุปงานเรียบร้อย - รอลายเซ็นลูกค้า",
       user.fname,
       "leader",
       {
@@ -358,20 +361,69 @@ const WorkOrderDetail: React.FC = () => {
     );
 
     addNotification({
-      title: "หัวหน้าปิดงานเรียบร้อย",
-      message: `งาน ${currentJob.title} ถูกปิดโดย ${user.fname}`,
+      title: "หัวหน้าสรุปงานเรียบร้อย",
+      message: `งาน ${currentJob.title} รอลายเซ็นลูกค้าเพื่อปิดงาน`,
       recipientRole: "admin",
       relatedJobId: currentJob.id,
       metadata: {
-        type: "job_completed",
+        type: "job_summary_completed",
         jobId: currentJob.id,
       },
     });
 
     currentJob.assignedTechs.forEach((techId: string) => {
       addNotification({
-        title: "งานที่คุณอยู่เสร็จสิ้นแล้ว",
-        message: `หัวหน้า ${user.fname} ปิดงาน ${currentJob.title}`,
+        title: "หัวหน้าสรุปงานเรียบร้อย",
+        message: `หัวหน้า ${user.fname} สรุปงาน ${currentJob.title} - รอลายเซ็นลูกค้า`,
+        recipientRole: "user",
+        recipientId: techId,
+        relatedJobId: currentJob.id,
+        metadata: {
+          type: "job_summary_completed",
+          jobId: currentJob.id,
+        },
+      });
+    });
+
+    showSuccess("สรุปงานเรียบร้อย! รอลายเซ็นลูกค้าเพื่อปิดงาน");
+  };
+
+  const handleCustomerSignature = (
+    signatureData: string,
+    signerName: string
+  ) => {
+    // อัปเดตงานให้เป็น done และบันทึกลายเซ็น
+    updateJobWithActivity(
+      currentJob.id,
+      {
+        status: "done",
+        lastSignedAt: new Date(),
+        lastSignedBy: signerName,
+        customerSignatureData: signatureData,
+        signatureCount: (currentJob.signatureCount || 0) + 1,
+      },
+      "status_changed",
+      `ลูกค้า "${signerName}" เซ็นรับทราบงาน`,
+      signerName,
+      "leader"
+    );
+
+    addNotification({
+      title: "ลูกค้าเซ็นรับทราบงานแล้ว",
+      message: `งาน ${currentJob.title} ปิดงานเรียบร้อย`,
+      recipientRole: "admin",
+      relatedJobId: currentJob.id,
+      metadata: {
+        type: "job_completed",
+        jobId: currentJob.id,
+        signerName: signerName,
+      },
+    });
+
+    currentJob.assignedTechs.forEach((techId: string) => {
+      addNotification({
+        title: "งานเสร็จสิ้นแล้ว",
+        message: `งาน ${currentJob.title} ได้รับลายเซ็นจากลูกค้าและปิดงานเรียบร้อย`,
         recipientRole: "user",
         recipientId: techId,
         relatedJobId: currentJob.id,
@@ -382,45 +434,45 @@ const WorkOrderDetail: React.FC = () => {
       });
     });
 
-    showSuccess("ปิดงานเรียบร้อย!");
+    showSuccess("บันทึกลายเซ็นและปิดงานเรียบร้อย!");
   };
 
   const workAreaRadius = 150;
 
   return (
     <>
-      <div className="h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
+      <div className="min-h-[calc(100vh-4rem)] h-auto lg:h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
         {/* Header with navigation buttons */}
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate("/leader/leaderworks")}
-                  className="gap-1"
+                  className="gap-1 shrink-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   กลับ
                 </Button>
-                <div className="flex-1">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                    {currentJob.title}
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-xl flex items-center gap-2 truncate">
+                    <Briefcase className="h-5 w-5 text-primary shrink-0" />
+                    <span className="truncate">{currentJob.title}</span>
                   </CardTitle>
-                  <CardDescription className="mt-1">
+                  <CardDescription className="mt-1 truncate">
                     {currentJob.id}
                   </CardDescription>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full md:w-auto">
                 <Button
                   variant={!showTechnicianView ? "default" : "outline"}
                   size="sm"
                   onClick={() => setShowTechnicianView(false)}
-                  className="gap-1"
+                  className="gap-1 flex-1 md:flex-none"
                 >
                   <Briefcase className="h-4 w-4" />
                   ข้อมูลใบงาน
@@ -429,27 +481,25 @@ const WorkOrderDetail: React.FC = () => {
                   variant={showTechnicianView ? "default" : "outline"}
                   size="sm"
                   onClick={() => setShowTechnicianView(true)}
-                  className="gap-1"
+                  className="gap-1 flex-1 md:flex-none"
                 >
                   <Users className="h-4 w-4" />
                   ติดตามช่าง
                 </Button>
               </div>
             </div>
-           
-
           </CardHeader>
         </Card>
 
         {/* View 1: Work Order Details */}
         {!showTechnicianView ? (
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+          <div className="flex-1 flex flex-col lg:grid lg:grid-cols-3 gap-4 min-h-0">
             {/* Left: Job Info */}
-            <Card className="lg:col-span-1 flex flex-col overflow-hidden">
+            <Card className="lg:col-span-1 flex flex-col overflow-hidden h-auto lg:h-full">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">ข้อมูลใบงาน</CardTitle>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto space-y-3 text-sm">
+              <CardContent className="flex-1 lg:overflow-y-auto space-y-3 text-sm">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground font-semibold">
                     สถานะ
@@ -532,11 +582,9 @@ const WorkOrderDetail: React.FC = () => {
                         onClick={() =>
                           window.open(currentJob.imageUrl, "_blank")
                         }
-                        
                       />
                     </div>
                   </div>
-                  
                 )}
 
                 {currentJob.pdfFiles && currentJob.pdfFiles.length > 0 && (
@@ -552,7 +600,7 @@ const WorkOrderDetail: React.FC = () => {
             </Card>
 
             {/* Right: Team user & Tasks */}
-            <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+            <Card className="lg:col-span-2 flex flex-col overflow-hidden h-auto lg:h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -564,7 +612,7 @@ const WorkOrderDetail: React.FC = () => {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto space-y-4">
+              <CardContent className="flex-1 lg:overflow-y-auto space-y-4">
                 {/* Team Management Section */}
                 <div className="space-y-3">
                   {/* Leader Badge */}
@@ -580,7 +628,6 @@ const WorkOrderDetail: React.FC = () => {
                     <Badge className="bg-green-600 text-xs h-5">
                       รับทราบแล้ว
                     </Badge>
-                    
                   </div>
 
                   {canManageTeam ? null : (
@@ -597,10 +644,44 @@ const WorkOrderDetail: React.FC = () => {
                         คุณยังสามารถตรวจสอบความคืบหน้าและอนุมัติแต่ละขั้นตอนได้ตามปกติ
                       </p>
                     </div>
-                    
                   )}
 
-                  {currentJob.status === "done" ? (
+                  {/* Check if waiting for customer signature */}
+                  {currentJob.completedAt && !currentJob.lastSignedAt ? (
+                    /* Waiting for Customer Signature */
+                    <>
+                      <div className="rounded-lg border border-dashed border-yellow-300 bg-yellow-50/60 p-4 text-xs text-yellow-800 space-y-2">
+                        <p className="font-semibold flex items-center gap-1">
+                          <AlertCircle className="h-4 w-4" />
+                          รอลายเซ็นลูกค้า
+                        </p>
+                        <p>
+                          หัวหน้าได้สรุปงานเรียบร้อยแล้ว
+                          กรุณาขอลายเซ็นจากลูกค้าเพื่อปิดงาน
+                        </p>
+                        <Button
+                          size="sm"
+                          onClick={() => setSignatureDialogOpen(true)}
+                          className="w-full gap-2 bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          <PenTool className="h-4 w-4" />
+                          ขอลายเซ็นลูกค้า
+                        </Button>
+                      </div>
+
+                      {/* Show summary info */}
+                      {currentJob.completionSummary && (
+                        <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs font-semibold">
+                            สรุปผลการทำงาน:
+                          </p>
+                          <p className="text-xs">
+                            {currentJob.completionSummary}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : currentJob.status === "done" ? (
                     /* Show Summary View for Completed Jobs */
                     <JobSummaryView job={currentJob} />
                   ) : (
@@ -610,7 +691,9 @@ const WorkOrderDetail: React.FC = () => {
                       {canManageTeam ? (
                         <div className="space-y-2">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="text-xs font-semibold">เลือกทีมช่าง</p>
+                            <p className="text-xs font-semibold">
+                              เลือกทีมช่าง
+                            </p>
                           </div>
                           <TechSelectMultiDept
                             jobStartDate={currentJob.startDate}
@@ -620,30 +703,30 @@ const WorkOrderDetail: React.FC = () => {
                             disabled={currentJob.status === "done"}
                           />
                         </div>
-                        
                       ) : null}
 
-                       <div className="flex justify-end">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleSaveTeam}
-                            className="h-7 text-xs gap-1 bg-transparent"
-                            disabled={currentJob.status === "done"}
-                          >
-                            <Save className="h-3 w-3" />
-                            บันทึก
-                          </Button>
-                        </div>
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleSaveTeam}
+                          className="h-7 text-xs gap-1 bg-transparent"
+                          disabled={currentJob.status === "done"}
+                        >
+                          <Save className="h-3 w-3" />
+                          บันทึก
+                        </Button>
+                      </div>
 
                       {/* แสดง Task Management และ Team Display เฉพาะเมื่อมีช่างแล้ว */}
-                      {currentJob.assignedTechs && currentJob.assignedTechs.length > 0 ? (
+                      {currentJob.assignedTechs &&
+                      currentJob.assignedTechs.length > 0 ? (
                         <>
                           <Separator />
-                          
+
                           {/* Assigned Team List (Detailed View) */}
                           <JobTeamDisplay job={currentJob} />
-                          
+
                           <Separator />
 
                           {/* Task Management */}
@@ -661,26 +744,29 @@ const WorkOrderDetail: React.FC = () => {
                               <AlertCircle className="h-3.5 w-3.5" />
                               กรุณาเลือกทีมช่างก่อน
                             </p>
-                            <p>หลังจากเลือกทีมช่างแล้ว ระบบ Task Management จะแสดงขึ้นมา</p>
+                            <p>
+                              หลังจากเลือกทีมช่างแล้ว ระบบ Task Management
+                              จะแสดงขึ้นมา
+                            </p>
                           </div>
                         )
                       )}
                     </>
                   )}
                 </div>
-
-                
               </CardContent>
             </Card>
           </div>
         ) : (
           /* View 2: Technician Tracking */
-          <TechnicianTracking
-            job={currentJob}
-            selectedTechId={selectedTechId}
-            onTechSelect={setSelectedTechId}
-            workAreaRadius={workAreaRadius}
-          />
+          <div className="flex-1 min-h-[500px] flex flex-col">
+            <TechnicianTracking
+              job={currentJob}
+              selectedTechId={selectedTechId}
+              onTechSelect={setSelectedTechId}
+              workAreaRadius={workAreaRadius}
+            />
+          </div>
         )}
       </div>
 
@@ -690,6 +776,15 @@ const WorkOrderDetail: React.FC = () => {
         open={completionDialogOpen}
         onOpenChange={setCompletionDialogOpen}
         onSubmit={handleSubmitCompletion}
+      />
+
+      {/* Customer Signature Dialog */}
+      <SignatureDialog
+        open={signatureDialogOpen}
+        onOpenChange={setSignatureDialogOpen}
+        onSubmit={handleCustomerSignature}
+        jobTitle={currentJob.title}
+        defaultSignerName={currentJob.customerName}
       />
     </>
   );

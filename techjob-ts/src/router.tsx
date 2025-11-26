@@ -31,6 +31,7 @@ import LeaderDashboard from "./pages/leader/LeaderDashboard";
 import LeaderWorks from "./pages/leader/LeaderWorks";
 import TechnicianTracking from "./pages/leader/TechnicianTracking";
 import WorkOrderDetail from "./pages/leader/WorkOrderDetail";
+import LeaderReport from "./pages/leader/LeaderReport";
 
 // EXECUTIVE
 import ExDashboard from "./pages/executive/ExDashboard";
@@ -193,6 +194,12 @@ const router = createBrowserRouter([
             allowedRoles={["leader"]}
             element={<WorkOrderDetail />}
           />
+        ),
+      },
+      {
+        path: "leader/report-problem",
+        element: (
+          <ProtectedRoute allowedRoles={["leader"]} element={<LeaderReport />} />
         ),
       },
 

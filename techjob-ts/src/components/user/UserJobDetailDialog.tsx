@@ -293,11 +293,13 @@ export function UserJobDetailDialog({ job, open, onOpenChange }: UserJobDetailDi
                     <div>
 
                       {job.latitude && job.longitude && (
-                        <div className="rounded-md overflow-hidden border aspect-video">
+                        <div className="rounded-md overflow-hidden">
                           <AdminMap
                             initialAddress={job.location}
                             initialPosition={[job.latitude, job.longitude]}
                             readOnly={true}
+                            useSimpleMarker={true}
+                            height="300px"
                           />
                         </div>
                       )}

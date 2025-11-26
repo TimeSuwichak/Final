@@ -4,7 +4,7 @@
 import React, { useMemo } from "react";
 
 import { Calendar } from "@/components/ui/calendar";
-import { eachDayOfInterval } from "date-fns";
+import { eachDayOfInterval, format } from "date-fns";
 import type { Job } from "@/types/index";
 import { th } from "date-fns/locale";
 
@@ -34,8 +34,8 @@ export function JobCalendar({
         });
 
         daysInJob.forEach((day) => {
-          // Use ISO string date part as key to avoid time issues
-          const dateKey = day.toISOString().split("T")[0];
+          // Use local date string to avoid timezone issues
+          const dateKey = format(day, "yyyy-MM-dd");
 
           if (job.status === "done") {
             completedDates.add(dateKey);

@@ -46,7 +46,7 @@ export default function LeaderSidebar() {
             </NavLink>
 
             <NavLink
-              to="/leader/LeaderReport"
+              to="/leader/report-problem"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <VscGraph className="inline mr-2" /> การแจ้งปัญหา

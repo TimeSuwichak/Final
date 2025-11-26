@@ -1,45 +1,58 @@
 import { useState, useMemo, useEffect } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react"
-import { user } from "@/data/user"
-import { showWarning, showConfirm, showError } from "@/lib/sweetalert"
+import { Badge } from "@/components/ui/badge"
+import { Eye, Trash2, ExternalLink } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { showConfirm, showError } from "@/lib/sweetalert"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
-const reportCategories = ["ระบบล้ม/Error", "ฟังก์ชั่นที่ใช้งานไม่ได้", "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่", "อื่นๆ"]
+interface ReportData {
+  id: number
+  title?: string
+  problemType: string
+  subCategory?: string
+  description: string
+  attachmentUrl?: string
+  userName: string
+  userType: string
+  userId: number
+  userEmail: string
+  userDepartment: string
+  submittedAt: string
+  reportDate: string
+  urgency?: string
+  relatedJobId?: string
+  relatedJobTitle?: string
+  relatedPersonName?: string
+  relatedPersonRole?: string
+  isResolved?: boolean
+}
 
-const mapProblemTypeToCategory = (problemType: string): string => {
+const mapProblemTypeToLabel = (problemType: string): string => {
   const mapping: Record<string, string> = {
+    "data-correction": "แก้ไขข้อมูลใบงาน",
+    "person-issue": "ปัญหาบุคคล",
     "system-error": "ระบบล้ม/Error",
     "login-issue": "ฟังก์ชั่นที่ใช้งานไม่ได้",
-    "data-error": "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่",
-    performance: "ข้อเสนอเเนะ / เเนะนำฟีเจอร์ใหม่",
-    other: "อื่นๆ",
+    "suggestion": "ข้อเสนอแนะ",
+    "feature-request": "แนะนำฟีเจอร์ใหม่",
+    "other": "อื่นๆ",
   }
   return mapping[problemType] || problemType
 }
 
-interface ReportEntry {
-  id: number
-  name: string
-  category: string
-  position: string
-  department: string
-  description: string
-  reportDate: string
-  attachmentUrl?: string
-}
-
 const Report = () => {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("ทั้งหมด")
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
-  const [selectedUserId, setSelectedUserId] = useState<string>("")
-  const [selectedReportCategory, setSelectedReportCategory] = useState<string>("")
-  const [reportDescription, setReportDescription] = useState<string>("")
-  const [reports, setReports] = useState<ReportEntry[]>([])
+  const navigate = useNavigate()
+  const [reports, setReports] = useState<ReportData[]>([])
+  const [selectedReport, setSelectedReport] = useState<ReportData | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   useEffect(() => {
     loadReportsFromStorage()
@@ -50,83 +63,66 @@ const Report = () => {
       const storedReports = localStorage.getItem("problemReports")
       if (storedReports) {
         const parsedReports = JSON.parse(storedReports)
-        // Transform the data to match ReportEntry interface
-        const transformedReports = parsedReports.map((report: any) => ({
-          id: report.id,
-          name: report.userName,
-          category: mapProblemTypeToCategory(report.problemType),
-          position: report.userType,
-          department: report.userDepartment,
-          description: report.description,
-          reportDate: report.reportDate,
-          attachmentUrl: report.attachmentUrl,
-        }))
-        setReports(transformedReports)
+        setReports(parsedReports)
       }
     } catch (error) {
       console.error("[v0] Failed to load reports:", error)
     }
   }
 
-  const handleAddReport = () => {
-    if (!selectedUserId || !selectedReportCategory || !reportDescription.trim()) {
-      showWarning("กรุณากรอกข้อมูลให้ครบถ้วน")
-      return
+  // แยกรายงานตาม urgency
+  const { normalReports, urgentReports } = useMemo(() => {
+    const normal: ReportData[] = []
+    const urgent: ReportData[] = []
+
+    reports.forEach((report) => {
+      if (report.urgency === "medium") {
+        urgent.push(report)
+      } else {
+        normal.push(report)
+      }
+    })
+
+    // เรียงตามวันที่ (ใหม่สุดก่อน)
+    const sortByDate = (a: ReportData, b: ReportData) => {
+      const dateA = new Date(a.submittedAt || a.reportDate).getTime()
+      const dateB = new Date(b.submittedAt || b.reportDate).getTime()
+      return dateB - dateA
     }
 
-    const selectedUser = user.find((u) => u.id.toString() === selectedUserId)
-    if (!selectedUser) return
-
-    const newReport: ReportEntry = {
-      id: Date.now(),
-      name: `${selectedUser.fname} ${selectedUser.lname}`,
-      category: selectedReportCategory,
-      position: selectedUser.position,
-      department: selectedUser.department,
-      description: reportDescription,
-      reportDate: new Date().toLocaleString("th-TH"),
+    return {
+      normalReports: normal.sort(sortByDate),
+      urgentReports: urgent.sort(sortByDate),
     }
+  }, [reports])
 
-    const updatedReports = [...reports, newReport]
-    setReports(updatedReports)
-
-    // Also save to localStorage in the same format as user/leader submissions
-    try {
-      const storedReports = localStorage.getItem("problemReports")
-      const allReports = storedReports ? JSON.parse(storedReports) : []
-      allReports.push({
-        id: newReport.id,
-        userName: newReport.name,
-        problemType: selectedReportCategory,
-        userType: newReport.position,
-        userDepartment: newReport.department,
-        description: newReport.description,
-        reportDate: newReport.reportDate,
-        attachmentUrl: "",
-        submittedAt: new Date().toISOString(),
-      })
-      localStorage.setItem("problemReports", JSON.stringify(allReports))
-    } catch (error) {
-      console.error("[v0] Failed to save to localStorage:", error)
-    }
-
-    setSelectedUserId("")
-    setSelectedReportCategory("")
-    setReportDescription("")
+  const handleViewDetail = (report: ReportData) => {
+    setSelectedReport(report)
+    setIsDetailOpen(true)
   }
 
   const handleDeleteReport = async (reportId: number) => {
-    const result = await showConfirm("ยืนยันการลบ", "คุณต้องการลบรายงานนี้หรือไม่?");
+    // ปิด Dialog ก่อนแสดง SweetAlert2
+    setIsDetailOpen(false)
+    
+    // รอให้ Dialog ปิดก่อน
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    const result = await showConfirm("ยืนยันการลบ", "คุณต้องการลบรายงานนี้หรือไม่?")
     if (!result.isConfirmed) {
+      // ถ้ายกเลิก ให้เปิด Dialog กลับมา
+      const report = reports.find((r) => r.id === reportId)
+      if (report) {
+        setSelectedReport(report)
+        setIsDetailOpen(true)
+      }
       return
     }
 
     try {
-      // Remove from state
       const updatedReports = reports.filter((report) => report.id !== reportId)
       setReports(updatedReports)
 
-      // Remove from localStorage
       const storedReports = localStorage.getItem("problemReports")
       if (storedReports) {
         const allReports = JSON.parse(storedReports)
@@ -134,229 +130,320 @@ const Report = () => {
         localStorage.setItem("problemReports", JSON.stringify(filteredReports))
       }
 
-      // Close expanded row if it was open
-      if (expandedRows.has(reportId)) {
-        const newExpanded = new Set(expandedRows)
-        newExpanded.delete(reportId)
-        setExpandedRows(newExpanded)
-      }
+      setSelectedReport(null)
+      loadReportsFromStorage()
     } catch (error) {
       console.error("[v0] Failed to delete report:", error)
       showError("เกิดข้อผิดพลาดในการลบรายงาน")
     }
   }
 
-  const filteredReports = useMemo(() => {
-    return reports.filter((report) => {
-      const matchesSearch =
-        report.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.department.toLowerCase().includes(searchQuery.toLowerCase())
-
-      const matchesCategory = selectedCategory === "ทั้งหมด" || report.category === selectedCategory
-      return matchesSearch && matchesCategory
-    })
-  }, [searchQuery, selectedCategory, reports])
-
-  const toggleRow = (id: number) => {
-    const newExpanded = new Set(expandedRows)
-    if (newExpanded.has(id)) newExpanded.delete(id)
-    else newExpanded.add(id)
-    setExpandedRows(newExpanded)
+  const handleGoToJob = (jobId: string) => {
+    navigate(`/admin/job/${jobId}`)
+    setIsDetailOpen(false)
   }
 
-  return (
-    <div className="w-full space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">การแจ้งปัญหา</h1>
-      </div>
+  const handleMarkAsResolved = (reportId: number) => {
+    try {
+      const updatedReports = reports.map((report) =>
+        report.id === reportId ? { ...report, isResolved: true } : report
+      )
+      setReports(updatedReports)
 
-      <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
-        <h2 className="text-lg font-semibold">การจำลอง</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">ชื่อ</label>
-            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-              <SelectTrigger className="border-2">
-                <SelectValue placeholder="เลือกชื่อ" />
-              </SelectTrigger>
-              <SelectContent>
-                {user.map((u) => (
-                  <SelectItem key={u.id} value={u.id.toString()}>
-                    {u.fname} {u.lname}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      const storedReports = localStorage.getItem("problemReports")
+      if (storedReports) {
+        const allReports = JSON.parse(storedReports)
+        const updatedAllReports = allReports.map((report: any) =>
+          report.id === reportId ? { ...report, isResolved: true } : report
+        )
+        localStorage.setItem("problemReports", JSON.stringify(updatedAllReports))
+      }
+
+      if (selectedReport?.id === reportId) {
+        setSelectedReport({ ...selectedReport, isResolved: true })
+      }
+
+      loadReportsFromStorage()
+    } catch (error) {
+      console.error("[v0] Failed to mark as resolved:", error)
+      showError("เกิดข้อผิดพลาดในการอัปเดตสถานะ")
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        // ถ้าไม่ใช่ ISO format ให้ใช้ dateString โดยตรง
+        return dateString
+      }
+      return date.toLocaleString("th-TH", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  const ReportCard = ({ report }: { report: ReportData }) => (
+    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-semibold text-foreground">
+              {report.title || `ID: ${report.id}`}
+            </span>
           </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">หมวดหมู่</label>
-            <Select value={selectedReportCategory} onValueChange={setSelectedReportCategory}>
-              <SelectTrigger className="border-2">
-                <SelectValue placeholder="เลือกหมวดหมู่" />
-              </SelectTrigger>
-              <SelectContent>
-                {reportCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">การอ้างอง</label>
-          <Textarea
-            placeholder="เพิ่มเติม..."
-            value={reportDescription}
-            onChange={(e) => setReportDescription(e.target.value)}
-            className="border-2 min-h-[100px]"
-          />
-        </div>
-
-        <div className="flex justify-end">
-          <Button onClick={handleAddReport}>เพิ่ม</Button>
-        </div>
-      </div>
-
-      <div className="bg-card rounded-lg border-2 shadow-sm p-6 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 flex gap-2">
-            <Input
-              placeholder="ค้นหา..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10 border-2"
-            />
-            <Button variant="default" onClick={() => setSearchQuery("")}>
-              ยกเลิก
+          <p className="text-sm text-muted-foreground mb-1">ส่งโดย: {report.userId}</p>
+          <p className="text-xs text-muted-foreground mb-3">{formatDate(report.submittedAt || report.reportDate)}</p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewDetail(report)}
+              className="h-7 px-2 text-xs"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              ดูรายละเอียด
             </Button>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium whitespace-nowrap">เลือกหมวดหมู่</span>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[200px] border-2">
-              <SelectValue placeholder="เลือกหมวดหมู่" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ทั้งหมด">ทั้งหมด</SelectItem>
-              {reportCategories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead>ชื่อ</TableHead>
-                <TableHead>หมวดหมู่</TableHead>
-                <TableHead>ตำแหน่ง</TableHead>
-                <TableHead>แผนก</TableHead>
-                <TableHead className="text-center">เพิ่มเติม</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {filteredReports.map((report) => (
-                <>
-                  <TableRow key={report.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">{report.name}</TableCell>
-                    <TableCell>{report.category}</TableCell>
-                    <TableCell>{report.position}</TableCell>
-                    <TableCell>{report.department}</TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleRow(report.id)}
-                        className="flex-right gap-1 justify-end"
-                      >
-                        ดู{" "}
-                        {expandedRows.has(report.id) ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-
-                  {expandedRows.has(report.id) && (
-                    <TableRow key={`${report.id}-details`}>
-                      <TableCell colSpan={5} className="bg-muted/20 p-6">
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-lg mb-4">รายละเอียดการแจ้งปัญหา</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">1. ชื่อผู้แจ้ง:</p>
-                              <p className="text-base">{report.name}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">2. วันที่แจ้ง:</p>
-                              <p className="text-base">{report.reportDate}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">3. ตำแหน่ง:</p>
-                              <p className="text-base">{report.position}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-muted-foreground">4. แผนก:</p>
-                              <p className="text-base">{report.department}</p>
-                            </div>
-                            <div className="space-y-1 md:col-span-2">
-                              <p className="text-sm font-medium text-muted-foreground">5. รายละเอียดปัญหา:</p>
-                              <p className="text-base">{report.description}</p>
-                            </div>
-                            {report.attachmentUrl && (
-                              <div className="space-y-1 md:col-span-2">
-                                <p className="text-sm font-medium text-muted-foreground">6. รูปภาพแนบ:</p>
-                                <img
-                                  src={report.attachmentUrl || "/placeholder.svg"}
-                                  alt="Attachment"
-                                  className="max-h-60 rounded border border-border"
-                                />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex justify-end mt-4">
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteReport(report.id)}
-                              className="gap-2"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              ลบรายงาน
-                            </Button>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
-              ))}
-
-              {filteredReports.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    ไม่พบข้อมูล
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <div className="flex-shrink-0">
+          {report.isResolved ? (
+            <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 rounded">แก้ไขแล้ว</Badge>
+          ) : report.urgency === "medium" ? (
+            <Badge variant="destructive" className="text-xs px-2 py-0.5 rounded">ยังไม่แก้ไข</Badge>
+            ) : (
+            <Badge variant="outline" className="text-xs px-2 py-0.5 rounded font-medium">
+              {mapProblemTypeToLabel(report.problemType)}
+            </Badge>
+          )}
         </div>
       </div>
+    </div>
+  )
+
+  return (
+    <div className="w-full space-y-6 p-6 min-h-screen">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-foreground">การแจ้งปัญหา</h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* คอลัมน์ซ้าย: แจ้งปัญหา */}
+        <div className="space-y-4">
+          {/* Summary Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
+                </div>
+                <div>
+                  <p className="text-primary font-medium">ไม้เร่งด่วน</p>
+                  <p className="text-2xl font-bold text-foreground">{normalReports.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Content Card */}
+          <Card className="overflow-hidden border-0 shadow-md">
+            <div className="h-1.5 bg-green-500"></div>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-foreground">ไม่เร่งด่วน</CardTitle>
+                <span className="text-sm text-muted-foreground">{normalReports.length}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {normalReports.length > 0 ? (
+                normalReports.map((report) => <ReportCard key={report.id} report={report} />)
+              ) : (
+                <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
+                  ไม่มีรายการ
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* คอลัมน์ขวา: เหตุด่วน */}
+        <div className="space-y-4">
+          {/* Summary Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center">
+                </div>
+                <div>
+                  <p className="text-primary font-medium">เร่งด่วน</p>
+                  <p className="text-2xl font-bold text-foreground">{urgentReports.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Content Card */}
+          <Card className="overflow-hidden border-0 shadow-md">
+            <div className="h-1.5 bg-orange-500"></div>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-foreground">เร่งด่วน</CardTitle>
+                <span className="text-sm text-muted-foreground">{urgentReports.length}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {urgentReports.length > 0 ? (
+                urgentReports.map((report) => <ReportCard key={report.id} report={report} />)
+              ) : (
+                <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
+                  ไม่มีรายการ
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Dialog สำหรับดูรายละเอียด */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>รายละเอียดการแจ้งปัญหา</DialogTitle>
+            <DialogDescription>
+              {selectedReport?.title || `ID: ${selectedReport?.id}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedReport && (
+            <div className="space-y-4">
+              {selectedReport.title && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">ชื่อปัญหา:</p>
+                  <p className="text-base font-semibold">{selectedReport.title}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">ชื่อผู้แจ้ง:</p>
+                  <p className="text-base">{selectedReport.userName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">ตำแหน่ง:</p>
+                  <p className="text-base">{selectedReport.userType}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">แผนก:</p>
+                  <p className="text-base">{selectedReport.userDepartment}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">วันที่แจ้ง:</p>
+                  <p className="text-base">{formatDate(selectedReport.submittedAt || selectedReport.reportDate)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">ประเภทปัญหา:</p>
+                  <p className="text-base">{mapProblemTypeToLabel(selectedReport.problemType)}</p>
+                </div>
+                {selectedReport.subCategory && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">หมวดหมู่ย่อย:</p>
+                    <p className="text-base">{selectedReport.subCategory}</p>
+                  </div>
+                )}
+                {selectedReport.urgency && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">ระดับความเร่งด่วน:</p>
+                    <p className="text-base">
+                      {selectedReport.urgency === "medium" ? "เร่งด่วน" : "ไม่เร่งด่วน"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {selectedReport.relatedJobId && selectedReport.relatedJobTitle && (
+                <div className="space-y-2 p-4 rounded-lg border border-border">
+                  <p className="text-sm font-medium text-foreground">ใบงานที่เกี่ยวข้อง:</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-semibold text-foreground">{selectedReport.relatedJobTitle}</p>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleGoToJob(selectedReport.relatedJobId!)}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      ไปที่ใบงาน
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {selectedReport.relatedPersonName && (
+                <div className="space-y-1 p-4 rounded-lg border border-border">
+                  <p className="text-sm font-medium text-foreground">บุคคลที่เกี่ยวข้อง:</p>
+                  <p className="text-base text-foreground">
+                    {selectedReport.relatedPersonName}
+                    {selectedReport.relatedPersonRole && ` (${selectedReport.relatedPersonRole})`}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">รายละเอียดปัญหา:</p>
+                <p className="text-base whitespace-pre-wrap bg-muted p-3 rounded-lg">
+                  {selectedReport.description}
+                </p>
+              </div>
+
+              {selectedReport.attachmentUrl && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">รูปภาพแนบ:</p>
+                  <img
+                    src={selectedReport.attachmentUrl}
+                    alt="Attachment"
+                    className="max-h-60 rounded border border-border w-full object-contain"
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div>
+                  {selectedReport.isResolved ? (
+                    <Badge className="bg-green-500 text-white">แก้ไขแล้ว</Badge>
+                  ) : (
+                    <Badge variant="outline">ยังไม่แก้ไข</Badge>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {!selectedReport.isResolved && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleMarkAsResolved(selectedReport.id)}
+                      className="gap-2 bg-green-500 hover:bg-green-600"
+                    >
+                      แก้ไขแล้ว
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteReport(selectedReport.id)}
+                    className="gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    ลบรายงาน
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

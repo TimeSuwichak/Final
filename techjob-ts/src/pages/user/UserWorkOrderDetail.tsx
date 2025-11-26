@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MapContainer, TileLayer, Marker, Circle, useMap } from "react-leaflet";
+import { AdminMap } from "@/components/admin/AdminMap";
 import { user as ALL_USERS } from "@/Data/user";
 import {
   MapPin,
@@ -32,8 +32,6 @@ import {
   Phone,
   X,
 } from "lucide-react";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import { TaskManagement } from "@/components/leader/TaskManagement";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -45,15 +43,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { JobTeamDisplay } from "@/components/common/JobTeamDisplay";
-
-// Fix for default marker icons in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -86,31 +75,6 @@ const getStatusText = (status: string) => {
     default:
       return "รอดำเนินการ";
   }
-};
-
-interface MapControllerProps {
-  jobId: string | null;
-  jobs: any[];
-}
-
-const MapController: React.FC<MapControllerProps> = ({ jobId, jobs }) => {
-  const map = useMap();
-  const prevJobId = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (jobId && jobId !== prevJobId.current) {
-      const job = jobs.find((j) => j.id === jobId);
-      if (job && job.latitude && job.longitude) {
-        map.setView([job.latitude, job.longitude], 16, {
-          animate: true,
-          duration: 1,
-        });
-      }
-      prevJobId.current = jobId;
-    }
-  }, [jobId, jobs, map]);
-
-  return null;
 };
 
 const PdfViewerSection: React.FC<{ pdfFiles?: string[] }> = ({
@@ -226,50 +190,12 @@ const UserWorkOrderDetail: React.FC = () => {
     );
   }
 
-  const createCustomIcon = (status: string) => {
-    const color =
-      status === "done"
-        ? "#22c55e"
-        : status === "in-progress"
-        ? "#3b82f6"
-        : "#f97316";
-    return L.divIcon({
-      className: "custom-marker",
-      html: `
-        <div style="
-          background-color: ${color};
-          width: 32px;
-          height: 32px;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        ">
-          <div style="
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-            transform: rotate(45deg);
-          "></div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32],
-    });
-  };
-
-  const workAreaRadius = 150;
   const assignedTechs = currentJob.assignedTechs
     .map((techId: string) => ALL_USERS.find((u) => String(u.id) === techId))
     .filter((tech: any) => tech !== undefined);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
+    <div className="min-h-[calc(100vh-4rem)] h-auto lg:h-[calc(100vh-4rem)] flex flex-col gap-4 p-4">
       {/* Header */}
       <Card>
         <CardHeader className="pb-3">
@@ -298,13 +224,13 @@ const UserWorkOrderDetail: React.FC = () => {
         </CardHeader>
       </Card>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-3 gap-4 min-h-0">
         {/* Left: Job Info */}
-        <Card className="lg:col-span-1 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-1 flex flex-col overflow-hidden h-auto lg:h-full">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">ข้อมูลใบงาน</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-3 text-sm">
+          <CardContent className="flex-1 lg:overflow-y-auto space-y-3 text-sm">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground font-semibold">
                 สถานะ
@@ -393,45 +319,24 @@ const UserWorkOrderDetail: React.FC = () => {
             <Separator />
 
             {/* Map */}
-            <div className="h-48 w-full rounded-lg overflow-hidden border relative" style={{ zIndex: 0, isolation: 'isolate' }}>
-              {currentJob.latitude && currentJob.longitude ? (
-                <MapContainer
-                  center={[currentJob.latitude, currentJob.longitude]}
-                  zoom={15}
-                  style={{ height: "100%", width: "100%", zIndex: 0 }}
-                  zoomControl={true}
-                  dragging={true}
-                  scrollWheelZoom={true}
-                >
-                  <TileLayer
-                    attribution="&copy; OpenStreetMap"
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <Circle
-                    center={[currentJob.latitude, currentJob.longitude]}
-                    radius={workAreaRadius}
-                    pathOptions={{
-                      color: "blue",
-                      fillColor: "blue",
-                      fillOpacity: 0.1,
-                    }}
-                  />
-                  <Marker
-                    position={[currentJob.latitude, currentJob.longitude]}
-                    icon={createCustomIcon(currentJob.status)}
-                  />
-                </MapContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center bg-muted text-muted-foreground text-xs">
-                  ไม่มีพิกัด
-                </div>
-              )}
-            </div>
+            {currentJob.latitude && currentJob.longitude ? (
+              <AdminMap
+                initialAddress={currentJob.location}
+                initialPosition={[currentJob.latitude, currentJob.longitude]}
+                readOnly={true}
+                useSimpleMarker={true}
+                height="192px"
+              />
+            ) : (
+              <div className="h-48 w-full flex items-center justify-center rounded-lg border bg-muted text-muted-foreground text-xs">
+                ไม่มีพิกัด
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Right: Task Management & Team */}
-        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+        <Card className="lg:col-span-2 flex flex-col overflow-hidden h-auto lg:h-full">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -440,7 +345,7 @@ const UserWorkOrderDetail: React.FC = () => {
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-4">
+          <CardContent className="flex-1 lg:overflow-y-auto space-y-4">
             {/* Task Management Board */}
             <TaskManagement job={currentJob} mode="user" />
 
