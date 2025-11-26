@@ -672,7 +672,7 @@ const WorkOrderDetail: React.FC = () => {
           </div>
         ) : (
           /* View 2: Technician Tracking */
-          <div className="flex-1 min-h-[500px]">
+          <div className="flex-1 min-h-[500px] flex flex-col">
             <TechnicianTracking
               job={currentJob}
               selectedTechId={selectedTechId}

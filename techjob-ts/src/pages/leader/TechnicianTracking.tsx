@@ -402,7 +402,7 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
 
         {/* Map View */}
         <Card className="lg:col-span-3 flex flex-col overflow-hidden h-[400px] lg:h-full">
-          <CardContent className="p-0 h-full flex-1">
+          <CardContent className="p-4 h-full flex-1">
             <div
               className="w-full h-full rounded-lg overflow-hidden relative"
               style={{ zIndex: 0, isolation: "isolate" }}
