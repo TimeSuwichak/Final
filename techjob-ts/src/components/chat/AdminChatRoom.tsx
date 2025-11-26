@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ChatInput from "./ChatInput";
@@ -18,7 +19,18 @@ import { useNotifications } from "@/contexts/NotificationContext";
 import { user as userData } from "@/Data/user";
 
 export default function AdminChatRoom({ userId }: { userId: string }) {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>(() => {
+    if (!userId) return [];
+    try {
+      const saved = localStorage.getItem(`chat_local_${userId}`);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Failed to parse localStorage messages", e);
+    }
+    return [];
+  });
   const [text, setText] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -37,19 +49,32 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       collection(db, "chats", userId, "messages"),
       orderBy("timestamp", "asc")
     );
-    const unsub = onSnapshot(q, (snap) => {
-      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-      // Mark user messages as read when admin views them
-      msgs.forEach((msg: any) => {
-        if (msg.sender === "user" && !msg.read) {
-          // Note: In a real app, you'd update the document here
-          // For now, we'll handle this in the component
+    
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        console.log(`[Admin Chat ${userId}] Loaded ${msgs.length} messages`);
+        setMessages(msgs);
+        try {
+          localStorage.setItem(`chat_local_${userId}`, JSON.stringify(msgs));
+        } catch (e) {
+          console.error("Failed to save messages to localStorage", e);
         }
-      });
-
-      setMessages(msgs);
-    });
+      },
+      (error) => {
+        console.error(`[Admin Chat ${userId}] onSnapshot error:`, error);
+        // Fallback: direct fetch
+        getDocs(q).then(snap => {
+          const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          console.log(`[Admin Chat ${userId}] Fallback: loaded ${msgs.length} messages`);
+          setMessages(msgs);
+        }).catch(err => {
+          console.error(`[Admin Chat ${userId}] Fallback failed:`, err);
+        });
+      }
+    );
+    
     return () => unsub();
   }, [userId]);
 
@@ -69,7 +94,28 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
         read: false,
       };
 
-      await addDoc(collection(db, "chats", userId, "messages"), msgDoc);
+      console.log(`[Admin Chat ${userId}] Attempting to save message:`, msgDoc);
+      const docRef = await addDoc(collection(db, "chats", userId, "messages"), msgDoc);
+      console.log(`[Admin Chat ${userId}] ✅ Message saved with ID: ${docRef.id}`);
+
+      // Update localStorage with new message appended
+      try {
+        const currentMessages = messages.slice();
+        const newMsg = {
+          id: docRef.id,
+          sender: msgDoc.sender,
+          type: msgDoc.type,
+          text: msgDoc.text,
+          url: msgDoc.url,
+          timestamp: new Date().toISOString(),
+          read: false,
+        };
+        currentMessages.push(newMsg);
+        localStorage.setItem(`chat_local_${userId}`, JSON.stringify(currentMessages));
+        setMessages(currentMessages);
+      } catch (e) {
+        console.error("Failed to update localStorage with new message", e);
+      }
 
       const chatMetaRef = doc(db, "chats", userId);
       await setDoc(
@@ -83,6 +129,7 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
         },
         { merge: true }
       );
+      console.log(`[Admin Chat ${userId}] Message sent and meta updated`);
 
       // ส่งการแจ้งเตือนให้ผู้ใช้
       const userInfo = userData.find((u) => String(u.id) === userId);
@@ -105,13 +152,12 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
 
   return (
     <div className="flex flex-col h-full border rounded-lg p-3 bg-card">
-      <div className="flex-1 overflow-y-auto px-2 space-y-3">
+      <div className="flex-1 overflow-y-auto px-2 space-y-3" ref={scrollRef}>
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.sender === "admin" ? "justify-end" : ""}`}>
             <ChatBubble msg={m} />
           </div>
         ))}
-        <div ref={scrollRef} />
       </div>
 
       <div className="mt-3">

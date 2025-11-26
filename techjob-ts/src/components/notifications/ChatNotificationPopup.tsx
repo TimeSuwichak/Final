@@ -19,7 +19,10 @@ export default function ChatNotificationPopup() {
     | "leader"
     | "user"
     | "executive";
-  const recipientId = user?.id ? String(user.id) : (user?.uid ? String(user.uid) : undefined);
+  // ใช้ originalId ถ้ามี เพื่อให้ตรงกับ ID ในฐานข้อมูล
+  const recipientId = user?.originalId
+    ? String(user.originalId)
+    : (user?.id ? String(user.id) : (user?.uid ? String(user.uid) : undefined));
 
   const [seen, setSeen] = useState<Record<string, boolean>>({});
 
@@ -58,23 +61,21 @@ export default function ChatNotificationPopup() {
         title: latest.title,
         description: latest.message,
         timeout: 6000,
-        onClick: handleClick,
         severity: "primary",
-        shouldShowTimeoutProgress: true,
         endContent: (
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleClick();
             }}
-            className="px-3 py-1 rounded bg-transparent text-sm font-medium text-primary hover:underline"
+            className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
           >
             เปิด
           </button>
         ),
       });
     } catch (e) {
-      // don't crash if toast fails
+      console.error("Failed to show toast notification:", e);
     }
 
     // no cleanup needed for addToast

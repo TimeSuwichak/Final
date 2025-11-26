@@ -192,7 +192,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
       };
 
-      const handleCustomEvent = (_e: any) => {};
+      const handleCustomEvent = (_e: any) => { };
 
       window.addEventListener("storage", handleStorageChange);
       window.addEventListener("notificationsChanged", handleCustomEvent);
@@ -254,16 +254,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       try {
         const q = recipientId
           ? firestoreQuery(
-              collection(db, "notifications"),
-              where("recipientRole", "==", role),
-              where("recipientId", "==", String(recipientId)),
-              where("read", "==", false)
-            )
+            collection(db, "notifications"),
+            where("recipientRole", "==", role),
+            where("recipientId", "==", String(recipientId)),
+            where("read", "==", false)
+          )
           : firestoreQuery(
-              collection(db, "notifications"),
-              where("recipientRole", "==", role),
-              where("read", "==", false)
-            );
+            collection(db, "notifications"),
+            where("recipientRole", "==", role),
+            where("read", "==", false)
+          );
 
         const snap = await getDocs(q as any);
         const updates = snap.docs.map((d) => updateDoc(doc(db, "notifications", d.id), { read: true } as any));
@@ -289,30 +289,40 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ user คนนี้ ==================
   // ตัวอย่าง: getNotificationsForUser("leader", "101")
   //   → จะหา notification ที่มี recipientRole="leader" AND recipientId="101"
+  // 
+  // ⚠️ รองรับทั้ง originalId (ตัวเลข เช่น "101") และ id ใหม่ (เช่น "proj-101-21")
   const getNotificationsForUser: NotificationContextType["getNotificationsForUser"] =
     (role, recipientId) => {
       // ใช้ filter() เพื่อตรวจสอบแต่ละ notification ว่าตรงกันไหม
       return notifications.filter((notification) => {
         // ✓ ขั้นตอที่ 1: ตรวจ role (บทบาท)
-        //   notification.recipientRole ต้องเป็น "leader" หรือ "user" หรืออื่น ๆ
-        //   ถ้าไม่ตรง → return false (ไม่ให้ notification นี้อยู่ในผลลัพธ์)
         if (notification.recipientRole !== role) return false;
-        
+
         // ✓ ขั้นตอที่ 2: ตรวจ recipientId
-        //   ถ้า notification ไม่ระบุ recipientId (null/undefined)
-        //   → แสดงว่า notification นั้นส่งให้ทุกคน (ทุก role นั้น)
-        //   → ให้ pass (return true)
+        // ถ้า notification ไม่ระบุ recipientId → แสดงให้ทุกคน
         if (!notification.recipientId) return true;
-        
-        // ✓ ขั้นตอที่ 3: ถ้า recipientId มีค่า แต่ user.id ไม่มี
-        //   → return false (ไม่ให้แสดง)
+
+        // ✓ ขั้นตอที่ 3: ถ้า recipientId มีค่า แต่ user.id ไม่มี → ไม่แสดง
         if (!recipientId) return false;
-        
+
         // ✓ ขั้นตอที่ 4: ตรวจสอบ recipientId ตรงกันหรือไม่
-        //   แปลงทั้งสองค่าเป็น String เพื่อเปรียบเทียบ
-        //   เพราะว่า recipientId อาจเป็น Number (101) หรือ String ("101")
-        //   แปลงทั้งคู่เป็น String (เช่น "101") แล้วเปรียบเทียบ
-        return String(notification.recipientId) === String(recipientId);
+        // รองรับทั้ง 2 รูปแบบ:
+        // 1. recipientId ตรงกับ recipientId ที่ส่งมา (เช่น "101" === "101")
+        // 2. recipientId ตรงกับส่วนตัวเลขใน id ใหม่ (เช่น "101" อยู่ใน "proj-101-21")
+        const notifRecipient = String(notification.recipientId);
+        const userRecipient = String(recipientId);
+
+        // ตรวจสอบแบบตรงทั้งหมด
+        if (notifRecipient === userRecipient) return true;
+
+        // ตรวจสอบแบบ partial match (สำหรับ ID แบบใหม่)
+        // เช่น notification.recipientId = "101" และ recipientId = "proj-101-21"
+        // หรือ notification.recipientId = "proj-101-21" และ recipientId = "101"
+        if (userRecipient.includes(notifRecipient) || notifRecipient.includes(userRecipient)) {
+          return true;
+        }
+
+        return false;
       });
     };
   // ======================================================================

@@ -11,17 +11,21 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
   const senderId = String(msg.sender);
   const currentId = String(currentUserId || "");
   const isCurrentUser = senderId === currentId;
-  
+
   // หาชื่อและ avatar ของผู้ส่ง
-  let displayName = "Unknown";
+  let displayName = senderId; // ใช้ ID เป็น fallback แทน "Unknown"
   let senderAvatar = "?";
-  
+
   if (allUsers && allUsers.length > 0) {
     const sender = allUsers.find((u: any) => String(u.id) === senderId);
     if (sender) {
       displayName = `${sender.fname} ${sender.lname}`;
       senderAvatar = `${sender.fname.charAt(0)}${sender.lname.charAt(0)}`;
+    } else {
+      console.warn('[ChatBubble] User not found for sender ID:', senderId, 'Available users:', allUsers.length);
     }
+  } else {
+    console.warn('[ChatBubble] allUsers is empty or not provided');
   }
 
   const bubbleClass = isCurrentUser
@@ -36,7 +40,7 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
           {senderAvatar}
         </div>
       )}
-      
+
       {/* ข้อความ */}
       <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} flex-1`}>
         {/* ชื่อผู้ส่ง (ซ้ายบน) */}
@@ -45,14 +49,14 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
             {displayName}
           </div>
         )}
-        
+
         {/* Bubble */}
         <div className={`p-3 max-w-[70%] ${bubbleClass}`}>
           {msg.type === "text" && <div>{msg.text}</div>}
           {msg.type === "image" && msg.url && (
             <img src={msg.url} alt="chat-img" className="rounded-lg max-w-[200px]" />
           )}
-          
+
           {/* เวลา */}
           <div className={`text-xs mt-1 ${isCurrentUser ? "text-blue-100" : "text-gray-600 dark:text-gray-300"}`}>
             {msg.timestamp && (

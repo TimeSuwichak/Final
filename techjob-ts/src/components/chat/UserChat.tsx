@@ -10,6 +10,8 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  getDocs,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ChatInput from "./ChatInput";
@@ -62,20 +64,51 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
   // โหลดข้อความ realtime
   useEffect(() => {
     if (!uid || !target) return;
-    
-    // Clear ข้อความเดิมออกก่อนสลับห้อง
-    setMessages([]);
-    
+
+    // 1. Try to load from localStorage first for immediate display
+    const cached = localStorage.getItem(`chat_messages_${chatId}`);
+    if (cached) {
+      try {
+        setMessages(JSON.parse(cached));
+      } catch (e) {
+        console.error("Failed to parse cached messages", e);
+      }
+    } else {
+      setMessages([]);
+    }
+
     const q = query(
       collection(db, "chats", chatId, "messages"),
       orderBy("timestamp", "asc")
     );
-    const unsub = onSnapshot(q, (snap) => {
-      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setMessages(msgs);
-    });
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        console.log(`[Chat ${chatId}] Loaded ${msgs.length} messages from Firestore`);
+        setMessages(msgs);
+
+        // 2. Save to localStorage whenever we get fresh data
+        localStorage.setItem(`chat_messages_${chatId}`, JSON.stringify(msgs));
+      },
+      (error) => {
+        console.error(`[Chat ${chatId}] onSnapshot error:`, error);
+        // Try fallback: fetch docs directly
+        getDocs(q).then(snap => {
+          const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          console.log(`[Chat ${chatId}] Fallback: loaded ${msgs.length} messages`);
+          setMessages(msgs);
+          // Save fallback result too
+          localStorage.setItem(`chat_messages_${chatId}`, JSON.stringify(msgs));
+        }).catch(err => {
+          console.error(`[Chat ${chatId}] Fallback failed:`, err);
+        });
+      }
+    );
+
     return () => unsub();
-  }, [chatId]);
+  }, [chatId, uid, target]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -94,7 +127,9 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
         read: false,
       };
 
-      await addDoc(collection(db, "chats", chatId, "messages"), msgDoc);
+      console.log(`[Chat ${chatId}] Attempting to save message:`, msgDoc);
+      const docRef = await addDoc(collection(db, "chats", chatId, "messages"), msgDoc);
+      console.log(`[Chat ${chatId}] ✅ Message saved with ID: ${docRef.id}`);
 
       // update meta
       const chatMetaRef = doc(db, "chats", chatId);
@@ -103,19 +138,20 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
         {
           lastMessage: payload.type === "text" ? payload.text : "[รูปภาพ]",
           lastSender: uid,
-          updatedAt: Date.now(),
+          updatedAt: serverTimestamp(),
         },
         { merge: true }
       );
+      console.log(`[Chat ${chatId}] Message sent and meta updated`);
 
       // ส่งการแจ้งเตือนให้คนรับข้อความ
       // หาบทบาทและชื่อของคนรับ
       const recipientUser = allUsers.find((u) => String(u.id) === target);
       const senderUser = allUsers.find((u) => String(u.id) === uid);
-      
+
       // ตัดสินใจว่าบทบาทของคนรับคืออะไร
       let recipientRole: "admin" | "leader" | "user" | "executive" = "user";
-      
+
       if (target === "admin") {
         recipientRole = "admin";
       } else if (adminData.some((a) => String(a.id) === target)) {
@@ -139,23 +175,22 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
         metadata: { type: "new_chat_message", senderId: uid, targetId: target },
       });
     } catch (error) {
-      console.error("ส่งข้อความล้มเหลว:", error);
-      alert("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
+      console.error("❌ ส่งข้อความล้มเหลว:", error);
+      alert(`❌ Error sending message:\n${error}`);
     }
   }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2 bg-white dark:bg-slate-950">
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2 bg-white dark:bg-slate-950" ref={scrollRef}>
         {messages.map((m) => (
-          <ChatBubble 
+          <ChatBubble
             key={m.id}
             msg={m}
             currentUserId={uid}
             allUsers={allUsers}
           />
         ))}
-        <div ref={scrollRef} />
       </div>
 
       <div className="mt-3 border-t pt-3">

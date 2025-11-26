@@ -1,6 +1,6 @@
 // src/components/chat/FloatingChatWidget.tsx
 "use client"
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X } from "lucide-react";
 import UserChat from "./UserChat";
@@ -10,6 +10,19 @@ export default function FloatingChatWidget() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const userId = String(user?.id ?? "guest");
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("chat_widget_open");
+    if (savedState === "true") {
+      setOpen(true);
+    }
+  }, []);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("chat_widget_open", String(open));
+  }, [open]);
 
   return (
     <>

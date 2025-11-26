@@ -1,0 +1,30 @@
+=======
+  const [messages, setMessages] = useState<any[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem(`chat_local_${chatId}`);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Failed to parse localStorage messages", e);
+    }
+    return [];
+  });
+>>>>>> REPLACE
+
+<<<<<<< SEARCH
+      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      console.log(`[Chat ${chatId}] Loaded ${msgs.length} messages from Firestore`);
+      setMessages(msgs);
+=======
+      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      console.log(`[Chat ${chatId}] Loaded ${msgs.length} messages from Firestore`);
+      setMessages(msgs);
+      // Save messages to localStorage
+      try {
+        localStorage.setItem(`chat_local_${chatId}`, JSON.stringify(msgs));
+      } catch (e) {
+        console.error("Failed to save messages to localStorage", e);
+      }
+>>>>>> REPLACE
