@@ -38,8 +38,7 @@ export default function UserChatList({ currentUserId, onSelectChat, selectedUser
 
         const q = query(
             collection(db, "chats"),
-            where("participants", "array-contains", String(currentUserId)),
-            orderBy("updatedAt", "desc")
+            where("participants", "array-contains", String(currentUserId))
         );
 
         const unsub = onSnapshot(q, (snap) => {
@@ -47,6 +46,14 @@ export default function UserChatList({ currentUserId, onSelectChat, selectedUser
                 id: d.id,
                 ...(d.data() as Omit<Chat, "id">),
             }));
+
+            // Sort in memory to avoid missing index issues
+            chatList.sort((a, b) => {
+                const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.updatedAt || 0);
+                const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.updatedAt || 0);
+                return timeB - timeA;
+            });
+
             setChats(chatList);
         });
 
@@ -75,6 +82,9 @@ export default function UserChatList({ currentUserId, onSelectChat, selectedUser
                             ? `${otherUser.fname} ${otherUser.lname}`
                             : otherUserId;
 
+                        // Use avatarUrl from user data or fallback
+                        const avatarUrl = otherUser?.avatarUrl;
+
                         const isSelected = selectedUserId === otherUserId;
 
                         return (
@@ -88,7 +98,26 @@ export default function UserChatList({ currentUserId, onSelectChat, selectedUser
                   ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
                 `}
                             >
-                                <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    {/* Avatar */}
+                                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                                        {avatarUrl ? (
+                                            <img
+                                                src={avatarUrl}
+                                                alt={displayName}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    // Fallback if image fails to load
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${avatarUrl ? 'hidden' : ''}`}>
+                                            {displayName.charAt(0)}
+                                        </div>
+                                    </div>
+
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium text-slate-900 dark:text-white truncate">
                                             {displayName}
