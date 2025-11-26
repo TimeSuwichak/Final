@@ -683,28 +683,7 @@ const WorkOrderDetail: React.FC = () => {
                     </>
                   ) : currentJob.status === "done" ? (
                     /* Show Summary View for Completed Jobs */
-                    <>
-                      <JobSummaryView job={currentJob} />
-
-                      {/* Allow re-signing */}
-                      <div className="pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSignatureDialogOpen(true)}
-                          className="w-full gap-2"
-                        >
-                          <PenTool className="h-4 w-4" />
-                          เซ็นอีกครั้ง
-                        </Button>
-                        {currentJob.signatureCount &&
-                          currentJob.signatureCount > 1 && (
-                            <p className="text-xs text-muted-foreground text-center mt-2">
-                              เซ็นรับทราบแล้ว {currentJob.signatureCount} ครั้ง
-                            </p>
-                          )}
-                      </div>
-                    </>
+                    <JobSummaryView job={currentJob} />
                   ) : (
                     /* Show Active Jobs */
                     <>
