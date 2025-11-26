@@ -57,7 +57,7 @@ import { cn } from "@/lib/utils";
 import { MaterialSelectionDialog } from "@/components/user/MaterialSelectionDialog";
 import { user as ALL_USERS } from "@/Data/user";
 import { Users } from "lucide-react";
-import { showWarning } from "@/lib/sweetalert";
+import { showWarning, showSuccess } from "@/lib/sweetalert";
 
 interface TaskManagementProps {
   job: Job;
@@ -242,6 +242,11 @@ export function TaskManagement({
       });
     });
 
+    showSuccess(
+      "อนุมัติงานสำเร็จ",
+      `อนุมัติขั้นตอน "${task.title}" และเริ่มขั้นตอนถัดไปแล้ว`
+    );
+
     setPendingStatusChange(null);
     setStatusChangeDialogOpen(false);
   };
@@ -313,6 +318,11 @@ export function TaskManagement({
         metadata: { type: "task_rejected", taskId: task.id, reason, imageUrl },
       });
     });
+
+    showSuccess(
+      "ตีกลับงานสำเร็จ",
+      `ตีกลับงาน "${task.title}" แล้ว ช่างจะได้รับแจ้งเตือน`
+    );
 
     setPendingRejectTask(null);
     setRejectTaskDialogOpen(false);
@@ -388,6 +398,11 @@ export function TaskManagement({
         },
       });
     }
+
+    showSuccess(
+      "รับทราบงานสำเร็จ",
+      `รับทราบการตีกลับของงาน "${task.title}" แล้ว สามารถดำเนินงานต่อได้`
+    );
   };
 
   const handleUpdateFileChange = (
@@ -484,6 +499,11 @@ export function TaskManagement({
         });
       }
     });
+
+    showSuccess(
+      "ส่งอัปเดตสำเร็จ",
+      `ส่งอัปเดตงาน "${selectedTask.title}" เรียบร้อยแล้ว`
+    );
 
     setUpdateDialogOpen(false);
     setUpdateMessage("");

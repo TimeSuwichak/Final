@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { geocodeAddress, reverseGeocode } from "@/lib/geocoding"
 import { showWarning, showError } from "@/lib/sweetalert"
+import { ExternalLink } from "lucide-react"
 import "leaflet/dist/leaflet.css"
+import L from "leaflet"
+
+// Fix for default marker icons in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 // Use direct imports from react-leaflet to avoid Suspense/lazy timing issues
 
@@ -19,6 +29,8 @@ interface AdminMapProps {
   onAddressChange?: (address: string) => void
   readOnly?: boolean
   allowZoom?: boolean // Allow zoom and pan even in readOnly mode
+  useSimpleMarker?: boolean // ใช้หมุดธรรมดา (สำหรับ user mode)
+  height?: string // ความสูงของแผนที่
 }
 
 // Component for handling map clicks
@@ -28,12 +40,14 @@ function LocationMarker({
   onAddressFound,
   readOnly = false,
   locationName, // เพิ่ม prop สำหรับชื่อสถานที่
+  useSimpleMarker = false, // ใช้หมุดธรรมดา
 }: {
   position: [number, number] | null
   setPosition: (pos: [number, number]) => void
   onAddressFound?: (address: string) => void
   readOnly?: boolean
   locationName?: string // เพิ่ม prop สำหรับชื่อสถานที่
+  useSimpleMarker?: boolean // ใช้หมุดธรรมดา
 }) {
   const [displayName, setDisplayName] = useState<string>("")
 
@@ -65,21 +79,23 @@ function LocationMarker({
     <>
       {position && (
         <Marker position={position}>
-          <Popup>
-            <div className="text-sm">
-              <p className="font-semibold">{displayName || locationName || "ตำแหน่งที่เลือก"}</p>
-              {(displayName || locationName) && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  พิกัด: {position[0].toFixed(6)}, {position[1].toFixed(6)}
-                </p>
-              )}
-              {!displayName && !locationName && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {position[0].toFixed(6)}, {position[1].toFixed(6)}
-                </p>
-              )}
-            </div>
-          </Popup>
+          {!useSimpleMarker && (
+            <Popup>
+              <div className="text-sm">
+                <p className="font-semibold">{displayName || locationName || "ตำแหน่งที่เลือก"}</p>
+                {(displayName || locationName) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    พิกัด: {position[0].toFixed(6)}, {position[1].toFixed(6)}
+                  </p>
+                )}
+                {!displayName && !locationName && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {position[0].toFixed(6)}, {position[1].toFixed(6)}
+                  </p>
+                )}
+              </div>
+            </Popup>
+          )}
         </Marker>
       )}
     </>
@@ -106,6 +122,8 @@ export function AdminMap({
   onAddressChange,
   readOnly = false,
   allowZoom = true, // Default to true for better UX
+  useSimpleMarker = false, // ใช้หมุดธรรมดา (สำหรับ user mode)
+  height = "400px", // ความสูงของแผนที่
 }: AdminMapProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition || [13.7563, 100.5018])
@@ -231,10 +249,24 @@ export function AdminMap({
         </div>
       )}
 
-      <div className="h-[400px] w-full overflow-hidden rounded-md border relative" style={{ zIndex: 0, isolation: 'isolate' }}>
+      <div className="w-full overflow-hidden rounded-md border relative" style={{ height, zIndex: 0, isolation: 'isolate' }}>
+        {position && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute top-2 right-2 z-[1000] bg-white hover:bg-gray-50 shadow-md"
+            onClick={() => {
+              const googleMapsUrl = `https://www.google.com/maps?q=${position[0]},${position[1]}`;
+              window.open(googleMapsUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            <ExternalLink className="h-4 w-4 mr-1" />
+            เปิดใน Google Maps
+          </Button>
+        )}
         <MapContainer
           center={mapCenter}
-          zoom={13}
+          zoom={useSimpleMarker ? 15 : 13}
           style={{ height: "100%", width: "100%", zIndex: 0 }}
           // ไม่กำหนด key อีกต่อไป (หลีกเลี่ยง remount สั้น ๆ)
           scrollWheelZoom={allowZoom}
@@ -253,6 +285,7 @@ export function AdminMap({
             onAddressFound={handleAddressFound}
             readOnly={readOnly}
             locationName={address}
+            useSimpleMarker={useSimpleMarker}
           />
         </MapContainer>
       </div>

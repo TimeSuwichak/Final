@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Package, Plus, Minus, CheckCircle2, AlertCircle } from "lucide-react";
 import { useMaterials } from "@/contexts/MaterialContext";
-import { showWarning, showError } from "@/lib/sweetalert";
+import { showWarning, showError, showSuccess } from "@/lib/sweetalert";
 
 interface MaterialSelectionDialogProps {
   open: boolean;
@@ -70,7 +70,6 @@ export function MaterialSelectionDialog({
   >([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const categoryOptions = useMemo(() => {
     const set = new Set(materials.map((material) => material.category));
@@ -89,7 +88,6 @@ export function MaterialSelectionDialog({
       setSelectedMaterials([]);
       setQuantities({});
       setConfirmDialogOpen(false);
-      setSuccessDialogOpen(false);
     }
   }, [open]);
 
@@ -251,7 +249,20 @@ export function MaterialSelectionDialog({
     });
 
     setConfirmDialogOpen(false);
-    setSuccessDialogOpen(true);
+    
+    const materialList = selectedMaterials
+      .map((m) => `${m.name} (${m.quantity} ${m.unit})`)
+      .join(", ");
+    
+    showSuccess(
+      "เบิกวัสดุสำเร็จ",
+      `เบิกวัสดุทั้งหมด ${getTotalItems()} รายการเรียบร้อยแล้ว\n${materialList}`
+    );
+    
+    // Reset form
+    setSelectedMaterials([]);
+    setQuantities({});
+    onOpenChange(false);
   };
 
   const getTotalItems = () => {
@@ -482,43 +493,6 @@ export function MaterialSelectionDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Success Dialog */}
-      <AlertDialog
-        open={successDialogOpen}
-        onOpenChange={(open) => {
-          setSuccessDialogOpen(open);
-          if (!open) {
-            onOpenChange(false);
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="flex items-center justify-center mb-2">
-              <div className="rounded-full bg-green-100 p-3">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-            </div>
-            <AlertDialogTitle className="text-center">
-              เบิกวัสดุเสร็จสิ้น
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              ระบบได้บันทึกการเบิกวัสดุทั้งหมด {getTotalItems()}{" "}
-              รายการเรียบร้อยแล้ว
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-center">
-            <AlertDialogAction
-              onClick={() => {
-                setSuccessDialogOpen(false);
-                onOpenChange(false);
-              }}
-            >
-              ตกลง
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Dialog>
   );
 }
