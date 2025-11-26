@@ -314,9 +314,22 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                                         onClick={() => handleSelectUser(u)}
                                     >
                                         <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                                                {u.fname.charAt(0)}
-                                                {u.lname.charAt(0)}
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                                                {u.avatarUrl ? (
+                                                    <img
+                                                        src={u.avatarUrl}
+                                                        alt={`${u.fname} ${u.lname}`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${u.avatarUrl ? 'hidden' : ''}`}>
+                                                    {u.fname.charAt(0)}
+                                                    {u.lname.charAt(0)}
+                                                </div>
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-medium text-sm">
@@ -352,6 +365,7 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                             filteredChats.map((chat) => {
                                 if (!chat) return null;
                                 const isSelected = selectedUserId === chat.otherUserId;
+                                const avatarUrl = chat.otherUser?.avatarUrl;
 
                                 return (
                                     <div
@@ -365,12 +379,25 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                     `}
                                     >
                                         <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                                                {chat.displayName
-                                                    .split(" ")
-                                                    .map((n) => n.charAt(0))
-                                                    .join("")
-                                                    .substring(0, 2)}
+                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                                                {avatarUrl ? (
+                                                    <img
+                                                        src={avatarUrl}
+                                                        alt={chat.displayName}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${avatarUrl ? 'hidden' : ''}`}>
+                                                    {chat.displayName
+                                                        .split(" ")
+                                                        .map((n) => n.charAt(0))
+                                                        .join("")
+                                                        .substring(0, 2)}
+                                                </div>
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-medium text-slate-900 dark:text-white truncate">
@@ -402,10 +429,23 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                     <div className="flex flex-col h-full">
                         <div className="p-4 border-b dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                                    {selectedUser
-                                        ? `${selectedUser.fname.charAt(0)}${selectedUser.lname.charAt(0)}`
-                                        : "?"}
+                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                                    {selectedUser?.avatarUrl ? (
+                                        <img
+                                            src={selectedUser.avatarUrl}
+                                            alt={`${selectedUser.fname} ${selectedUser.lname}`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${selectedUser?.avatarUrl ? 'hidden' : ''}`}>
+                                        {selectedUser
+                                            ? `${selectedUser.fname.charAt(0)}${selectedUser.lname.charAt(0)}`
+                                            : "?"}
+                                    </div>
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-slate-900 dark:text-white">

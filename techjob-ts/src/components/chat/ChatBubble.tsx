@@ -15,12 +15,14 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
   // หาชื่อและ avatar ของผู้ส่ง
   let displayName = senderId; // ใช้ ID เป็น fallback แทน "Unknown"
   let senderAvatar = "?";
+  let avatarUrl: string | undefined;
 
   if (allUsers && allUsers.length > 0) {
     const sender = allUsers.find((u: any) => String(u.id) === senderId);
     if (sender) {
       displayName = `${sender.fname} ${sender.lname}`;
       senderAvatar = `${sender.fname.charAt(0)}${sender.lname.charAt(0)}`;
+      avatarUrl = sender.avatarUrl;
     } else {
       console.warn('[ChatBubble] User not found for sender ID:', senderId, 'Available users:', allUsers.length);
     }
@@ -36,8 +38,19 @@ export default function ChatBubble({ msg, currentUserId, allUsers = [] }: ChatBu
     <div className="flex gap-2 mb-3">
       {/* Avatar (ซ้าย) - แสดงเฉพาะข้อความจากคนอื่น */}
       {!isCurrentUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-          {senderAvatar}
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <span className={avatarUrl ? 'hidden' : ''}>{senderAvatar}</span>
         </div>
       )}
 

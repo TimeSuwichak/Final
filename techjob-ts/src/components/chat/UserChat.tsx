@@ -176,8 +176,13 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
         metadata: { type: "new_chat_message", senderId: uid, targetId: target },
       });
     } catch (error) {
+<<<<<<< HEAD
+      console.error("❌ ส่งข้อความล้มเหลว:", error);
+      alert(`❌ Error sending message:\n${error}`);
+=======
       console.error("ส่งข้อความล้มเหลว:", error);
       showError("เกิดข้อผิดพลาดในการส่งข้อความ", "กรุณาลองใหม่อีกครั้ง");
+>>>>>>> b1a9d635e72684942e362581eddf41541e908219
     }
   }
 
