@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { showWarning } from '@/lib/sweetalert';
+import { showWarning, showSuccess } from '@/lib/sweetalert';
 import {
   Dialog,
   DialogContent,
@@ -212,6 +212,11 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
         },
       });
     }
+
+    showSuccess(
+      "รับทราบงานสำเร็จ",
+      `รับทราบการตีกลับของงาน "${task.title}" แล้ว สามารถดำเนินงานต่อได้`
+    );
   };
 
   const handleUpdate = () => {
@@ -268,6 +273,11 @@ export function UserTaskUpdate({ job, task }: UserTaskUpdateProps) {
         }
       });
     }
+
+    showSuccess(
+      "ส่งอัปเดตสำเร็จ",
+      `ส่งอัปเดตงาน "${task.title}" เรียบร้อยแล้ว`
+    );
 
     setMessage("");
     setImagePreview(null);

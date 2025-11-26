@@ -4,11 +4,11 @@ import Swal from 'sweetalert2';
 const getThemeConfig = () => {
   // ตรวจสอบว่า dark mode เปิดอยู่หรือไม่
   const isDarkMode = document.documentElement.classList.contains('dark');
-  
+
   return {
     confirmButtonText: 'ตกลง',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#3085d6',
+      confirmButtonColor: '#7c3aed',
     cancelButtonColor: '#aaa',
     buttonsStyling: true,
     allowOutsideClick: false,
@@ -21,7 +21,7 @@ const getThemeConfig = () => {
 const defaultConfig = {
   confirmButtonText: 'ตกลง',
   cancelButtonText: 'ยกเลิก',
-  confirmButtonColor: '#3085d6',
+  confirmButtonColor: '#7c3aed',
   cancelButtonColor: '#aaa',
   buttonsStyling: true,
   allowOutsideClick: false,
@@ -36,6 +36,21 @@ export const showSuccess = (title: string, text?: string) => {
     title,
     text,
     ...config,
+    didOpen: () => {
+      const icon = document.querySelector('.swal2-icon.swal2-success');
+      if (icon) {
+        (icon as HTMLElement).style.borderColor = '#7c3aed';
+        (icon as HTMLElement).style.color = '#7c3aed';
+        const lines = icon.querySelectorAll('[class^=swal2-success-line]');
+        lines.forEach((line) => {
+          (line as HTMLElement).style.backgroundColor = '#7c3aed';
+        });
+        const ring = icon.querySelector('.swal2-success-ring');
+        if (ring) {
+          (ring as HTMLElement).style.borderColor = 'rgba(124, 58, 237, 0.3)';
+        }
+      }
+    },
   });
 };
 
@@ -58,6 +73,13 @@ export const showWarning = (title: string, text?: string) => {
     title,
     text,
     ...config,
+    didOpen: () => {
+      const icon = document.querySelector('.swal2-icon.swal2-warning');
+      if (icon) {
+        (icon as HTMLElement).style.borderColor = '#7c3aed';
+        (icon as HTMLElement).style.color = '#7c3aed';
+      }
+    },
   });
 };
 
@@ -69,6 +91,13 @@ export const showInfo = (title: string, text?: string) => {
     title,
     text,
     ...config,
+    didOpen: () => {
+      const icon = document.querySelector('.swal2-icon.swal2-info');
+      if (icon) {
+        (icon as HTMLElement).style.borderColor = '#7c3aed';
+        (icon as HTMLElement).style.color = '#7c3aed';
+      }
+    },
   });
 };
 
@@ -87,13 +116,20 @@ export const showConfirm = (
     showCancelButton: true,
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
-    confirmButtonColor: '#3085d6',
+    confirmButtonColor: '#7c3aed',
     cancelButtonColor: '#aaa',
     buttonsStyling: true,
     allowOutsideClick: false,
     allowEscapeKey: true,
     background: config.background,
     color: config.color,
+    didOpen: () => {
+      const icon = document.querySelector('.swal2-icon.swal2-question');
+      if (icon) {
+        (icon as HTMLElement).style.borderColor = '#7c3aed';
+        (icon as HTMLElement).style.color = '#7c3aed';
+      }
+    },
   });
 };
 
@@ -111,6 +147,27 @@ export const showAlert = (message: string, type: 'success' | 'error' | 'warning'
     icon: icons[type] as any,
     title: message,
     ...config,
+    didOpen: () => {
+      const iconClass = `.swal2-icon.swal2-${icons[type]}`;
+      const icon = document.querySelector(iconClass);
+      if (icon) {
+        if (type === 'success') {
+          (icon as HTMLElement).style.borderColor = '#7c3aed';
+          (icon as HTMLElement).style.color = '#7c3aed';
+          const lines = icon.querySelectorAll('[class^=swal2-success-line]');
+          lines.forEach((line) => {
+            (line as HTMLElement).style.backgroundColor = '#7c3aed';
+          });
+          const ring = icon.querySelector('.swal2-success-ring');
+          if (ring) {
+            (ring as HTMLElement).style.borderColor = 'rgba(124, 58, 237, 0.3)';
+          }
+        } else if (type !== 'error') {
+          (icon as HTMLElement).style.borderColor = '#7c3aed';
+          (icon as HTMLElement).style.color = '#7c3aed';
+        }
+      }
+    },
   });
 };
 
