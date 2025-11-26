@@ -553,72 +553,161 @@ const LeaderReport: React.FC = () => {
         </Card>
 
         {/* ส่วนแสดงรายการที่ส่งไปแล้ว */}
-        <Card>
-          <CardHeader>
-            <CardTitle>รายการที่ส่งไปแล้ว</CardTitle>
-            <CardDescription>รายการแจ้งปัญหาที่คุณส่งไปทั้งหมด</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {myReports.length > 0 ? (
-              <div className="space-y-3">
-                {myReports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold text-foreground">
-                            {report.title || `ID: ${report.id}`}
-                          </span>
-                          {report.isResolved ? (
-                            <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 rounded">
-                              <CheckCircle2 className="h-3 w-3 mr-1 inline" />
-                              แก้ไขแล้ว
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">
-                              ยังไม่แก้ไข
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          ประเภท: {mapProblemTypeToLabel(report.problemType)}
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-3">
-                          {new Date(report.submittedAt || report.reportDate || "").toLocaleString("th-TH", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedReport(report)
-                            setIsDetailOpen(true)
-                          }}
-                          className="h-7 px-2 text-xs"
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          ดูรายละเอียด
-                        </Button>
-                      </div>
-                    </div>
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold text-foreground">รายการที่ส่งไปแล้ว</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* ไม่เร่งด่วน */}
+            <div className="space-y-4">
+              <Card className="overflow-hidden border-0 shadow-md">
+                <div className="h-1.5 bg-green-500"></div>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold text-foreground">ไม่เร่งด่วน</CardTitle>
+                    <span className="text-sm text-muted-foreground">
+                      {myReports.filter((r) => r.urgency !== "medium").length}
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
-                ยังไม่มีรายการที่ส่งไป
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {myReports.filter((r) => r.urgency !== "medium").length > 0 ? (
+                    myReports
+                      .filter((r) => r.urgency !== "medium")
+                      .map((report) => (
+                        <div
+                          key={report.id}
+                          className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-semibold text-foreground">
+                                  {report.title || `ID: ${report.id}`}
+                                </span>
+                                {report.isResolved ? (
+                                  <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 rounded">
+                                    <CheckCircle2 className="h-3 w-3 mr-1 inline" />
+                                    แก้ไขแล้ว
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">
+                                    ยังไม่แก้ไข
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                ส่งโดย: {report.userId}
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                {new Date(report.submittedAt || report.reportDate || "").toLocaleString("th-TH", {
+                                  year: "numeric",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedReport(report)
+                                  setIsDetailOpen(true)
+                                }}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                ดูรายละเอียด
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
+                      ไม่มีรายการ
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* เร่งด่วน */}
+            <div className="space-y-4">
+              <Card className="overflow-hidden border-0 shadow-md">
+                <div className="h-1.5 bg-orange-500"></div>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold text-foreground">เร่งด่วน</CardTitle>
+                    <span className="text-sm text-muted-foreground">
+                      {myReports.filter((r) => r.urgency === "medium").length}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {myReports.filter((r) => r.urgency === "medium").length > 0 ? (
+                    myReports
+                      .filter((r) => r.urgency === "medium")
+                      .map((report) => (
+                        <div
+                          key={report.id}
+                          className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="font-semibold text-foreground">
+                                  {report.title || `ID: ${report.id}`}
+                                </span>
+                                {report.isResolved ? (
+                                  <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 rounded">
+                                    <CheckCircle2 className="h-3 w-3 mr-1 inline" />
+                                    แก้ไขแล้ว
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">
+                                    ยังไม่แก้ไข
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                ส่งโดย: {report.userId}
+                              </p>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                {new Date(report.submittedAt || report.reportDate || "").toLocaleString("th-TH", {
+                                  year: "numeric",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedReport(report)
+                                  setIsDetailOpen(true)
+                                }}
+                                className="h-7 px-2 text-xs"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                ดูรายละเอียด
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground text-sm bg-card rounded-lg border border-dashed border-border">
+                      ไม่มีรายการ
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Dialog สำหรับดูรายละเอียด */}

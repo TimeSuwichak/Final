@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Trash2 } from "lucide-react"
+import { Eye, Trash2, ExternalLink } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import { showConfirm, showError } from "@/lib/sweetalert"
 import {
   Dialog,
@@ -48,6 +49,7 @@ const mapProblemTypeToLabel = (problemType: string): string => {
 }
 
 const Report = () => {
+  const navigate = useNavigate()
   const [reports, setReports] = useState<ReportData[]>([])
   const [selectedReport, setSelectedReport] = useState<ReportData | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -100,8 +102,20 @@ const Report = () => {
   }
 
   const handleDeleteReport = async (reportId: number) => {
+    // ปิด Dialog ก่อนแสดง SweetAlert2
+    setIsDetailOpen(false)
+    
+    // รอให้ Dialog ปิดก่อน
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
     const result = await showConfirm("ยืนยันการลบ", "คุณต้องการลบรายงานนี้หรือไม่?")
     if (!result.isConfirmed) {
+      // ถ้ายกเลิก ให้เปิด Dialog กลับมา
+      const report = reports.find((r) => r.id === reportId)
+      if (report) {
+        setSelectedReport(report)
+        setIsDetailOpen(true)
+      }
       return
     }
 
@@ -116,16 +130,17 @@ const Report = () => {
         localStorage.setItem("problemReports", JSON.stringify(filteredReports))
       }
 
-      if (selectedReport?.id === reportId) {
-        setIsDetailOpen(false)
-        setSelectedReport(null)
-      }
-
+      setSelectedReport(null)
       loadReportsFromStorage()
     } catch (error) {
       console.error("[v0] Failed to delete report:", error)
       showError("เกิดข้อผิดพลาดในการลบรายงาน")
     }
+  }
+
+  const handleGoToJob = (jobId: string) => {
+    navigate(`/admin/job/${jobId}`)
+    setIsDetailOpen(false)
   }
 
   const handleMarkAsResolved = (reportId: number) => {
@@ -236,7 +251,8 @@ const Report = () => {
           </Card>
 
           {/* Content Card */}
-          <Card>
+          <Card className="overflow-hidden border-0 shadow-md">
+            <div className="h-1.5 bg-green-500"></div>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-foreground">ไม่เร่งด่วน</CardTitle>
@@ -272,7 +288,8 @@ const Report = () => {
           </Card>
 
           {/* Content Card */}
-          <Card>
+          <Card className="overflow-hidden border-0 shadow-md">
+            <div className="h-1.5 bg-orange-500"></div>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold text-foreground">เร่งด่วน</CardTitle>
@@ -350,7 +367,18 @@ const Report = () => {
               {selectedReport.relatedJobId && selectedReport.relatedJobTitle && (
                 <div className="space-y-2 p-4 rounded-lg border border-border">
                   <p className="text-sm font-medium text-foreground">ใบงานที่เกี่ยวข้อง:</p>
-                  <p className="text-base font-semibold text-foreground">{selectedReport.relatedJobTitle}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-semibold text-foreground">{selectedReport.relatedJobTitle}</p>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleGoToJob(selectedReport.relatedJobId!)}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      ไปที่ใบงาน
+                    </Button>
+                  </div>
                 </div>
               )}
 
