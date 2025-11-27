@@ -226,29 +226,45 @@ export default function UnifiedChatInterface({
     [allUsers, selectedRole]
   );
 
-  // แชทที่กรองแล้ว
+  // แชทที่กรองแล้ว (พร้อม Deduplication)
   const filteredChats = useMemo(() => {
-    return chats
-      .map((chat) => {
-        const otherUserId = chat.participants.find(
-          (p) => p !== String(currentUserId)
-        );
-        if (!otherUserId) return null;
+    const uniqueChatsMap = new Map<string, any>();
 
-        const otherUser = allUsers.find((u) => String(u.id) === otherUserId);
-        const displayName = otherUser
-          ? `${otherUser.fname} ${otherUser.lname}`
-          : otherUserId;
+    // 1. Map & Deduplicate
+    chats.forEach((chat) => {
+      const otherUserId = chat.participants.find(
+        (p) => p !== String(currentUserId)
+      );
+      if (!otherUserId) return;
 
-        return {
-          ...chat,
-          otherUserId,
-          otherUser,
-          displayName,
-        };
-      })
+      const otherUser = allUsers.find((u) => String(u.id) === otherUserId);
+      const displayName = otherUser
+        ? `${otherUser.fname} ${otherUser.lname}`
+        : otherUserId;
+
+      const processedChat = {
+        ...chat,
+        otherUserId,
+        otherUser,
+        displayName,
+      };
+
+      // ถ้ามีแชทของคนนี้อยู่แล้ว ให้เลือกอันที่อัปเดตล่าสุด
+      if (uniqueChatsMap.has(otherUserId)) {
+        const existing = uniqueChatsMap.get(otherUserId);
+        const existingTime = existing.updatedAt || 0;
+        const newTime = processedChat.updatedAt || 0;
+        if (newTime > existingTime) {
+          uniqueChatsMap.set(otherUserId, processedChat);
+        }
+      } else {
+        uniqueChatsMap.set(otherUserId, processedChat);
+      }
+    });
+
+    // 2. Filter & Sort
+    return Array.from(uniqueChatsMap.values())
       .filter((chat) => {
-        if (!chat) return false;
         if (
           searchText.trim() &&
           !chat.displayName.toLowerCase().includes(searchText.toLowerCase())
@@ -256,7 +272,8 @@ export default function UnifiedChatInterface({
           return false;
         }
         return true;
-      });
+      })
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   }, [chats, currentUserId, allUsers, searchText]);
 
   const handleSelectChat = (otherUserId: string) => {
