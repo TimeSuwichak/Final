@@ -45,29 +45,31 @@ import System from "./pages/commom/System";
 import Security from "./pages/commom/Security";
 import Account from "./pages/commom/Account";
 
-
-
 // CHAT
 import AdminChatPage from "./pages/admin/chat/index";
 import AdminChatRoomPage from "./pages/admin/chat/[chatId]";
 import ChatPage from "./pages/chat/index";
 
-// ROUTER
+// ROUTER CONFIGURATION
+// การกำหนดเส้นทาง (Route) ทั้งหมดของเว็บไซต์
 const router = createBrowserRouter([
+  // Redirect หน้าแรกไปที่ Login
   { path: "/", element: <Navigate to="/login" replace /> },
   { path: "/login", element: <LoginPage /> },
 
   // 🟪 MAIN LAYOUT (Sidebar)
+  // โครงสร้างหลักที่มี Sidebar อยู่ด้านซ้าย
   {
     path: "/",
     element: <Sidebar />,
     children: [
-      // ──────── ADMIN ────────
+      // ──────── ADMIN SECTION (ส่วนของผู้ดูแลระบบ) ────────
+      // เข้าถึงได้เฉพาะ Role: 'admin' เท่านั้น
       {
         path: "admin/admindashboard",
         element: (
           <ProtectedRoute
-            allowedRoles={["admin"]}
+            allowedRoles={["admin"]} // กำหนดสิทธิ์ให้เข้าได้เฉพาะ admin
             element={<AdminDashboard />}
           />
         ),
@@ -199,7 +201,10 @@ const router = createBrowserRouter([
       {
         path: "leader/report-problem",
         element: (
-          <ProtectedRoute allowedRoles={["leader"]} element={<LeaderReport />} />
+          <ProtectedRoute
+            allowedRoles={["leader"]}
+            element={<LeaderReport />}
+          />
         ),
       },
 
@@ -217,7 +222,10 @@ const router = createBrowserRouter([
       // ──────── COMMON ────────
       { path: "account", element: <ProtectedRoute element={<Account />} /> },
       { path: "profile", element: <ProtectedRoute element={<Profile />} /> },
-      { path: "my-profile", element: <ProtectedRoute element={<MyProfile />} /> },
+      {
+        path: "my-profile",
+        element: <ProtectedRoute element={<MyProfile />} />,
+      },
       {
         path: "notification",
         element: <ProtectedRoute element={<Notification />} />,

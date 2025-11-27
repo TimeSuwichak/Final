@@ -1,3 +1,7 @@
+// src/components/chat/UnifiedChatInterface.tsx
+// Component หลักสำหรับระบบแชทแบบรวม (Unified Chat Interface)
+// ทำหน้าที่แสดงรายการแชท, ค้นหาผู้ใช้, และแสดงหน้าต่างแชท
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -9,6 +13,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+// Import ข้อมูลผู้ใช้จำลอง (Mock Data) จากไฟล์ต่างๆ
 import { user as userData } from "@/Data/user";
 import { leader as leaderData } from "@/Data/leader";
 import { admin as adminData } from "@/Data/admin";
@@ -19,14 +24,18 @@ import { Search, MessageSquare, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import UserChat from "./UserChat";
 
+// --- Interfaces ---
+
+// โครงสร้างข้อมูลของห้องแชท
 interface Chat {
-  id: string;
-  participants: string[];
-  lastMessage?: string;
-  lastSender?: string;
-  updatedAt: any;
+  id: string; // ID ของห้องแชท (Firestore Doc ID)
+  participants: string[]; // Array ของ User IDs ที่อยู่ในห้องแชท
+  lastMessage?: string; // ข้อความล่าสุด (สำหรับแสดง preview)
+  lastSender?: string; // ผู้ส่งข้อความล่าสุด
+  updatedAt: any; // เวลาที่อัปเดตล่าสุด (Firestore Timestamp)
 }
 
+// โครงสร้างข้อมูลผู้ใช้ (สำหรับแสดงในรายการค้นหา)
 interface UserItem {
   id: number | string;
   fname: string;
@@ -39,9 +48,12 @@ interface UserItem {
 }
 
 interface UnifiedChatInterfaceProps {
-  currentUserId: string;
+  currentUserId: string; // ID ของผู้ใช้ปัจจุบันที่กำลังใช้งาน
 }
 
+// --- Constants ---
+
+// แปลง Role เป็นภาษาไทย
 const roleLabels: { [key: string]: string } = {
   user: "ช่างเทคนิค",
   leader: "หัวหน้า",
@@ -49,6 +61,7 @@ const roleLabels: { [key: string]: string } = {
   executive: "ผู้บริหาร",
 };
 
+// แปลง Department เป็นภาษาไทย
 const departmentLabels: { [key: string]: string } = {
   network_security: "ความปลอดภัยเครือข่าย",
   smart_building_multimedia: "อาคารอัตโนมัติและมัลติมีเดีย",
@@ -61,16 +74,18 @@ const departmentLabels: { [key: string]: string } = {
 export default function UnifiedChatInterface({
   currentUserId,
 }: UnifiedChatInterfaceProps) {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [searchText, setSearchText] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  // --- State Management ---
+  const [chats, setChats] = useState<Chat[]>([]); // รายการแชททั้งหมด
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null); // ID ของคู่สนทนาที่เลือก
+  const [searchText, setSearchText] = useState(""); // ข้อความค้นหา
+  const [selectedRole, setSelectedRole] = useState<string | null>(null); // ตัวกรอง Role
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(
     null
-  );
-  const [showUserList, setShowUserList] = useState(false);
+  ); // ตัวกรองแผนก
+  const [showUserList, setShowUserList] = useState(false); // สลับโหมดแสดงรายการแชท / รายชื่อผู้ใช้
 
-  // รวมผู้ใช้ทั้งหมด
+  // --- Data Preparation ---
+  // รวมข้อมูลผู้ใช้ทั้งหมดจาก Mock Data เข้าด้วยกันเพื่อใช้ในการค้นหาและแสดงผล
   const allUsers = useMemo(
     () => [
       ...userData.map((u) => ({
@@ -97,11 +112,12 @@ export default function UnifiedChatInterface({
     []
   );
 
-  // โหลดรายการแชทที่มีอยู่
+  // --- Effects ---
+  // โหลดรายการแชทจาก Firestore และจัดการ Caching
   useEffect(() => {
     if (!currentUserId) return;
 
-    // 1. โหลดจาก sessionStorage ก่อนเพื่อแสดงทันที
+    // 1. โหลดจาก sessionStorage ก่อนเพื่อความเร็ว (Optimistic UI)
     const cacheKey = `chat_list_${currentUserId}`;
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
@@ -121,7 +137,8 @@ export default function UnifiedChatInterface({
       }
     }
 
-    // 2. ไม่ใช้ orderBy เพื่อหลีกเลี่ยงปัญหา index
+    // 2. Subscribe ข้อมูล Realtime จาก Firestore
+    // Query หาแชทที่มี currentUserId อยู่ใน participants
     const q = query(
       collection(db, "chats"),
       where("participants", "array-contains", String(currentUserId))
@@ -133,11 +150,12 @@ export default function UnifiedChatInterface({
         ...(d.data() as Omit<Chat, "id">),
       }));
 
-      // เรียงลำดับใน memory แทน
+      // เรียงลำดับตามเวลาอัปเดตล่าสุด (ใหม่ -> เก่า)
+      // ทำใน Memory เพราะ Firestore Index อาจยังไม่พร้อมในบางกรณี
       chatList.sort((a, b) => {
         const timeA = a.updatedAt || 0;
         const timeB = b.updatedAt || 0;
-        return timeB - timeA; // เรียงจากใหม่ไปเก่า
+        return timeB - timeA;
       });
 
       console.log(
@@ -147,7 +165,7 @@ export default function UnifiedChatInterface({
       );
       setChats(chatList);
 
-      // 3. บันทึกลง sessionStorage
+      // 3. อัปเดต Cache ใน sessionStorage
       try {
         sessionStorage.setItem(cacheKey, JSON.stringify(chatList));
       } catch (e) {
@@ -161,7 +179,9 @@ export default function UnifiedChatInterface({
     return () => unsub();
   }, [currentUserId]);
 
-  // กรองผู้ใช้ตามเงื่อนไข
+  // --- Filtering Logic ---
+
+  // กรองรายชื่อผู้ใช้สำหรับ "เพิ่มผู้สนทนาใหม่"
   const filteredUsers = useMemo(() => {
     console.log(
       "[UnifiedChatInterface] Filtering users. Current user ID:",
@@ -170,31 +190,24 @@ export default function UnifiedChatInterface({
     console.log("[UnifiedChatInterface] Total users:", allUsers.length);
 
     const filtered = allUsers.filter((u) => {
-      // ไม่แสดงตัวเอง - ตรวจสอบทั้งแบบ string และ number
+      // 1. ไม่แสดงตัวเอง
       const userId = String(u.id);
       const currentId = String(currentUserId);
 
       if (userId === currentId) {
-        console.log(
-          "[UnifiedChatInterface] Filtering out current user:",
-          u.fname,
-          u.lname,
-          "ID:",
-          userId
-        );
         return false;
       }
 
-      // กรองตามชื่อ (ค้นหา)
+      // 2. กรองตามชื่อ (Search Text)
       const fullName = `${u.fname} ${u.lname}`.toLowerCase();
       if (searchText.trim() && !fullName.includes(searchText.toLowerCase())) {
         return false;
       }
 
-      // กรองตาม role
+      // 3. กรองตาม Role
       if (selectedRole && u.role !== selectedRole) return false;
 
-      // กรองตาม department
+      // 4. กรองตาม Department
       if (selectedDepartment && u.department !== selectedDepartment)
         return false;
 
@@ -208,12 +221,13 @@ export default function UnifiedChatInterface({
     return filtered;
   }, [allUsers, currentUserId, searchText, selectedRole, selectedDepartment]);
 
-  // รวบรวม roles และ departments ที่มี
+  // ดึงรายการ Roles ทั้งหมดที่มีอยู่ (สำหรับสร้างตัวกรอง)
   const availableRoles = useMemo(
     () => [...new Set(allUsers.map((u) => u.role))],
     [allUsers]
   );
 
+  // ดึงรายการ Departments ทั้งหมดที่มีอยู่ (ตาม Role ที่เลือก)
   const availableDepartments = useMemo(
     () => [
       ...new Set(
@@ -226,17 +240,19 @@ export default function UnifiedChatInterface({
     [allUsers, selectedRole]
   );
 
-  // แชทที่กรองแล้ว (พร้อม Deduplication)
+  // เตรียมข้อมูลแชทสำหรับแสดงผล (Mapping ข้อมูลคู่สนทนา)
   const filteredChats = useMemo(() => {
     const uniqueChatsMap = new Map<string, any>();
 
-    // 1. Map & Deduplicate
+    // 1. Map ข้อมูล Chat เข้ากับข้อมูล User และ Deduplicate
     chats.forEach((chat) => {
+      // หา ID ของคู่สนทนา (คนที่ไม่ใช่เรา)
       const otherUserId = chat.participants.find(
         (p) => p !== String(currentUserId)
       );
       if (!otherUserId) return;
 
+      // ดึงข้อมูล User ของคู่สนทนา
       const otherUser = allUsers.find((u) => String(u.id) === otherUserId);
       const displayName = otherUser
         ? `${otherUser.fname} ${otherUser.lname}`
@@ -249,7 +265,7 @@ export default function UnifiedChatInterface({
         displayName,
       };
 
-      // ถ้ามีแชทของคนนี้อยู่แล้ว ให้เลือกอันที่อัปเดตล่าสุด
+      // ถ้ามีแชทซ้ำกับคนเดิม ให้เลือกอันที่อัปเดตล่าสุด
       if (uniqueChatsMap.has(otherUserId)) {
         const existing = uniqueChatsMap.get(otherUserId);
         const existingTime = existing.updatedAt || 0;
@@ -262,7 +278,7 @@ export default function UnifiedChatInterface({
       }
     });
 
-    // 2. Filter & Sort
+    // 2. Filter ตามคำค้นหา และ Sort ตามเวลา
     return Array.from(uniqueChatsMap.values())
       .filter((chat) => {
         if (
@@ -293,8 +309,10 @@ export default function UnifiedChatInterface({
 
   return (
     <div className="grid grid-cols-3 gap-6 h-full">
-      {/* Left Panel - Chat List & User Selection */}
+      {/* --- Left Panel: Chat List & User Selection --- */}
+      {/* ส่วนแสดงรายการแชทและรายชื่อผู้ใช้สำหรับเลือกสนทนา */}
       <div className="flex flex-col h-full bg-white dark:bg-slate-950 border rounded-lg overflow-hidden">
+        {/* Header ของ Left Panel */}
         <div className="p-4 border-b dark:border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
@@ -314,6 +332,7 @@ export default function UnifiedChatInterface({
             </Button>
           </div>
 
+          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -325,9 +344,11 @@ export default function UnifiedChatInterface({
           </div>
         </div>
 
+        {/* Content Area: User List or Chat List */}
         {showUserList ? (
+          // --- User List View (โหมดเลือกผู้ใช้ใหม่) ---
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {/* ฟิลเตอร์ Role */}
+            {/* ตัวกรอง Role (ตำแหน่ง) */}
             <div>
               <label className="text-sm font-medium">กรองตามตำแหน่ง</label>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -357,7 +378,7 @@ export default function UnifiedChatInterface({
               </div>
             </div>
 
-            {/* ฟิลเตอร์ Department */}
+            {/* ตัวกรอง Department (แผนก) - แสดงเฉพาะเมื่อมีข้อมูล */}
             {availableDepartments.length > 0 && (
               <div>
                 <label className="text-sm font-medium">กรองตามแผนก</label>
@@ -391,7 +412,7 @@ export default function UnifiedChatInterface({
               </div>
             )}
 
-            {/* รายชื่อผู้ใช้ */}
+            {/* รายชื่อผู้ใช้ที่ผ่านการกรอง */}
             <div className="space-y-2 pt-2">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((u) => (
@@ -401,7 +422,7 @@ export default function UnifiedChatInterface({
                     onClick={() => handleSelectUser(u)}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden">
                         {u.avatarUrl ? (
                           <img
                             src={u.avatarUrl}
@@ -417,7 +438,7 @@ export default function UnifiedChatInterface({
                           />
                         ) : null}
                         <div
-                          className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
+                          className={`w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
                             u.avatarUrl ? "hidden" : ""
                           }`}
                         >
@@ -452,6 +473,7 @@ export default function UnifiedChatInterface({
             </div>
           </div>
         ) : (
+          // --- Chat List View (โหมดรายการแชทปกติ) ---
           <div className="flex-1 overflow-y-auto">
             {filteredChats.length === 0 ? (
               <div className="p-4 text-center text-slate-500 dark:text-slate-400">
@@ -479,7 +501,7 @@ export default function UnifiedChatInterface({
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden">
                         {avatarUrl ? (
                           <img
                             src={avatarUrl}
@@ -495,7 +517,7 @@ export default function UnifiedChatInterface({
                           />
                         ) : null}
                         <div
-                          className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
+                          className={`w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
                             avatarUrl ? "hidden" : ""
                           }`}
                         >
@@ -533,13 +555,15 @@ export default function UnifiedChatInterface({
         )}
       </div>
 
-      {/* Right Panel - Chat Window */}
+      {/* --- Right Panel: Chat Window --- */}
+      {/* ส่วนแสดงหน้าต่างแชท */}
       <div className="col-span-2 border rounded-lg bg-white dark:bg-slate-950 overflow-hidden">
         {selectedUserId ? (
           <div className="flex flex-col h-full">
+            {/* Chat Header */}
             <div className="p-4 border-b dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden">
                   {selectedUser?.avatarUrl ? (
                     <img
                       src={selectedUser.avatarUrl}
@@ -554,7 +578,7 @@ export default function UnifiedChatInterface({
                     />
                   ) : null}
                   <div
-                    className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
+                    className={`w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600 text-white font-bold text-sm ${
                       selectedUser?.avatarUrl ? "hidden" : ""
                     }`}
                   >
@@ -581,11 +605,13 @@ export default function UnifiedChatInterface({
                 </div>
               </div>
             </div>
+            {/* Chat Messages Area */}
             <div className="flex-1 overflow-hidden">
               <UserChat userId={currentUserId} targetUserId={selectedUserId} />
             </div>
           </div>
         ) : (
+          // Empty State (ยังไม่ได้เลือกแชท)
           <div className="h-full flex items-center justify-center text-muted-foreground">
             <div className="text-center">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
