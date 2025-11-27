@@ -844,8 +844,8 @@ export function TaskManagement({
 
       {/* 2. Task Detail Dialog (รายละเอียดงานย่อย) */}
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl h-[90vh] max-h-[90vh] flex flex-col overflow-hidden p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <div className="flex items-start justify-between gap-4 pr-6">
               <DialogTitle className="flex items-center gap-2 flex-1">
                 <MessageSquare className="h-5 w-5 shrink-0" />
@@ -881,9 +881,9 @@ export function TaskManagement({
 
           <Tabs
             defaultValue="updates"
-            className="w-full flex-1 flex flex-col min-h-0"
+            className="w-full flex-1 flex flex-col min-h-0 overflow-hidden"
           >
-            <div className="px-6 border-b">
+            <div className="px-6 border-b shrink-0">
               <TabsList className="w-full justify-start h-12 bg-transparent p-0 space-x-6">
                 <TabsTrigger
                   value="updates"
@@ -900,11 +900,11 @@ export function TaskManagement({
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-slate-50/50">
-              {/* Tab 1: Updates (ประวัติความคืบหน้า) */}
-              <TabsContent value="updates" className="h-full m-0 p-0">
-                <div className="h-full flex flex-col">
-                  <ScrollArea className="flex-1 h-[50vh]">
+            <div className="flex-1 overflow-hidden bg-slate-50/50 min-h-0">
+              {/* Updates Tab(ประวัติความคืบหน้า) */}
+              <TabsContent value="updates" className="h-full m-0 p-0 overflow-hidden">
+                <div className="h-full flex flex-col overflow-hidden">
+                  <ScrollArea className="flex-1 min-h-0 max-h-full">
                     <div className="p-6 space-y-6">
                       {selectedTask?.updates &&
                       selectedTask.updates.length > 0 ? (
@@ -930,13 +930,13 @@ export function TaskManagement({
                               </div>
                               <div
                                 className={cn(
-                                  "rounded-2xl rounded-tl-none p-3 text-sm shadow-sm inline-block max-w-[90%]",
+                                  "rounded-2xl rounded-tl-none p-3 text-sm shadow-sm inline-block max-w-[90%] w-full",
                                   update.message.includes("ตีกลับ")
                                     ? "bg-red-50 text-red-900 border border-red-100"
                                     : "bg-white border border-slate-100"
                                 )}
                               >
-                                <p className="whitespace-pre-wrap leading-relaxed">
+                                <p className="whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
                                   {update.message}
                                 </p>
                                 {update.imageUrl && (
@@ -944,7 +944,7 @@ export function TaskManagement({
                                     <img
                                       src={update.imageUrl}
                                       alt="attachment"
-                                      className="max-w-xs h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                      className="max-w-full max-h-64 w-auto h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                       onClick={() =>
                                         handleImageClick(update.imageUrl!)
                                       }
@@ -971,7 +971,7 @@ export function TaskManagement({
                   {/* Quick Update Action (ปุ่มอัปเดตด่วนสำหรับช่าง) */}
                   {mode === "user" &&
                     selectedTask?.status === "in-progress" && (
-                      <div className="p-4 border-t bg-white">
+                      <div className="p-4 border-t bg-white shrink-0">
                         <Button
                           className="w-full gap-2"
                           onClick={() => {
@@ -987,10 +987,10 @@ export function TaskManagement({
                 </div>
               </TabsContent>
 
-              {/* Tab 2: Materials (รายการวัสดุที่เบิก) */}
-              <TabsContent value="materials" className="h-full m-0 p-0">
-                <div className="h-full flex flex-col">
-                  <ScrollArea className="flex-1 h-[50vh]">
+              {/* Materials Tab (รายการวัสดุที่เบิก) */}
+              <TabsContent value="materials" className="h-full m-0 p-0 overflow-hidden">
+                <div className="h-full flex flex-col overflow-hidden">
+                  <ScrollArea className="flex-1 min-h-0 max-h-full">
                     <div className="p-6">
                       {selectedTask?.materials &&
                       selectedTask.materials.length > 0 ? (
@@ -1000,12 +1000,12 @@ export function TaskManagement({
                               key={i}
                               className="flex items-center justify-between p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="bg-blue-50 p-2 rounded-md">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="bg-blue-50 p-2 rounded-md shrink-0">
                                   <Package className="h-4 w-4 text-blue-600" />
                                 </div>
-                                <div>
-                                  <p className="font-medium text-sm">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-sm break-words">
                                     {resolveMaterialName(
                                       m.materialId,
                                       m.materialName
@@ -1016,7 +1016,7 @@ export function TaskManagement({
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="secondary" className="font-mono">
+                              <Badge variant="secondary" className="font-mono shrink-0">
                                 {m.quantity}{" "}
                                 {resolveMaterialUnit(m.materialId, m.unit)}
                               </Badge>
@@ -1039,7 +1039,7 @@ export function TaskManagement({
                   {/* Quick Material Action (ปุ่มเบิกวัสดุเพิ่ม) */}
                   {mode === "user" &&
                     selectedTask?.status === "in-progress" && (
-                      <div className="p-4 border-t bg-white">
+                      <div className="p-4 border-t bg-white shrink-0">
                         <Button
                           variant="outline"
                           className="w-full gap-2 border-dashed"
