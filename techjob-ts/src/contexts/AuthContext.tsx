@@ -38,13 +38,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // --- ฟังก์ชันสำหรับอัปเดตข้อมูล user จาก localStorage ---
   const updateUserFromStorage = useCallback(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = sessionStorage.getItem("user");
     if (!savedUser) return;
 
     try {
       const currentUserData = JSON.parse(savedUser);
 
-      // โหลดข้อมูล personnel จาก localStorage
+      // โหลดข้อมูล personnel จาก localStorage (ยังคงใช้ localStorage เพราะเป็นข้อมูล cache รวม)
       const STORAGE_KEY = "techjob_personnel_data";
       const storedPersonnel = localStorage.getItem(STORAGE_KEY);
 
@@ -81,9 +81,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             address: updatedUserData.address || currentUserData.address,
           };
 
-          // อัปเดตทั้ง state และ localStorage
+          // อัปเดตทั้ง state และ sessionStorage
           setCurrentUser(mergedUser);
-          localStorage.setItem("user", JSON.stringify(mergedUser));
+          sessionStorage.setItem("user", JSON.stringify(mergedUser));
         }
       }
     } catch (error) {
@@ -93,8 +93,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // --- Logic: ตรวจสอบการ Login ค้างไว้ ตอนเปิดเว็บครั้งแรก ---
   useEffect(() => {
-    // ลองเปิด "กระเป๋าเงิน" (localStorage) ดูว่ามีข้อมูล 'user' เก็บอยู่ไหม
-    const savedUser = localStorage.getItem("user");
+    // ลองเปิด "กระเป๋าเงิน" (sessionStorage) ดูว่ามีข้อมูล 'user' เก็บอยู่ไหม
+    const savedUser = sessionStorage.getItem("user");
     if (savedUser) {
       // ถ้ามี -> เอาข้อมูลมาใช้เลย
       setCurrentUser(JSON.parse(savedUser));
@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (foundUser) {
       // ถ้าเจอ -> บันทึกข้อมูลลง "กระเป๋าเงิน"
-      localStorage.setItem("user", JSON.stringify(foundUser));
+      sessionStorage.setItem("user", JSON.stringify(foundUser));
       // อัปเดต state ปัจจุบัน
       setCurrentUser(foundUser);
       return true;
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // --- ฟังก์ชันสำหรับ "ออกจากระบบ" ---
   const logout = () => {
     // เอาข้อมูลออกจาก "กระเป๋าเงิน"
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     // เคลียร์ state ปัจจุบัน
     setCurrentUser(null);
   };

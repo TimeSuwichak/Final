@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,13 @@ import { uploadChatImage } from "@/lib/firebase-storage";
 import { ImageIcon, Send } from "lucide-react";
 import { showError } from "@/lib/sweetalert";
 
-export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) => void; chatId?: string }) {
+export default function ChatInput({
+  onSend,
+  chatId,
+}: {
+  onSend: (payload: any) => void;
+  chatId?: string;
+}) {
   const [text, setText] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -16,7 +22,7 @@ export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) =
   React.useEffect(() => {
     if (draftKey) {
       try {
-        const saved = localStorage.getItem(draftKey);
+        const saved = sessionStorage.getItem(draftKey);
         if (saved) setText(saved);
       } catch (e) {
         // ignore
@@ -27,8 +33,8 @@ export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) =
   React.useEffect(() => {
     if (!draftKey) return;
     try {
-      if (text) localStorage.setItem(draftKey, text);
-      else localStorage.removeItem(draftKey);
+      if (text) sessionStorage.setItem(draftKey, text);
+      else sessionStorage.removeItem(draftKey);
     } catch (e) {
       // ignore
     }
@@ -39,7 +45,11 @@ export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) =
     onSend({ type: "text", text: t });
     setText("");
     if (draftKey) {
-      try { localStorage.removeItem(draftKey); } catch (e) { /* ignore */ }
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch (e) {
+        /* ignore */
+      }
     }
   }
 
@@ -63,19 +73,30 @@ export default function ChatInput({ onSend, chatId }: { onSend: (payload: any) =
     <div className="flex items-center gap-2">
       <label className="cursor-pointer p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition">
         <ImageIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-        <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={uploading} />
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+          disabled={uploading}
+        />
       </label>
 
       <Input
         placeholder="พิมพ์ข้อความ..."
         value={text}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendText(); } }}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSendText();
+          }
+        }}
         disabled={uploading}
         className="flex-1"
       />
-      <Button 
-        onClick={handleSendText} 
+      <Button
+        onClick={handleSendText}
         disabled={uploading || !text.trim()}
         className="bg-blue-600 hover:bg-blue-700 text-white"
         size="icon"

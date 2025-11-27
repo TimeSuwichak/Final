@@ -1,5 +1,5 @@
 // src/components/chat/FloatingChatWidget.tsx
-"use client"
+"use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, X } from "lucide-react";
@@ -11,17 +11,17 @@ export default function FloatingChatWidget() {
   const { user } = useAuth();
   const userId = String(user?.id ?? "guest");
 
-  // Load state from localStorage on mount
+  // Load state from sessionStorage on mount
   useEffect(() => {
-    const savedState = localStorage.getItem("chat_widget_open");
+    const savedState = sessionStorage.getItem("chat_widget_open");
     if (savedState === "true") {
       setOpen(true);
     }
   }, []);
 
-  // Save state to localStorage whenever it changes
+  // Save state to sessionStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("chat_widget_open", String(open));
+    sessionStorage.setItem("chat_widget_open", String(open));
   }, [open]);
 
   return (
@@ -31,13 +31,20 @@ export default function FloatingChatWidget() {
           <div className="w-[360px] h-[480px] bg-card rounded-2xl shadow-xl flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-3 border-b">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">S</div>
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                  S
+                </div>
                 <div>
                   <div className="font-semibold">ฝ่ายสนับสนุน</div>
-                  <div className="text-xs text-muted-foreground">ตอบเร็วที่สุด</div>
+                  <div className="text-xs text-muted-foreground">
+                    ตอบเร็วที่สุด
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="p-2 rounded-md hover:bg-muted">
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-md hover:bg-muted"
+              >
                 <X />
               </button>
             </div>
@@ -47,7 +54,10 @@ export default function FloatingChatWidget() {
             </div>
           </div>
         ) : (
-          <Button className="rounded-full p-4 bg-blue-600 hover:bg-blue-700" onClick={() => setOpen(true)}>
+          <Button
+            className="rounded-full p-4 bg-blue-600 hover:bg-blue-700"
+            onClick={() => setOpen(true)}
+          >
             <MessageCircle className="w-5 h-5 text-white" />
           </Button>
         )}

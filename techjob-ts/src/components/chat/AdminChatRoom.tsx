@@ -23,12 +23,12 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
   const [messages, setMessages] = useState<any[]>(() => {
     if (!userId) return [];
     try {
-      const saved = localStorage.getItem(`chat_local_${userId}`);
+      const saved = sessionStorage.getItem(`chat_local_${userId}`);
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.error("Failed to parse localStorage messages", e);
+      console.error("Failed to parse sessionStorage messages", e);
     }
     return [];
   });
@@ -50,7 +50,7 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       collection(db, "chats", userId, "messages"),
       orderBy("timestamp", "asc")
     );
-    
+
     const unsub = onSnapshot(
       q,
       (snap) => {
@@ -58,24 +58,28 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
         console.log(`[Admin Chat ${userId}] Loaded ${msgs.length} messages`);
         setMessages(msgs);
         try {
-          localStorage.setItem(`chat_local_${userId}`, JSON.stringify(msgs));
+          sessionStorage.setItem(`chat_local_${userId}`, JSON.stringify(msgs));
         } catch (e) {
-          console.error("Failed to save messages to localStorage", e);
+          console.error("Failed to save messages to sessionStorage", e);
         }
       },
       (error) => {
         console.error(`[Admin Chat ${userId}] onSnapshot error:`, error);
         // Fallback: direct fetch
-        getDocs(q).then(snap => {
-          const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          console.log(`[Admin Chat ${userId}] Fallback: loaded ${msgs.length} messages`);
-          setMessages(msgs);
-        }).catch(err => {
-          console.error(`[Admin Chat ${userId}] Fallback failed:`, err);
-        });
+        getDocs(q)
+          .then((snap) => {
+            const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            console.log(
+              `[Admin Chat ${userId}] Fallback: loaded ${msgs.length} messages`
+            );
+            setMessages(msgs);
+          })
+          .catch((err) => {
+            console.error(`[Admin Chat ${userId}] Fallback failed:`, err);
+          });
       }
     );
-    
+
     return () => unsub();
   }, [userId]);
 
@@ -83,7 +87,9 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function send(payload: { type: "text"; text: string } | { type: "image"; url: string }) {
+  async function send(
+    payload: { type: "text"; text: string } | { type: "image"; url: string }
+  ) {
     if (!payload) return;
     try {
       const msgDoc: any = {
@@ -96,10 +102,15 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       };
 
       console.log(`[Admin Chat ${userId}] Attempting to save message:`, msgDoc);
-      const docRef = await addDoc(collection(db, "chats", userId, "messages"), msgDoc);
-      console.log(`[Admin Chat ${userId}] ✅ Message saved with ID: ${docRef.id}`);
+      const docRef = await addDoc(
+        collection(db, "chats", userId, "messages"),
+        msgDoc
+      );
+      console.log(
+        `[Admin Chat ${userId}] ✅ Message saved with ID: ${docRef.id}`
+      );
 
-      // Update localStorage with new message appended
+      // Update sessionStorage with new message appended
       try {
         const currentMessages = messages.slice();
         const newMsg = {
@@ -112,10 +123,13 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
           read: false,
         };
         currentMessages.push(newMsg);
-        localStorage.setItem(`chat_local_${userId}`, JSON.stringify(currentMessages));
+        sessionStorage.setItem(
+          `chat_local_${userId}`,
+          JSON.stringify(currentMessages)
+        );
         setMessages(currentMessages);
       } catch (e) {
-        console.error("Failed to update localStorage with new message", e);
+        console.error("Failed to update sessionStorage with new message", e);
       }
 
       const chatMetaRef = doc(db, "chats", userId);
@@ -135,14 +149,19 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
       // ส่งการแจ้งเตือนให้ผู้ใช้
       const userInfo = userData.find((u) => String(u.id) === userId);
       if (userInfo) {
-        const messagePreview = payload.type === "text" ? payload.text : "[รูปภาพ]";
+        const messagePreview =
+          payload.type === "text" ? payload.text : "[รูปภาพ]";
         // debug logs removed
         addNotification({
           title: "ข้อความใหม่จากแอดมิน",
           message: messagePreview.substring(0, 100),
           recipientRole: "user",
           recipientId: userId,
-          metadata: { type: "new_chat_message", senderId: "admin", targetId: userId },
+          metadata: {
+            type: "new_chat_message",
+            senderId: "admin",
+            targetId: userId,
+          },
         });
       }
     } catch (error) {
@@ -155,7 +174,10 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
     <div className="flex flex-col h-full border rounded-lg p-3 bg-card">
       <div className="flex-1 overflow-y-auto px-2 space-y-3" ref={scrollRef}>
         {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.sender === "admin" ? "justify-end" : ""}`}>
+          <div
+            key={m.id}
+            className={`flex ${m.sender === "admin" ? "justify-end" : ""}`}
+          >
             <ChatBubble msg={m} />
           </div>
         ))}
@@ -167,4 +189,3 @@ export default function AdminChatRoom({ userId }: { userId: string }) {
     </div>
   );
 }
-

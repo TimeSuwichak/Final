@@ -273,7 +273,7 @@ const LeaderReport: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
             <AlertCircle className="h-8 w-8 text-primary" />
-            แจ้งปัญหา   
+            แจ้งปัญหา 
           </h1>
           <p className="text-muted-foreground">
             กรุณากรอกข้อมูลให้ครบถ้วนเพื่อให้ทีมงานสามารถช่วยเหลือคุณได้อย่างรวดเร็ว
