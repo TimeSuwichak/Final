@@ -59,12 +59,12 @@ export default function LeaderSidebar() {
               <Map className="inline mr-2 h-4 w-4" /> ติดตามช่าง
             </NavLink>
 
-            <NavLink
+            {/* <NavLink
               to="/leader/setting"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
-            </NavLink>
+            </NavLink> */}
 
             <NavLink
               to="/leader/LeaderCalendar"

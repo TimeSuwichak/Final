@@ -174,11 +174,16 @@ export default function AdminDashboardPage() {
   // --- 1. LOGIC การเตรียมข้อมูลสำหรับกราฟ (จาก Firestore realtime) ---
   const jobStatusData = useMemo(() => {
     if (!jobs || jobs.length === 0) return { total: 0, new: 0, inProgress: 0, completed: 0 };
-    
+
+    const normalizeJobStatus = (status?: string | null) => {
+      if (status === "completed") return "done"; // รองรับข้อมูลเดิม
+      return status ?? "new";
+    };
+
     const totalCount = jobs.length;
-    const newCount = jobs.filter(j => j.status === 'new').length;
-    const inProgressCount = jobs.filter(j => j.status === 'in-progress').length;
-    const completedCount = jobs.filter(j => j.status === 'completed').length;
+    const newCount = jobs.filter((j) => normalizeJobStatus(j.status) === "new").length;
+    const inProgressCount = jobs.filter((j) => normalizeJobStatus(j.status) === "in-progress").length;
+    const completedCount = jobs.filter((j) => normalizeJobStatus(j.status) === "done").length;
     return { total: totalCount, new: newCount, inProgress: inProgressCount, completed: completedCount };
   }, [jobs]);
 

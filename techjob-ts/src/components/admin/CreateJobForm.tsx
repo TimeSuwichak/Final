@@ -1,4 +1,4 @@
-  // src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
+// src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle, Users  } from 'lucide-react';
+import { CheckCircle, Users } from 'lucide-react';
 import { useJobs } from "@/contexts/JobContext";
 import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
@@ -56,6 +56,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
 
   const [title, setTitle] = useState("");
   const [jobType, setJobType] = useState("");
+  const [customJobType, setCustomJobType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>();
@@ -66,8 +67,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     [number, number] | undefined
   >();
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
-  const [pdfPreviews, setPdfPreviews] = useState<{name: string, url: string}[]>([]);
-    const [selectedTechIds, setSelectedTechIds] = useState<string[]>([])
+  const [pdfPreviews, setPdfPreviews] = useState<{ name: string, url: string }[]>([]);
+  const [selectedTechIds, setSelectedTechIds] = useState<string[]>([])
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -101,11 +102,11 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setPdfFiles(files);
-    
+
     // แปลงไฟล์ PDF 
     const loadFiles = async () => {
       const previews = await Promise.all(
@@ -125,7 +126,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       );
       setPdfPreviews(previews);
     };
-    
+
     loadFiles();
   };
 
@@ -134,7 +135,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     setPdfPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  
+
   const validateForm = (): boolean => {
     if (!title || !jobType) {
       showWarning("กรุณากรอกหัวข้องานและประเภทงาน")
@@ -143,6 +144,10 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     if (!startDate || !endDate || !selectedLeadId) {
       showWarning("กรุณาระบุวันที่และเลือกหัวหน้างาน")
       return false
+    }
+    if (jobType === "อื่นๆ" && !customJobType.trim()) {
+      showWarning("กรุณากรอกรายละเอียดประเภทงานอื่นๆ")
+      return false;
     }
     if (!customerName) {
       showWarning("กรุณากรอกชื่อลูกค้า")
@@ -160,9 +165,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
-    
+
     if (!validateForm()) {
       return
     }
@@ -174,36 +179,40 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
 
     const adminName = user.fname;
 
+    const finalJobType = jobType === "อื่นๆ" ? customJobType.trim() : jobType;
+
     addJob(
       {
         title,
         description: description || "ไม่มีข้อมูล",
-        jobType: jobType,
+        jobType: finalJobType,
         customerName,
         customerPhone: customerPhone || "ไม่มีข้อมูล",
         customerContactOther: customerContactOther || "ไม่มีข้อมูล",
         location: location || "ไม่ได้ระบุสถานที่",
         latitude: mapPosition?.[0],
         longitude: mapPosition?.[1],
-        startDate,
-        endDate,
+        startDate: startDate as Date,
+        endDate: endDate as Date,
         assignmentMode: assignmentMode as "direct" | "leader",
-        leadId: Number(selectedLeadId),
+        leadId: selectedLeadId,
         imageUrl: imagePreview || "",
         otherFileUrl: "",
         pdfFiles: pdfPreviews.map(p => p.url), // Add PDF files
-        assignedTechs:  assignmentMode === "direct" ? selectedTechIds : [],
+        assignedTechs: assignmentMode === "direct" ? selectedTechIds : [],
         tasks: [],
+        editHistory: [],
+        activityLog: [],
         status: "new",
       },
-     adminName,
+      adminName,
     )
 
     showSuccess("สร้างใบงานเรียบร้อย", `ใบงาน "${title}" ถูกสร้างเรียบร้อยแล้ว`);
     onFinished()
   }
 
-   return (
+  return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         <div className="w-full p-6">
@@ -231,7 +240,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <Users className="w-5 h-5 text-slate-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
                         <p className="text-sm text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
                       </div>
                     </div>
@@ -248,7 +257,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <CheckCircle className="w-5 h-5 text-slate-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white mb-1">เลือกช่างเลย</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">เลือกช่างเลย</h3>
                         <p className="text-sm text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
                       </div>
                     </div>
@@ -298,7 +307,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <Label className="text-sm font-medium">
                           ประเภทงาน <span className="text-red-500">*</span>
                         </Label>
-                        <Select value={jobType} onValueChange={setJobType}>
+                        <Select value={jobType} onValueChange={(value) => {
+                          setJobType(value);
+                          if (value !== "อื่นๆ") {
+                            setCustomJobType("");
+                          }
+                        }}>
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="เลือกประเภทงาน..." />
                           </SelectTrigger>
@@ -310,6 +324,19 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                             ))}
                           </SelectContent>
                         </Select>
+                        {jobType === "อื่นๆ" && (
+                          <div className="mt-3">
+                            <Label className="text-xs font-medium text-slate-400">
+                              ระบุประเภทงานเพิ่มเติม <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              value={customJobType}
+                              onChange={(e) => setCustomJobType(e.target.value)}
+                              placeholder="เช่น ติดตั้งระบบ IoT, งานพิเศษ ฯลฯ"
+                              className="mt-1"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div>

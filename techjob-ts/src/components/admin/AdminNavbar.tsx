@@ -85,12 +85,12 @@ export default function AdminNavbar() {
               <TbAlertHexagon className=" inline mr-2" /> การแจ้งปัญหา
             </NavLink>
 
-            <NavLink
+            {/* <NavLink
               to="/admin/setting"
               className={({ isActive }) => `${baseLinkClass} ${isActive ? activeLinkClass : inactiveLinkClass}`}
             >
               <FaCog className="inline mr-2" /> การตั้งค่า
-            </NavLink>
+            </NavLink> */}
           </nav>
         </div>
 

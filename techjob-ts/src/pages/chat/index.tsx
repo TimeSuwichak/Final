@@ -15,6 +15,7 @@ export default function ChatPage() {
 
   return (
     <div className="p-6 h-full">
+      
       <UnifiedChatInterface currentUserId={currentUserId} />
     </div>
   );

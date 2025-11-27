@@ -229,7 +229,7 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                             onClick={() => setShowUserList(!showUserList)}
                         >
                             {showUserList ? <X className="h-4 w-4 mr-2" /> : <Users className="h-4 w-4 mr-2" />}
-                            {showUserList ? "ปิด" : "ผู้ใช้ใหม่"}
+                            {showUserList ? "ปิด" : "เพิ่มผู้สนทนาใหม่"}
                         </Button>
                     </div>
 
@@ -359,7 +359,7 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                             <div className="p-4 text-center text-slate-500 dark:text-slate-400">
                                 <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                 <p>ไม่มีแชท</p>
-                                <p className="text-xs mt-1">คลิก "ผู้ใช้ใหม่" เพื่อเริ่มสนทนา</p>
+                                <p className="text-xs mt-1">คลิก "เพิ่มผู้สนทนาใหม่" เพื่อเริ่มการสนทนา</p>
                             </div>
                         ) : (
                             filteredChats.map((chat) => {
@@ -467,8 +467,8 @@ export default function UnifiedChatInterface({ currentUserId }: UnifiedChatInter
                     <div className="h-full flex items-center justify-center text-muted-foreground">
                         <div className="text-center">
                             <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p className="text-lg font-medium">เลือกแชทเพื่อเริ่มสนทนา</p>
-                            <p className="text-sm mt-2">หรือคลิก "ผู้ใช้ใหม่" เพื่อเริ่มสนทนาใหม่</p>
+                            <p className="text-lg font-medium">เลือกแชทเพื่อเริ่มการสนทนา</p>
+                            <p className="text-sm mt-2">หรือคลิก "เพิ่มผู้สนทนาใหม่" เพื่อเริ่มการสนทนาใหม่</p>
                         </div>
                     </div>
                 )}

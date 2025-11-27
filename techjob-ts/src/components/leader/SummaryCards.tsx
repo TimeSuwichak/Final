@@ -41,9 +41,14 @@ const SummaryCardsCompact: React.FC = () => {
     return jobs.filter(j => String(j.leadId) === String(user.id));
   }, [jobs, user]);
   
+  const normalizeJobStatus = (status?: string | null) => {
+    if (status === "completed") return "done";
+    return status ?? "new";
+  };
+
   const totalCount = leaderJobs.length;
-  const inProgressCount = leaderJobs.filter(j => j.status === 'in-progress').length;
-  const completedCount = leaderJobs.filter(j => j.status === 'completed').length;
+  const inProgressCount = leaderJobs.filter(j => normalizeJobStatus(j.status) === 'in-progress').length;
+  const completedCount = leaderJobs.filter(j => normalizeJobStatus(j.status) === 'done').length;
   // const completedPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0; // ไม่ได้ใช้
   
   // ⭐️ [ปรับปรุง] เปลี่ยน Class Names สำหรับการสลับ Light/Dark Mode ⭐️

@@ -13,7 +13,7 @@ import Datauser from "./pages/admin/Datauser";
 import Report from "./pages/admin/Report";
 import WorkOders from "./pages/admin/WorkOders";
 import MaterialPage from "./pages/admin/Material";
-import Settings from "./pages/admin/Settings";
+// import Settings from "./pages/admin/Settings";
 import UserDetail from "./pages/admin/UserDetail";
 import UserDetailPage from "./pages/admin/UserDetailPage";
 import CreateJobPage from "./pages/admin/CreateJobPage";
@@ -105,12 +105,12 @@ const router = createBrowserRouter([
           <ProtectedRoute allowedRoles={["admin"]} element={<Report />} />
         ),
       },
-      {
-        path: "admin/setting",
-        element: (
-          <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />
-        ),
-      },
+      // {
+      //   path: "admin/setting",
+      //   element: (
+      //     <ProtectedRoute allowedRoles={["admin"]} element={<Settings />} />
+      //   ),
+      // },
       {
         path: "admin/create-job",
         element: (
