@@ -1,3 +1,11 @@
+// src/components/leader/LeaderJobDetailDialog.tsx
+// Component: หน้าต่างรายละเอียดงานสำหรับหัวหน้า (Leader Job Detail Dialog)
+// หน้าที่:
+// 1. แสดงรายละเอียดของงาน (Job Details)
+// 2. จัดการทีมช่าง (Assign Team)
+// 3. ติดตามสถานะงานและงานย่อย (Track Status & Sub-tasks)
+// 4. ปิดงานและสรุปผล (Close Job & Report)
+
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -70,10 +78,11 @@ import {
 import { PdfViewer } from "@/components/common/PdfViewer";
 import { showWarning } from "@/lib/sweetalert";
 
+// --- Interface ---
 interface LeaderJobDetailDialogProps {
-  job: Job | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  job: Job | null; // ข้อมูลงานที่เลือก (ถ้า null คือยังไม่ได้เลือก)
+  open: boolean; // สถานะเปิด/ปิด Dialog
+  onOpenChange: (open: boolean) => void; // ฟังก์ชันปรับสถานะเปิด/ปิด
 }
 
 export function LeaderJobDetailDialog({
@@ -81,28 +90,34 @@ export function LeaderJobDetailDialog({
   open,
   onOpenChange,
 }: LeaderJobDetailDialogProps) {
-  const { updateJobWithActivity, deleteJob } = useJobs();
-  const { user } = useAuth();
-  const { addNotification } = useNotifications();
-  const navigate = useNavigate();
+  // --- Hooks ---
+  const { updateJobWithActivity, deleteJob } = useJobs(); // Context สำหรับจัดการงาน
+  const { user } = useAuth(); // ข้อมูลผู้ใช้ปัจจุบัน (หัวหน้า)
+  const { addNotification } = useNotifications(); // ระบบแจ้งเตือน
+  const navigate = useNavigate(); // สำหรับเปลี่ยนหน้า
 
-  const [draftTechs, setDraftTechs] = useState<string[]>([]);
-  const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deleteReason, setDeleteReason] = useState("");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageDialogOpen, setImageDialogOpen] = useState(false);
-  const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false);
-  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
-  const [isCompletionSuccessOpen, setIsCompletionSuccessOpen] = useState(false);
-  const [completionSummary, setCompletionSummary] = useState("");
-  const [completionIssues, setCompletionIssues] = useState("");
+  // --- State Management ---
+  const [draftTechs, setDraftTechs] = useState<string[]>([]); // รายชื่อช่างที่เลือก (Draft)
+  const [isSaveSuccessOpen, setIsSaveSuccessOpen] = useState(false); // Dialog แจ้งเตือนบันทึกสำเร็จ
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Dialog ยืนยันลบงาน
+  const [deleteReason, setDeleteReason] = useState(""); // เหตุผลการลบงาน
+  const [selectedImage, setSelectedImage] = useState<string | null>(null); // รูปภาพที่เลือกดูขยาย
+  const [imageDialogOpen, setImageDialogOpen] = useState(false); // Dialog ดูรูปภาพ
+
+  // State สำหรับการปิดงาน (Job Completion)
+  const [isCompleteConfirmOpen, setIsCompleteConfirmOpen] = useState(false); // ยืนยันก่อนปิดงาน
+  const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false); // Dialog กรอกสรุปงาน
+  const [isCompletionSuccessOpen, setIsCompletionSuccessOpen] = useState(false); // Dialog ปิดงานสำเร็จ
+  const [completionSummary, setCompletionSummary] = useState(""); // สรุปผลการทำงาน
+  const [completionIssues, setCompletionIssues] = useState(""); // ปัญหาที่พบ
   const [completionIssueImage, setCompletionIssueImage] = useState<
     string | null
-  >(null);
-  const [completionIssueImageName, setCompletionIssueImageName] = useState("");
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  >(null); // รูปภาพประกอบปัญหา
+  const [completionIssueImageName, setCompletionIssueImageName] = useState(""); // ชื่อไฟล์รูป
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false); // สถานะกำลังสร้าง PDF
 
+  // --- Effects ---
+  // เมื่อเปิด Dialog หรือเปลี่ยน Job ให้โหลดรายชื่อช่างเดิมมาใส่ใน Draft
   useEffect(() => {
     if (job && open) {
       setDraftTechs(job.assignedTechs);
@@ -111,6 +126,7 @@ export function LeaderJobDetailDialog({
 
   if (!job || !user) return null;
 
+  // ฟังก์ชันช่วยดึงชื่อช่างจาก ID
   const getTechDisplayName = (techId: string) => {
     const tech = ALL_USERS.find(
       (person) => String(person.id) === String(techId)
@@ -118,6 +134,10 @@ export function LeaderJobDetailDialog({
     return tech ? `${tech.fname} ${tech.lname}` : `ช่างรหัส ${techId}`;
   };
 
+  // --- Handlers ---
+
+  // 1. รับทราบงาน (Acknowledge)
+  // เปลี่ยนสถานะจาก "new" เป็น "in-progress"
   const handleAcknowledge = () => {
     updateJobWithActivity(
       job.id,
@@ -129,14 +149,18 @@ export function LeaderJobDetailDialog({
     );
   };
 
+  // 2. บันทึกทีมช่าง (Save Team)
+  // อัปเดตรายชื่อช่างที่ได้รับมอบหมาย และส่ง Notification
   const handleSaveTeam = () => {
     const normalizedDraft = [...draftTechs].sort();
     const normalizedCurrent = [...job.assignedTechs].sort();
 
+    // ถ้าไม่มีการเปลี่ยนแปลง ไม่ต้องทำอะไร
     if (JSON.stringify(normalizedDraft) === JSON.stringify(normalizedCurrent)) {
       return;
     }
 
+    // หาคนที่เพิ่มเข้ามาและคนที่ถูกลบออก
     const added = draftTechs.filter(
       (techId) => !job.assignedTechs.includes(techId)
     );
@@ -144,6 +168,7 @@ export function LeaderJobDetailDialog({
       (techId) => !draftTechs.includes(techId)
     );
 
+    // อัปเดตข้อมูลงาน
     updateJobWithActivity(
       job.id,
       { assignedTechs: draftTechs },
@@ -158,6 +183,7 @@ export function LeaderJobDetailDialog({
       }
     );
 
+    // ส่ง Notification ให้คนที่ถูกเพิ่ม
     added.forEach((techId) => {
       addNotification({
         title: "ได้รับมอบหมายงานใหม่",
@@ -173,6 +199,7 @@ export function LeaderJobDetailDialog({
       });
     });
 
+    // ส่ง Notification ให้คนที่ถูกลบ
     removed.forEach((techId) => {
       addNotification({
         title: "มีการถอดคุณออกจากงาน",
@@ -191,10 +218,12 @@ export function LeaderJobDetailDialog({
     setIsSaveSuccessOpen(true);
   };
 
+  // 3. เริ่มกระบวนการปิดงาน (Start Completion)
   const handleCompleteJobClick = () => {
     setIsCompleteConfirmOpen(true);
   };
 
+  // 4. ยืนยันและเปิดฟอร์มสรุปงาน
   const handleConfirmCompleteAndOpenSummary = () => {
     setIsCompleteConfirmOpen(false);
     setCompletionSummary("");
@@ -204,6 +233,7 @@ export function LeaderJobDetailDialog({
     setIsCompletionDialogOpen(true);
   };
 
+  // 5. จัดการรูปภาพประกอบการปิดงาน
   const handleCompletionImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -221,6 +251,8 @@ export function LeaderJobDetailDialog({
     setCompletionIssueImageName(file.name);
   };
 
+  // 6. บันทึกการปิดงาน (Submit Completion)
+  // บันทึกสรุปผล, ปัญหา, และเปลี่ยนสถานะงาน
   const handleSubmitCompletion = () => {
     if (!completionSummary.trim()) {
       showWarning("กรุณากรอกสรุปผลการทำงาน");
@@ -248,6 +280,7 @@ export function LeaderJobDetailDialog({
       }
     );
 
+    // แจ้งเตือน Admin
     addNotification({
       title: "หัวหน้าปิดงานเรียบร้อย",
       message: `งาน ${job.title} ถูกปิดโดย ${user.fname}`,
@@ -259,6 +292,7 @@ export function LeaderJobDetailDialog({
       },
     });
 
+    // แจ้งเตือนทีมช่าง
     job.assignedTechs.forEach((techId) => {
       addNotification({
         title: "งานที่คุณอยู่เสร็จสิ้นแล้ว",
@@ -278,6 +312,7 @@ export function LeaderJobDetailDialog({
     setIsCompletionSuccessOpen(true);
   };
 
+  // 7. ดาวน์โหลด PDF รายงาน
   const handleDownloadReport = () => {
     generateCompletionReportPdf(job);
   };
@@ -292,6 +327,7 @@ export function LeaderJobDetailDialog({
     navigate(`/leader/workorder/${job.id}`);
   };
 
+  // --- Status Logic ---
   const isAcknowledged = job.status !== "new";
   const isCompleted = job.status === "done";
   const isWaitingForSignature = job.completedAt && !job.lastSignedAt;
@@ -320,7 +356,7 @@ export function LeaderJobDetailDialog({
           onPointerDownOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => event.preventDefault()}
         >
-          {/* Compact Header */}
+          {/* --- 1. Header Section (ส่วนหัว) --- */}
           <DialogHeader className="px-4 sm:px-6 py-3 border-b bg-linear-to-r from-primary/5 to-primary/10 shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div className="space-y-1 min-w-0 flex-1">
@@ -362,18 +398,8 @@ export function LeaderJobDetailDialog({
                   <ExternalLink className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">ดูรายละเอียดแบบเต็ม</span>
                 </Button>
-                {/*------------------------------------- เเบบเก่า  -----------------------------------------   */}
-                {/* {isAcknowledged && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={handleGoToTracking}
-                  >
-                    <Map className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">ติดตามช่าง</span>
-                  </Button>
-                )} */}
+
+                {/* ปุ่มยืนยันรับทราบ (แสดงเฉพาะเมื่อสถานะเป็น New) */}
                 {!isAcknowledged && (
                   <Button
                     size="sm"
@@ -388,13 +414,13 @@ export function LeaderJobDetailDialog({
             </div>
           </DialogHeader>
 
-          {/* Main Content with 2 Column Layout */}
+          {/* --- 2. Main Content (เนื้อหาหลัก) --- */}
           <ScrollArea className="flex-1 overflow-auto">
             <div className="p-4 sm:p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                {/* Left Column */}
+                {/* --- Left Column: Job Info (ข้อมูลงาน) --- */}
                 <div className="space-y-4">
-                  {/* Job Info Card - Compact */}
+                  {/* Job Info Card */}
                   <Card className="border-primary/20">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -522,10 +548,11 @@ export function LeaderJobDetailDialog({
                   )}
                 </div>
 
-                {/* Right Column */}
+                {/* --- Right Column: Management (การจัดการ) --- */}
                 <div className="space-y-4">
                   {isCompleted ? (
                     <>
+                      {/* ส่วนแสดงผลเมื่อปิดงานแล้ว */}
                       <Card className="border-emerald-200 bg-emerald-50/40">
                         <CardHeader className="pb-2">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -849,9 +876,10 @@ export function LeaderJobDetailDialog({
             </div>
           </ScrollArea>
 
-          {/* Compact Footer */}
+          {/* --- 3. Footer Section (ส่วนท้าย) --- */}
           <DialogFooter className="border-t bg-muted/30 px-4 sm:px-6 py-2.5 shrink-0">
             <div className="flex items-center justify-between w-full gap-2">
+              {/* ปุ่มลบงาน (เฉพาะ Admin) */}
               {user.role === "admin" ? (
                 <Button
                   variant="destructive"
@@ -876,6 +904,7 @@ export function LeaderJobDetailDialog({
                     ปิด
                   </Button>
                 </DialogClose>
+                {/* ปุ่มจบงาน (แสดงเมื่อยังไม่เสร็จ) */}
                 {job.status !== "done" && (
                   <Button
                     size="sm"
@@ -892,7 +921,9 @@ export function LeaderJobDetailDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
+      {/* --- Dialogs เสริมต่างๆ --- */}
+
+      {/* 1. Delete Dialog (ยืนยันการลบ) */}
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={(next) => {
@@ -941,7 +972,7 @@ export function LeaderJobDetailDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Save Success Dialog */}
+      {/* 2. Save Success Dialog (บันทึกสำเร็จ) */}
       <AlertDialog open={isSaveSuccessOpen} onOpenChange={setIsSaveSuccessOpen}>
         <AlertDialogContent className="max-w-sm text-center space-y-4">
           <AlertDialogHeader>
@@ -961,7 +992,7 @@ export function LeaderJobDetailDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Complete Job Confirmation */}
+      {/* 3. Complete Job Confirmation (ยืนยันก่อนปิดงาน) */}
       <AlertDialog
         open={isCompleteConfirmOpen}
         onOpenChange={setIsCompleteConfirmOpen}
@@ -991,7 +1022,7 @@ export function LeaderJobDetailDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Completion Summary Dialog */}
+      {/* 4. Completion Summary Dialog (ฟอร์มสรุปงาน) */}
       <Dialog
         open={isCompletionDialogOpen}
         onOpenChange={(next) => {
@@ -1117,7 +1148,7 @@ export function LeaderJobDetailDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Completion Success */}
+      {/* 5. Completion Success (แจ้งเตือนปิดงานสำเร็จ) */}
       <AlertDialog
         open={isCompletionSuccessOpen}
         onOpenChange={setIsCompletionSuccessOpen}
@@ -1143,7 +1174,7 @@ export function LeaderJobDetailDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Image Dialog */}
+      {/* 6. Image Dialog (ดูรูปขยาย) */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
           <DialogHeader className="px-4 py-2 border-b">
