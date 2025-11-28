@@ -1,4 +1,4 @@
-  // src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
+// src/components/admin/CreateJobForm.tsx (ฉบับแก้ไข)
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle, Users  } from 'lucide-react';
+import { CheckCircle, Users } from 'lucide-react';
 import { useJobs } from "@/contexts/JobContext";
 import { DatePicker } from "@/components/common/DatePicker";
 import { LeaderSelect } from "./LeaderSelect"; // (สำคัญ)
@@ -66,8 +66,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     [number, number] | undefined
   >();
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
-  const [pdfPreviews, setPdfPreviews] = useState<{name: string, url: string}[]>([]);
-    const [selectedTechIds, setSelectedTechIds] = useState<string[]>([])
+  const [pdfPreviews, setPdfPreviews] = useState<{ name: string, url: string }[]>([]);
+  const [selectedTechIds, setSelectedTechIds] = useState<string[]>([])
 
   const availableLeads = useMemo(() => {
     if (!startDate || !endDate) {
@@ -101,11 +101,11 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     setPdfFiles(files);
-    
+
     // แปลงไฟล์ PDF 
     const loadFiles = async () => {
       const previews = await Promise.all(
@@ -125,7 +125,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       );
       setPdfPreviews(previews);
     };
-    
+
     loadFiles();
   };
 
@@ -134,7 +134,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
     setPdfPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  
+
   const validateForm = (): boolean => {
     if (!title || !jobType) {
       showWarning("กรุณากรอกหัวข้องานและประเภทงาน")
@@ -160,9 +160,9 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
-    
+
     if (!validateForm()) {
       return
     }
@@ -192,18 +192,18 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
         imageUrl: imagePreview || "",
         otherFileUrl: "",
         pdfFiles: pdfPreviews.map(p => p.url), // Add PDF files
-        assignedTechs:  assignmentMode === "direct" ? selectedTechIds : [],
+        assignedTechs: assignmentMode === "direct" ? selectedTechIds : [],
         tasks: [],
         status: "new",
       },
-     adminName,
+      adminName,
     )
 
     showSuccess("สร้างใบงานเรียบร้อย", `ใบงาน "${title}" ถูกสร้างเรียบร้อยแล้ว`);
     onFinished()
   }
 
-   return (
+  return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto">
         <div className="w-full p-6">
@@ -217,22 +217,22 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   <h2 className="text-xl font-semibold">เลือกวิธีการมอบหมายงาน</h2>
                 </div>
 
-                <p className="text-sm text-slate-400 mb-4">กรุณาเลือกวิธีการมอบหมายที่ต้องการใช้:</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">กรุณาเลือกวิธีการมอบหมายที่ต้องการใช้:</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Option 1: Let leader choose */}
                   <button
                     type="button"
                     onClick={() => setAssignmentMode("leader")}
-                    className="p-4 border-2 border-slate-700 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 transition-all cursor-pointer"
+                    className="p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-purple-500 hover:bg-purple-500/5 dark:hover:bg-purple-500/25 transition-all cursor-pointer bg-white dark:bg-transparent"
                   >
                     <div className="flex items-start gap-3 text-left">
                       <div className="mt-1">
-                        <Users className="w-5 h-5 text-slate-400" />
+                        <Users className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
-                        <p className="text-sm text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
                       </div>
                     </div>
                   </button>
@@ -241,15 +241,15 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                   <button
                     type="button"
                     onClick={() => setAssignmentMode("direct")}
-                    className="p-4 border-2 border-slate-700 rounded-lg hover:border-green-500 hover:bg-green-500/5 transition-all cursor-pointer"
+                    className="p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-green-500 hover:bg-green-500/5 dark:hover:bg-green-500/25 transition-all cursor-pointer bg-white dark:bg-transparent"
                   >
                     <div className="flex items-start gap-3 text-left">
                       <div className="mt-1">
-                        <CheckCircle className="w-5 h-5 text-slate-400" />
+                        <CheckCircle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-white mb-1">เลือกช่างเลย</h3>
-                        <p className="text-sm text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-white mb-1">เลือกช่างเลย</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
                       </div>
                     </div>
                   </button>
