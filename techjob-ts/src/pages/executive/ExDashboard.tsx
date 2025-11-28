@@ -210,16 +210,6 @@ function DashboardFilters({ activeRange, onRangeChange }: any) {
 function DashboardActions({ onExportClick, isExporting }: any) {
   return (
     <div className="flex items-center gap-3">
-      <button onClick={onExportClick} disabled={isExporting} 
-        // Reduced transition-all duration-200 to transition-colors
-        className="flex items-center justify-center gap-2 text-sm bg-indigo-600 dark:bg-violet-600 hover:bg-indigo-700 dark:hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold shadow-md disabled:opacity-60 disabled:shadow-none disabled:cursor-not-allowed min-w-[140px]">
-        {isExporting ? (
-          // Removed animate-spin from Clock icon
-          <><Clock size={16} className="text-white" /><span>กำลัง Export</span></>
-        ) : (
-          <><Download size={16} className="text-white" /><span>Export PDF</span></>
-        )}
-      </button>
     </div>
   )
 }
@@ -293,7 +283,7 @@ function DashboardHeaderCard({
   )
 }
 
-// --- ExDashboard page ---
+ 
 export default function ExDashboard() {
   const dashboardRef = useRef<HTMLDivElement | null>(null)
   const [isExporting, setIsExporting] = useState(false)
