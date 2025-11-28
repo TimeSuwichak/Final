@@ -57,7 +57,7 @@ const SummaryCardsCompact: React.FC = () => {
       title: 'งานทั้งหมด All Tasks', 
       value: totalCount, 
       unit: 'งาน',
-      description: 'จำนวนงานที่คุณทำเสร็จสิ้น',
+      description: 'จำนวนงานทั้งหมด',
       // ✅ Light Mode: bg-white | Dark Mode: dark:bg-[#1a1c2e]
       bgClass: 'bg-white dark:bg-[#1a1c2e]', 
       // ✅ Light Mode: border-gray-200 | Dark Mode: dark:border-slate-700
