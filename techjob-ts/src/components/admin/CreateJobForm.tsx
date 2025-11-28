@@ -240,13 +240,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <Users className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
-<<<<<<< HEAD
-                        <h3 className="font-semibold text-slate-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
-=======
                         <h3 className="font-semibold text-gray-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
                         <p className="text-sm text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
->>>>>>> ba804bda49556c21191412422576b68fc9a980b8
                       </div>
                     </div>
                   </button>
@@ -262,13 +257,8 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <CheckCircle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
-<<<<<<< HEAD
-                        <h3 className="font-semibold text-slate-900 dark:text-white mb-1">เลือกช่างเลย</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
-=======
                         <h3 className="font-semibold text-gray-900 dark:text-white mb-1">เลือกช่างเลย</h3>
                         <p className="text-sm text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
->>>>>>> ba804bda49556c21191412422576b68fc9a980b8
                       </div>
                     </div>
                   </button>

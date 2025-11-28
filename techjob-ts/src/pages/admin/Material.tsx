@@ -309,12 +309,7 @@ export default function MaterialDashboard() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-[#0B0B16] p-6 transition-colors duration-300">
-      <h1 className="text-2xl font-semibold text-foreground">
-        คลังวัสดุและอุปกรณ์
-      </h1>
-      <p className="text-muted-foreground mb-6">
-        ภาพรวมและจัดการสต็อกวัสดุที่มีอยู่
-      </p>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

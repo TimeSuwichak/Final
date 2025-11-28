@@ -147,12 +147,8 @@ function NotificationPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:p-6">
       {/* Header Section */}
-      <div className="flex flex-col justify-between gap-4 rounded-xl border bg-white dark:bg-background px-6 py-5 shadow-sm md:flex-row md:items-center">
+      <div className="flex flex-col gap-4 rounded-xl border bg-white dark:bg-background px-6 py-5 shadow-sm md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">การแจ้งเตือน</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            ตรวจสอบเหตุการณ์สำคัญล่าสุดที่เกี่ยวข้องกับคุณ
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="gap-1.5 px-3 py-1.5">
