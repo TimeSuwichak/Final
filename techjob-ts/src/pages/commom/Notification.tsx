@@ -94,13 +94,17 @@ function NotificationPage() {
   const recipientId = user.id ? String(user.id) : undefined;
 
   // ดึงรายการการแจ้งเตือนโดยใช้ useMemo เพื่อหลีกเลี่ยงการคำนวณซ้ำเมื่อ dependencies ไม่เปลี่ยน
-  const notifications = useMemo(
-    () =>
-      getNotificationsForUser(role, recipientId).sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      ),
-    [getNotificationsForUser, role, recipientId]
-  );
+  const notifications = useMemo(() => {
+    const rawNotifications = getNotificationsForUser(role, recipientId);
+    return rawNotifications
+      .map((notification) => ({
+        ...notification,
+        createdAt: notification.createdAt
+          ? new Date(notification.createdAt)
+          : new Date(0),
+      }))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [getNotificationsForUser, role, recipientId]);
 
   // แยกรายการที่ยังไม่ได้อ่านออกมา (นำมาแสดงตัวเลขบน badge)
   const { unread } = useMemo(

@@ -274,9 +274,7 @@ const Report = () => {
 
   return (
     <div className="w-full space-y-6 p-6 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-foreground">การแจ้งปัญหา</h1>
-      </div>
+
 
       {/* Filters */}
       <div className="flex items-center gap-4">

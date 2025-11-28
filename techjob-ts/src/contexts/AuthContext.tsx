@@ -1,4 +1,10 @@
 // src/contexts/AuthContext.tsx
+// Context สำหรับจัดการระบบ Authentication (การเข้าสู่ระบบ/ออกจากระบบ)
+// ทำหน้าที่:
+// 1. ตรวจสอบสถานะการเข้าสู่ระบบ (Check Login Status)
+// 2. เก็บข้อมูลผู้ใช้ปัจจุบัน (Current User)
+// 3. จัดการฟังก์ชัน Login และ Logout
+
 "use client";
 
 import {
@@ -9,50 +15,51 @@ import {
   useCallback,
 } from "react";
 
-// --- 1. IMPORT ข้อมูลผู้ใช้ทั้งหมดเข้ามา ---
+// --- Import ข้อมูลผู้ใช้จำลอง (Mock Data) ---
 import { user } from "@/Data/user";
 import { leader } from "@/Data/leader";
 import { admin } from "@/Data/admin";
 import { executive } from "@/Data/executive";
 import { showError } from "@/lib/sweetalert";
 
-// --- 2. รวมข้อมูลทุก Role ไว้ในถังเดียว เพื่อง่ายต่อการค้นหา ---
+// รวมข้อมูลผู้ใช้ทุก Role ไว้ใน Array เดียวเพื่อความสะดวกในการค้นหา
 const allUsers = [...user, ...leader, ...admin, ...executive];
 
-// --- 3. สร้าง "กล่อง" สำหรับเก็บข้อมูล Login ---
+// --- กำหนดโครงสร้างข้อมูลของ AuthContext ---
 type AuthContextType = {
-  user: any | null;
-  loading: boolean;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
+  user: any | null; // ข้อมูลผู้ใช้ที่ Login อยู่ (null = ยังไม่ Login)
+  loading: boolean; // สถานะการโหลดข้อมูล (true = กำลังตรวจสอบ)
+  login: (email: string, password: string) => boolean; // ฟังก์ชันเข้าสู่ระบบ
+  logout: () => void; // ฟังก์ชันออกจากระบบ
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// --- 4. สร้าง "ตัวจัดการ" ที่จะควบคุมข้อมูลในกล่อง (นี่คือสมองหลัก) ---
+// --- AuthProvider Component ---
+// ทำหน้าที่ให้บริการข้อมูล Auth แก่ Component ลูกๆ ในแอปพลิเคชัน
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // State สำหรับเก็บข้อมูล user ที่ login อยู่
+  // State เก็บข้อมูลผู้ใช้ปัจจุบัน
   const [currentUser, setCurrentUser] = useState<any | null>(null);
-  // State สำหรับบอกว่า "กำลังตรวจสอบข้อมูล Login อยู่หรือเปล่า?" (แก้จอกระพริบ)
+  // State เก็บสถานะการโหลด (เริ่มต้นเป็น true เพื่อรอตรวจสอบ Session)
   const [loading, setLoading] = useState<boolean>(true);
 
-  // --- ฟังก์ชันสำหรับอัปเดตข้อมูล user จาก localStorage ---
+  // --- ฟังก์ชัน: อัปเดตข้อมูลผู้ใช้จาก LocalStorage ---
+  // ใช้สำหรับซิงค์ข้อมูลเมื่อมีการแก้ไขโปรไฟล์ (เช่น เปลี่ยนชื่อ, รูปภาพ)
   const updateUserFromStorage = useCallback(() => {
-    const savedUser = localStorage.getItem("user");
+    const savedUser = sessionStorage.getItem("user");
     if (!savedUser) return;
 
     try {
       const currentUserData = JSON.parse(savedUser);
 
-      // โหลดข้อมูล personnel จาก localStorage
+      // โหลดข้อมูล personnel จาก localStorage (ข้อมูลกลางที่แก้ไขได้)
       const STORAGE_KEY = "techjob_personnel_data";
       const storedPersonnel = localStorage.getItem(STORAGE_KEY);
 
       if (storedPersonnel) {
         const personnelData = JSON.parse(storedPersonnel);
 
-        // ค้นหาข้อมูล user ที่ตรงกับ originalId หรือ id (แบบเข้มงวด)
-        // ตัดการเช็ค email ออกเพื่อป้องกันการสวมรอยถ้า email ซ้ำ
+        // ค้นหาข้อมูล user ที่ตรงกับ ID ปัจจุบัน
         const updatedUserData = personnelData.find(
           (p: any) =>
             String(p.originalId) === String(currentUserData.id) ||
@@ -60,10 +67,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         );
 
         if (updatedUserData) {
-          // อัปเดตข้อมูล user โดยคงข้อมูลบางอย่างไว้ (เช่น password)
+          // ผสานข้อมูล (Merge) ข้อมูลเดิมกับข้อมูลใหม่
           const mergedUser = {
             ...updatedUserData,
-            // 🔥 FIX: Preserve the original ID to prevent mismatch with assigned jobs
+            // คง ID เดิมไว้เพื่อป้องกันปัญหาความไม่เข้ากันของข้อมูล
             id: currentUserData.id,
             // ใช้ password เดิมถ้าไม่ได้แก้ไข
             password: updatedUserData.password || currentUserData.password,
@@ -81,9 +88,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             address: updatedUserData.address || currentUserData.address,
           };
 
-          // อัปเดตทั้ง state และ localStorage
+          // อัปเดตทั้ง State และ SessionStorage
           setCurrentUser(mergedUser);
-          localStorage.setItem("user", JSON.stringify(mergedUser));
+          sessionStorage.setItem("user", JSON.stringify(mergedUser));
         }
       }
     } catch (error) {
@@ -91,21 +98,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // --- Logic: ตรวจสอบการ Login ค้างไว้ ตอนเปิดเว็บครั้งแรก ---
+  // --- Effect: ตรวจสอบสถานะการ Login เมื่อเปิดหน้าเว็บ ---
   useEffect(() => {
-    // ลองเปิด "กระเป๋าเงิน" (localStorage) ดูว่ามีข้อมูล 'user' เก็บอยู่ไหม
-    const savedUser = localStorage.getItem("user");
+    // ตรวจสอบว่ามีข้อมูล User ใน SessionStorage หรือไม่
+    const savedUser = sessionStorage.getItem("user");
     if (savedUser) {
-      // ถ้ามี -> เอาข้อมูลมาใช้เลย
+      // ถ้ามี -> Set User และอัปเดตข้อมูลล่าสุด
       setCurrentUser(JSON.parse(savedUser));
-      // อัปเดตข้อมูลจาก personnel storage ด้วย
       updateUserFromStorage();
     }
-    // ไม่ว่าจะเจอหรือไม่เจอ ก็บอกว่า "ตรวจสอบเสร็จแล้ว!"
+    // จบการทำงานของ Loading (พร้อมแสดงผลหน้าเว็บ)
     setLoading(false);
-  }, []); // `[]` หมายถึงให้โค้ดส่วนนี้ทำงานแค่ "ครั้งเดียว" ตอนเปิดเว็บ
+  }, []);
 
-  // --- ฟัง event เมื่อมีการอัปเดตข้อมูล personnel ---
+  // --- Effect: ฟัง Event เมื่อมีการแก้ไขข้อมูล Personnel ---
   useEffect(() => {
     const handlePersonnelDataChanged = () => {
       updateUserFromStorage();
@@ -119,44 +125,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         handlePersonnelDataChanged
       );
     };
-  }, [updateUserFromStorage]); // ฟัง event ตลอดเวลา
+  }, [updateUserFromStorage]);
 
-  // --- ฟังก์ชันสำหรับ "เข้าสู่ระบบ" ---
+  // --- ฟังก์ชัน: เข้าสู่ระบบ (Login) ---
   const login = (email: string, password: string) => {
+    // ค้นหา User จาก Mock Data ที่ตรงกับ Email และ Password
     const foundUser = allUsers.find(
       (person) => person.email === email && person.password === password
     );
 
     if (foundUser) {
-      // ถ้าเจอ -> บันทึกข้อมูลลง "กระเป๋าเงิน"
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      // อัปเดต state ปัจจุบัน
+      // ถ้าเจอ -> บันทึก Session และอัปเดต State
+      sessionStorage.setItem("user", JSON.stringify(foundUser));
       setCurrentUser(foundUser);
       return true;
     } else {
-      // ถ้าไม่เจอ -> แจ้งเตือน
+      // ถ้าไม่เจอ -> แสดง Error
       showError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       return false;
     }
   };
 
-  // --- ฟังก์ชันสำหรับ "ออกจากระบบ" ---
+  // --- ฟังก์ชัน: ออกจากระบบ (Logout) ---
   const logout = () => {
-    // เอาข้อมูลออกจาก "กระเป๋าเงิน"
-    localStorage.removeItem("user");
-    // เคลียร์ state ปัจจุบัน
+    // ลบ Session และเคลียร์ State
+    sessionStorage.removeItem("user");
     setCurrentUser(null);
   };
 
-  // --- 5. ข้อมูลทั้งหมดที่จะส่งให้ Component อื่นๆ ใช้งาน ---
+  // ค่าที่จะส่งให้ Component อื่นๆ ใช้งาน
   const value: AuthContextType = {
-    user: currentUser, // ข้อมูล user ที่ login อยู่
-    loading, // สถานะ "กำลังตรวจสอบ"
-    login, // ฟังก์ชัน login
-    logout, // ฟังก์ชัน logout
+    user: currentUser,
+    loading,
+    login,
+    logout,
   };
 
-  // ถ้ายังตรวจสอบไม่เสร็จ ให้แสดงหน้าขาวๆ รอไปก่อน (กันจอกระพริบ)
+  // แสดง Loading Screen ระหว่างรอตรวจสอบ Session
   if (loading) {
     return <div className="min-h-screen w-full" />;
   }
@@ -164,7 +169,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// --- 6. สร้าง "ทางลัด" สำหรับเรียกใช้ข้อมูล ---
+// --- Hook สำหรับเรียกใช้ AuthContext ---
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

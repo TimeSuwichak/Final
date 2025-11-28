@@ -108,17 +108,15 @@ const simulateTechLocation = (
   jobLat: number,
   jobLng: number,
   techId: string,
-  radiusMeters: number = 200
+  radiusMeters: number = 200,
+  randomValues?: { random1: number; random2: number }
 ): [number, number] => {
-  // ใช้ techId เป็น seed เพื่อให้ตำแหน่งคงที่สำหรับช่างแต่ละคน
-  const seed = techId
-    .split("")
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const random1 = ((seed * 9301 + 49297) % 233280) / 233280;
-  const random2 = (((seed * 9301 + 49297) * 9301 + 49297) % 233280) / 233280;
+  // สุ่มตำแหน่งแบบแรนดอมจริงๆ (ไม่ใช้ seed pattern)
+  const random1 = randomValues?.random1 ?? Math.random();
+  const random2 = randomValues?.random2 ?? Math.random();
 
-  // แปลงระยะทางจากเมตรเป็นองศา (ประมาณ)
-  const radiusInDegrees = radiusMeters / 111000;
+  // แปลงระยะทางจากเมตรเป
+  const radiusInDegrees = radiusMeters / 250000;
 
   // สุ่มมุมและระยะทาง
   const angle = random1 * 2 * Math.PI;
@@ -182,22 +180,35 @@ const TechnicianTracking: React.FC<TechnicianTrackingProps> = ({
     (job) => job.latitude && job.longitude
   );
 
-  // คำนวณตำแหน่งช่างจำลอง
+  // คำนวณตำแหน่งช่างจำลอง (สุ่มแบบแรนดอมจริงๆ แต่คงที่สำหรับงานนั้นๆ)
   const techLocations = useMemo(() => {
     const locations = new Map<string, [number, number]>();
     if (currentJob && currentJob.latitude && currentJob.longitude) {
+      // สุ่มค่าแรนดอมครั้งเดียวสำหรับงานนี้ (เก็บไว้ใน useMemo)
+      const randomCache = new Map<string, { random1: number; random2: number }>();
+      
       currentJob.assignedTechs.forEach((techId: string) => {
+        // สุ่มค่าแรนดอมใหม่สำหรับช่างแต่ละคนในงานนี้
+        if (!randomCache.has(techId)) {
+          randomCache.set(techId, {
+            random1: Math.random(),
+            random2: Math.random(),
+          });
+        }
+        const randomValues = randomCache.get(techId)!;
+        
         const location = simulateTechLocation(
           currentJob.latitude!,
           currentJob.longitude!,
           techId,
-          workAreaRadius
+          workAreaRadius,
+          randomValues
         );
         locations.set(techId, location);
       });
     }
     return locations;
-  }, [currentJob, workAreaRadius]);
+  }, [currentJob?.id, currentJob?.latitude, currentJob?.longitude, currentJob?.assignedTechs, workAreaRadius]);
 
   const initialMapCenter: [number, number] = useMemo(() => {
     if (currentJob && currentJob.latitude && currentJob.longitude) {

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { FaCog } from "react-icons/fa";
 import { MdEngineering } from "react-icons/md";
 import { VscGraph } from "react-icons/vsc";
@@ -23,19 +24,30 @@ import ChatNotificationPopup from "@/components/notifications/ChatNotificationPo
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { ChatBadge } from "@/components/chat/ChatBadge";
 
+export type SidebarOutletContext = {
+  setPageHeader: (node: ReactNode) => void;
+};
+
 export default function Sidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const role = user?.role?.toLowerCase() || "user";
   const unreadChat = useUnreadChatCount(user?.uid || "", role);
+  const [pageHeader, setPageHeader] = useState<ReactNode>(null);
 
   // Reset image error when user changes
   useEffect(() => {
     setImageError(false);
   }, [user?.avatarUrl]);
+
+  // Clear the header when navigating to a new route
+  useEffect(() => {
+    setPageHeader(null);
+  }, [location.pathname]);
 
   // 🎨 Modern styled classes with gradient highlight
   const baseLinkClass =
@@ -57,7 +69,7 @@ export default function Sidebar() {
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
 
       { path: "/notification", icon: <FiBell />, label: "การแจ้งเตือน" },
-      { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
+      // { path: "/user/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     admin: [
       { path: "/admin/admindashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
@@ -67,7 +79,7 @@ export default function Sidebar() {
       { path: "/admin/report", icon: <TbAlertHexagon className="w-5 h-5" />, label: "การแจ้งปัญหา" },
       { path: "/admin/chat", icon: <IoChatbubbleEllipsesOutline className="w-5 h-5" />, label: "แชทผู้ใช้งาน", isChat: true },
       { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
-      { path: "/admin/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
+      // { path: "/admin/setting", icon: <FaCog className="w-5 h-5" />, label: "การตั้งค่า" },
     ],
     leader: [
       { path: "/leader/leaderdashboard", icon: <VscGraph />, label: "ข้อมูลภาพรวม" },
@@ -75,7 +87,7 @@ export default function Sidebar() {
       { path: "/leader/report-problem", icon: <TbAlertHexagon />, label: "แจ้งปัญหา" },
       { path: "/chat", icon: <IoChatbubbleEllipsesOutline />, label: "แชทสนทนา", isChat: true },
       { path: "/notification", icon: <FiBell className="w-5 h-5" />, label: "การแจ้งเตือน" },
-      { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
+      // { path: "/leader/setting", icon: <FaCog />, label: "การตั้งค่า" },
     ],
     executive: [
       { path: "/executive/exdashboard", icon: <VscGraph className="w-5 h-5" />, label: "ข้อมูลภาพรวม" },
@@ -85,6 +97,15 @@ export default function Sidebar() {
   };
 
   const menuItems = menuConfig[role] || menuConfig.user;
+  const activeMenuItem =
+    menuItems.find((item) => location.pathname.startsWith(item.path)) || null;
+  const fallbackTitles: Array<[string, string]> = [
+    ["/my-profile", "ข้อมูลส่วนตัว"],
+  ];
+  const fallbackMatch =
+    pageHeader || activeMenuItem
+      ? null
+      : fallbackTitles.find(([path]) => location.pathname.startsWith(path));
 
   return (
     <NotificationProvider>
@@ -206,14 +227,19 @@ export default function Sidebar() {
 
             {/* 📄 Main Content Area */}
             <div className="relative flex-1 md:ml-0">
-              {/* 🔔 Notification Bell */}
-              <div className="absolute right-6 top-6 z-30">
-                <NotificationBell />
-              </div>
+              <main className="h-full overflow-auto bg-background space-y-6">
+                <div className="sticky top-0 z-30 bg-background/80 backdrop-blur  border border-gray-200 dark:border-border px-6 py-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between shadow-sm">
+                  <div className="flex-1 min-h-[4.5rem]">
+                    {pageHeader ||
+                      (activeMenuItem && <DefaultPageHeader title={activeMenuItem.label} />) ||
+                      (fallbackMatch && <DefaultPageHeader title={fallbackMatch[1]} />)}
+                  </div>
+                  <div className="self-start">
+                    <NotificationBell />
+                  </div>
+                </div>
 
-              {/* 📃 Page Content */}
-              <main className="h-full overflow-auto p-6 pt-20 bg-background">
-                <Outlet />
+                <Outlet context={{ setPageHeader }} />
               </main>
             </div>
 
@@ -223,5 +249,16 @@ export default function Sidebar() {
         </JobProvider>
       </MaterialProvider>
     </NotificationProvider>
+  );
+}
+
+function DefaultPageHeader({ title }: { title: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-muted-foreground">
+        Current Page
+      </p>
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">{title}</h1>
+    </div>
   );
 }

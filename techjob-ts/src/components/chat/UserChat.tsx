@@ -23,7 +23,13 @@ import { executive as executiveData } from "@/Data/executive";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { showError } from "@/lib/sweetalert";
 
-export default function UserChat({ userId, targetUserId }: { userId: string; targetUserId?: string }) {
+export default function UserChat({
+  userId,
+  targetUserId,
+}: {
+  userId: string;
+  targetUserId?: string;
+}) {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
   const [image, setImage] = useState<File | null>(null);
@@ -66,8 +72,8 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
   useEffect(() => {
     if (!uid || !target) return;
 
-    // 1. Try to load from localStorage first for immediate display
-    const cached = localStorage.getItem(`chat_messages_${chatId}`);
+    // 1. Try to load from sessionStorage first for immediate display
+    const cached = sessionStorage.getItem(`chat_messages_${chatId}`);
     if (cached) {
       try {
         setMessages(JSON.parse(cached));
@@ -87,24 +93,33 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
       q,
       (snap) => {
         const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        console.log(`[Chat ${chatId}] Loaded ${msgs.length} messages from Firestore`);
+        console.log(
+          `[Chat ${chatId}] Loaded ${msgs.length} messages from Firestore`
+        );
         setMessages(msgs);
 
-        // 2. Save to localStorage whenever we get fresh data
-        localStorage.setItem(`chat_messages_${chatId}`, JSON.stringify(msgs));
+        // 2. Save to sessionStorage whenever we get fresh data
+        sessionStorage.setItem(`chat_messages_${chatId}`, JSON.stringify(msgs));
       },
       (error) => {
         console.error(`[Chat ${chatId}] onSnapshot error:`, error);
         // Try fallback: fetch docs directly
-        getDocs(q).then(snap => {
-          const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          console.log(`[Chat ${chatId}] Fallback: loaded ${msgs.length} messages`);
-          setMessages(msgs);
-          // Save fallback result too
-          localStorage.setItem(`chat_messages_${chatId}`, JSON.stringify(msgs));
-        }).catch(err => {
-          console.error(`[Chat ${chatId}] Fallback failed:`, err);
-        });
+        getDocs(q)
+          .then((snap) => {
+            const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            console.log(
+              `[Chat ${chatId}] Fallback: loaded ${msgs.length} messages`
+            );
+            setMessages(msgs);
+            // Save fallback result too
+            sessionStorage.setItem(
+              `chat_messages_${chatId}`,
+              JSON.stringify(msgs)
+            );
+          })
+          .catch((err) => {
+            console.error(`[Chat ${chatId}] Fallback failed:`, err);
+          });
       }
     );
 
@@ -116,7 +131,9 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
   }, [messages]);
 
   // ส่งข้อความ (รองรับโครงสร้างเดียวกับฝั่งแอดมิน)
-  async function send(payload: { type: "text"; text: string } | { type: "image"; url: string }) {
+  async function send(
+    payload: { type: "text"; text: string } | { type: "image"; url: string }
+  ) {
     if (!payload) return;
     try {
       const msgDoc: any = {
@@ -129,7 +146,10 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
       };
 
       console.log(`[Chat ${chatId}] Attempting to save message:`, msgDoc);
-      const docRef = await addDoc(collection(db, "chats", chatId, "messages"), msgDoc);
+      const docRef = await addDoc(
+        collection(db, "chats", chatId, "messages"),
+        msgDoc
+      );
       console.log(`[Chat ${chatId}] ✅ Message saved with ID: ${docRef.id}`);
 
       // update meta
@@ -163,8 +183,11 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
         recipientRole = "executive";
       }
 
-      const messagePreview = payload.type === "text" ? payload.text : "[รูปภาพ]";
-      const senderName = senderUser ? `${senderUser.fname} ${senderUser.lname}` : "ผู้ใช้";
+      const messagePreview =
+        payload.type === "text" ? payload.text : "[รูปภาพ]";
+      const senderName = senderUser
+        ? `${senderUser.fname} ${senderUser.lname}`
+        : "ผู้ใช้";
 
       // debug logs removed
 
@@ -183,7 +206,10 @@ export default function UserChat({ userId, targetUserId }: { userId: string; tar
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2 bg-white dark:bg-slate-950" ref={scrollRef}>
+      <div
+        className="flex-1 overflow-y-auto px-2 py-3 space-y-2 bg-white dark:bg-slate-950"
+        ref={scrollRef}
+      >
         {messages.map((m) => (
           <ChatBubble
             key={m.id}

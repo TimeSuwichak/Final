@@ -1,4 +1,7 @@
-// src/contexts/JobContext.tsx (ฉบับอัปเกรดให้ "จำเก่ง")
+// src/contexts/JobContext.tsx
+// Context สำหรับจัดการข้อมูลงาน (Job) ทั้งหมดในระบบ
+// เปรียบเสมือน "สมองกลาง" ที่คอยจดจำและอัปเดตสถานะงานต่างๆ
+
 "use client";
 
 import type { EditHistory, ActivityLog, Job, Task } from "@/types/index";
@@ -8,7 +11,7 @@ import React, {
   useState,
   type ReactNode,
   useEffect,
-} from "react"; // 1. Import useEffect
+} from "react";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { leader as LEADER_DIRECTORY } from "@/Data/leader";
 import { db } from "@/lib/firebase";
@@ -23,22 +26,22 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 
-// --- ชื่อกุญแจสำหรับเก็บข้อมูล ---
-const STORAGE_KEY = "techJobData_v2"; // (v2 สำหรับระบบใหม่)
+// --- Key สำหรับบันทึกข้อมูลลง LocalStorage (Cache) ---
+const STORAGE_KEY = "techJobData_v2";
 
-// --- (ใหม่!) ฟังก์ชันสร้าง Task มาตรฐาน 4 ขั้นตอนต่อ 1 ใบงาน ---
-// โครงหลักของระบบใหม่: ทุกใบงานจะมี Task ตามลำดับนี้เสมอ
+// --- ฟังก์ชันสร้าง Task มาตรฐาน 4 ขั้นตอน ---
+// ทุกใบงานใหม่จะมี 4 ขั้นตอนนี้เสมอ เพื่อให้เป็นมาตรฐานเดียวกัน
 // 1) ตรวจสอบและวางแผน
 // 2) จัดเตรียมวัสดุอุปกรณ์
 // 3) กำลังดำเนินการ
-// 4) ตรวจสอบความเรียบร้อย (เดิม: เสร็จสิ้น)
+// 4) ตรวจสอบความเรียบร้อย
 const createDefaultTasks = (): Task[] => {
   return [
     {
       id: "STEP-1",
       title: "ตรวจสอบและวางแผน",
       description: "",
-      status: "in-progress", // เริ่มต้นให้ขั้นตอนแรกอยู่ในสถานะกำลังทำ
+      status: "in-progress", // เริ่มต้นขั้นตอนแรกทันที
       imageUrl: undefined,
       needsAcknowledgment: false,
       updates: [],
@@ -77,8 +80,9 @@ const createDefaultTasks = (): Task[] => {
   ];
 };
 
-// --- (ใหม่!) ฟังก์ชันสำหรับ "ฟื้นคืนชีพ" Date Objects ---
-// (localStorage จะแปลง Date เป็น string, เราต้องแปลงกลับ)
+// --- ฟังก์ชันแปลงข้อมูลวันที่ (Date) ---
+// เมื่อโหลดข้อมูลจาก LocalStorage วันที่จะกลายเป็นข้อความ (String)
+// ฟังก์ชันนี้จะแปลงกลับเป็น Date Object เพื่อให้สามารถคำนวณหรือแสดงผลได้ถูกต้อง
 const reviveDates = (job: any): Job => {
   // แปลง field ที่เป็นวันที่ให้กลับมาเป็น Date object
   const revivedTasks: Task[] = (job.tasks || []).map((task: any) => ({
@@ -139,13 +143,13 @@ const reviveDates = (job: any): Job => {
   return revivedJob;
 };
 
-// --- (ใหม่!) ฟังก์ชันสำหรับ "โหลดข้อมูล" จาก "แผ่นหิน" ---
+// --- ฟังก์ชันโหลดข้อมูลจาก LocalStorage ---
 const loadJobsFromStorage = (): Job[] => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
       const parsedJobs = JSON.parse(data) as Job[];
-      // เราต้อง "ฟื้นคืนชีพ" Date objects ทั้งหมด
+      // แปลงวันที่ทั้งหมดกลับเป็น Date Object
       return parsedJobs.map(reviveDates);
     }
   } catch (e) {
@@ -162,7 +166,8 @@ const findLeaderName = (leaderId?: string | number | null) => {
   return leader ? `${leader.fname} ${leader.lname}` : null;
 };
 
-// --- สร้าง Context (เหมือนเดิม) ---
+// --- สร้าง Context Interface ---
+// กำหนดว่า Context นี้จะมีข้อมูลและฟังก์ชันอะไรบ้างให้เรียกใช้
 interface JobContextType {
   jobs: Job[];
   addJob: (
@@ -215,13 +220,15 @@ export const migrateLocalJobsToFirestore = async () => {
   }
 };
 
-// --- สร้าง "ผู้ให้บริการ" (Provider) ---
+// --- JobProvider Component ---
+// Component หลักที่ทำหน้าที่ให้บริการข้อมูล (Provider) แก่ Component ลูกๆ
 export const JobProvider = ({ children }: { children: ReactNode }) => {
-  // เริ่มต้น state ว่างไว้ก่อน — จะถูกเติมจาก Firestore realtime listener
+  // State เก็บรายการงานทั้งหมด (เริ่มต้นโหลดจาก LocalStorage ก่อนเพื่อความเร็ว)
   const [jobs, setJobs] = useState<Job[]>(() => loadJobsFromStorage());
   const { addNotification } = useNotifications();
 
-  // Firestore realtime subscription: ให้ข้อมูลสดไหลมาที่ context
+  // Firestore Realtime Listener: เชื่อมต่อฐานข้อมูลแบบ Realtime
+  // เมื่อข้อมูลใน Database เปลี่ยนแปลง จะอัปเดต State อัตโนมัติทันที
   useEffect(() => {
     const q = collection(db, "jobs");
     const unsub = onSnapshot(
@@ -304,26 +311,28 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [jobs]);
 
-  // --- ฟังก์ชัน "เพิ่มใบงานใหม่" (เหมือนเดิม) ---
+  // --- ฟังก์ชัน "เพิ่มใบงานใหม่" (Create Job) ---
+  // ใช้สำหรับสร้างใบงานใหม่ โดย Admin เป็นผู้สร้าง
   const addJob = (
     newJobData: Omit<Job, "id" | "createdAt" | "adminCreator">,
     adminName: string
   ) => {
-    // (โค้ดสร้าง Job ID เหมือนเดิม)
+    // 1. สร้าง Job ID แบบสุ่ม (Format: JOB-YYYYMMDD-XXXX)
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
     const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     const newId = `JOB-${dateStr}-${randomStr}`;
 
+    // 2. เตรียมข้อมูลใบงานใหม่
     const newJob: Job = {
       ...newJobData,
       id: newId,
       adminCreator: adminName,
       createdAt: date,
-      status: "new",
+      status: "new", // สถานะเริ่มต้นคือ "ใหม่"
       editHistory: [],
       activityLog: [],
-      tasks: createDefaultTasks(),
+      tasks: createDefaultTasks(), // สร้าง Task มาตรฐาน 4 ขั้นตอนอัตโนมัติ
       assignedTechs: newJobData.assignedTechs || [],
       completionSummary: undefined,
       completionIssues: undefined,
@@ -332,33 +341,26 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       leaderCloser: undefined,
     };
 
-    // 🔥 เพิ่มโค้ด: ถ้าระบุ leadId ให้ส่ง notification ให้ Leader
     // ======================== ขั้นตอนการส่ง Notification ========================
-    // 1. สร้าง array เปล่าเก็บ notification ที่จะส่ง
+    // เมื่อสร้างงานใหม่ จะต้องแจ้งเตือนไปยังหัวหน้างาน (Leader) ที่ได้รับมอบหมาย
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
 
-    // 2. ตรวจสอบว่า leadId มีค่าหรือไม่ (leadId คือ ID ของหัวหน้างาน)
-    //    leadId อาจเป็น null, undefined, หรือมีค่าจริง (เช่น 101, 104 เป็นต้น)
+    // ตรวจสอบว่ามีการระบุหัวหน้างาน (leadId) หรือไม่
     if (
       newJobData.leadId &&
       newJobData.leadId !== null &&
       newJobData.leadId !== undefined
     ) {
-      // 3. ค้นหาชื่อของหัวหน้างานจากฟังก์ชัน findLeaderName()
-      //    findLeaderName() จะหา ID ใน database leader มา
+      // ค้นหาชื่อหัวหน้างานเพื่อนำมาแสดงในข้อความแจ้งเตือน
       const leaderName = findLeaderName(newJobData.leadId) ?? "หัวหน้างานใหม่";
 
-      // no debug log
-
-      // 5. สร้าง object notification
-      //    object นี้จะถูกเก็บไว้ใน notificationsToSend array
-      //    แล้วจึงส่งไปให้ NotificationContext จัดการลงใน localStorage
+      // สร้าง Notification Object
       notificationsToSend.push({
         title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
         message: `คุณได้รับมอบหมายให้ดูแลงาน "${newJobData.title}" จาก ${adminName}`,
-        recipientRole: "leader", // ← บอก NotificationContext ว่า "ส่งให้ Leader"
-        recipientId: String(newJobData.leadId), // ← แปลง leadId (Number) เป็น String เพื่อเก็บสม่ำเสมอ
-        relatedJobId: newId, // ← บอก Job ID เพื่อให้ Leader คลิกไปดูงาน
+        recipientRole: "leader", // ส่งให้ Leader
+        recipientId: String(newJobData.leadId),
+        relatedJobId: newId, // แนบ Job ID เพื่อให้คลิกดูรายละเอียดได้
         metadata: {
           type: "leader_assignment_new",
           jobId: newId,
@@ -367,65 +369,72 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     }
     // =====================================================================
 
-    // เขียนไปที่ Firestore โดยใช้ id ที่สร้างขึ้น (รักษา id เดิมของระบบ)
+    // 3. บันทึกข้อมูลลง Firestore Database
     (async () => {
       try {
         await setDoc(doc(db, "jobs", newId), {
           ...newJob,
-          createdAt: serverTimestamp(),
+          createdAt: serverTimestamp(), // ใช้เวลาจาก Server เพื่อความแม่นยำ
         });
       } catch (e) {
         console.error("Failed to create job in Firestore", e);
-        // ตกกลับเป็น local update เพื่อ UX ชั่วคราว
-        // 🔥 FIX: Mark as local-only so it doesn't get wiped by next snapshot
+        // กรณีบันทึกไม่สำเร็จ ให้บันทึกลง Local State ชั่วคราว (Fallback)
+        // เพื่อให้ User เห็นว่างานถูกสร้างแล้ว (แม้จะยังไม่ลง Database จริง)
         const localJob = { ...newJob, isLocal: true };
         setJobs((prevJobs) => [localJob, ...prevJobs]);
       }
     })();
 
-    // 🔥 ส่ง notification ทั้งหมดที่เตรียมไว้ให้ NotificationContext จัดการ
-    // ลูป forEach จะเรียก addNotification() หลายครั้ง (ครั้งละ 1 notification)
+    // 4. ส่ง Notification ทั้งหมดที่เตรียมไว้
     notificationsToSend.forEach(addNotification);
   };
 
-  // --- ฟังก์ชัน "อัปเดตใบงาน" (สำหรับ Admin เท่านั้น - ใช้ editHistory) ---
+  // --- ฟังก์ชัน "อัปเดตใบงาน" (Update Job) ---
+  // สำหรับ Admin ใช้แก้ไขข้อมูลใบงาน และบันทึกประวัติการแก้ไข (Edit History)
   const updateJob = (
     jobId: string,
     updatedData: Partial<Job>,
     editReason: string,
     adminName: string
   ) => {
+    // 1. ค้นหาใบงานที่ต้องการแก้ไข
     const targetJob = jobs.find((job) => job.id === jobId);
     if (!targetJob) {
       console.warn(`updateJob: ไม่พบใบงานรหัส ${jobId}`);
       return;
     }
 
+    // 2. สร้างประวัติการแก้ไขใหม่
     const newHistory: EditHistory = {
       adminName,
       editedAt: new Date(),
       reason: editReason,
-      changes: Object.keys(updatedData).join(", "),
+      changes: Object.keys(updatedData).join(", "), // บันทึกชื่อฟิลด์ที่ถูกแก้ไข
     };
 
+    // 3. รวมข้อมูลใหม่กับข้อมูลเดิม
     const updatedJob = {
       ...targetJob,
       ...updatedData,
       editHistory: [...(targetJob.editHistory || []), newHistory],
     } as Job;
 
+    // ======================== จัดการ Notification เมื่อเปลี่ยนหัวหน้างาน ========================
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
 
+    // ตรวจสอบว่ามีการเปลี่ยนหัวหน้างาน (leadId) หรือไม่
     if (Object.prototype.hasOwnProperty.call(updatedData, "leadId")) {
       const previousLeaderId = targetJob.leadId;
       const nextLeaderId = updatedData.leadId ?? null;
 
+      // ถ้าหัวหน้างานเปลี่ยนไปจากเดิม
       if (previousLeaderId !== nextLeaderId) {
         const newLeaderName = findLeaderName(nextLeaderId) ?? "หัวหน้างานใหม่";
         const oldLeaderName =
           findLeaderName(previousLeaderId) ?? "หัวหน้างานเดิม";
         const reasonMessage = editReason || "ไม่ระบุเหตุผล";
 
+        // 1) แจ้งเตือนช่างทุกคนในทีม ว่าหัวหน้าเปลี่ยน
         (updatedJob.assignedTechs || []).forEach((techId) => {
           notificationsToSend.push({
             title: "หัวหน้างานถูกเปลี่ยน",
@@ -441,6 +450,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           });
         });
 
+        // 2) แจ้งเตือนหัวหน้างานคนเก่า (ว่าถูกปลดจากงานนี้)
         if (previousLeaderId && previousLeaderId !== nextLeaderId) {
           notificationsToSend.push({
             title: "มีการเปลี่ยนหัวหน้างาน",
@@ -455,6 +465,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
           });
         }
 
+        // 3) แจ้งเตือนหัวหน้างานคนใหม่ (ว่าได้รับงานนี้)
         if (nextLeaderId !== null && nextLeaderId !== undefined) {
           notificationsToSend.push({
             title: "คุณได้รับมอบหมายเป็นหัวหน้างานใหม่",
@@ -470,27 +481,30 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     }
+    // =====================================================================================
 
-    // เขียนการเปลี่ยนแปลงลง Firestore (merge)
+    // 4. บันทึกการเปลี่ยนแปลงลง Firestore
     (async () => {
       try {
         await updateDoc(doc(db, "jobs", jobId), {
           ...updatedJob,
-          // เราเก็บ editedAt ใน editHistory ดังนั้นไม่ต้อง serverTimestamp ที่นี่
+          // หมายเหตุ: เราเก็บ editedAt ใน editHistory แล้ว จึงไม่ต้องใช้ serverTimestamp() ที่ root level ก็ได้
         } as any);
       } catch (e) {
         console.error("Failed to update job in Firestore", e);
-        // fallback: update local state for UX
+        // Fallback: อัปเดต Local State เพื่อให้ User ใช้งานต่อได้ไม่สะดุด
         setJobs((prevJobs) =>
           prevJobs.map((job) => (job.id === jobId ? updatedJob : job))
         );
       }
     })();
 
+    // 5. ส่ง Notification ทั้งหมด
     notificationsToSend.forEach(addNotification);
   };
 
-  // --- ฟังก์ชัน "เพิ่ม Activity Log" (สำหรับ Leader/Tech เท่านั้น) ---
+  // --- ฟังก์ชัน "เพิ่มบันทึกกิจกรรม" (Add Activity Log) ---
+  // สำหรับ Leader/Tech ใช้บันทึกความคืบหน้าของงาน (เช่น เริ่มงาน, ส่งงาน, อัปเดตสถานะ)
   const addActivityLog = (
     jobId: string,
     activityType: ActivityLog["activityType"],
@@ -510,11 +524,13 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
 
     (async () => {
       try {
+        // ใช้ arrayUnion เพื่อเพิ่มข้อมูลต่อท้ายใน Array เดิมของ Firestore
         await updateDoc(doc(db, "jobs", jobId), {
           activityLog: arrayUnion(newActivity),
         } as any);
       } catch (e) {
         console.error("Failed to add activity log in Firestore", e);
+        // Fallback: อัปเดต Local State
         setJobs((prevJobs) =>
           prevJobs.map((job) => {
             if (job.id === jobId) {
@@ -530,7 +546,8 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
     })();
   };
 
-  // --- ฟังก์ชัน "ลบใบงาน" (สามารถเรียกโดย Admin/Leader) ---
+  // --- ฟังก์ชัน "ลบใบงาน" (Delete Job) ---
+  // สามารถเรียกใช้โดย Admin หรือ Leader (ที่มีสิทธิ์)
   const deleteJob = (jobId: string, reason: string, deletedByName: string) => {
     const targetJob = jobs.find((j) => j.id === jobId);
     if (!targetJob) {
@@ -538,10 +555,10 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // สร้าง notification สำหรับหัวหน้างาน (ถ้ามี) และช่างที่ถูกมอบหมาย
+    // เตรียม Notification แจ้งเตือนผู้เกี่ยวข้อง
     const notificationsToSend: Parameters<typeof addNotification>[0][] = [];
 
-    // แจ้งหัวหน้างาน
+    // 1) แจ้งหัวหน้างาน
     if (targetJob.leadId) {
       notificationsToSend.push({
         title: "งานถูกลบหรือยกเลิก",
@@ -556,7 +573,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    // แจ้งช่างทุกคนที่ถูกมอบหมาย
+    // 2) แจ้งช่างทุกคนที่ถูกมอบหมาย
     (targetJob.assignedTechs || []).forEach((techId) => {
       notificationsToSend.push({
         title: "งานถูกยกเลิก",
@@ -571,21 +588,23 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       });
     });
 
-    // ลบ doc ใน Firestore
+    // 3) ลบเอกสารออกจาก Firestore
     (async () => {
       try {
         await deleteDoc(doc(db, "jobs", jobId));
       } catch (e) {
         console.error("Failed to delete job in Firestore", e);
+        // Fallback: ลบออกจาก Local State
         setJobs((prev) => prev.filter((j) => j.id !== jobId));
       }
     })();
 
-    // ส่งแจ้งเตือนทั้งหมด
+    // 4) ส่งแจ้งเตือนทั้งหมด
     notificationsToSend.forEach(addNotification);
   };
 
-  // --- ฟังก์ชัน "อัปเดตงานพร้อม Activity Log" (สำหรับ Leader/Tech) ---
+  // --- ฟังก์ชัน "อัปเดตงานพร้อมบันทึกกิจกรรม" (Update Job with Activity) ---
+  // ใช้สำหรับอัปเดตข้อมูลงานพร้อมกับบันทึก Log ไปพร้อมกัน (เช่น การกดปุ่ม "รับงาน" หรือ "ปิดงาน")
   const updateJobWithActivity = (
     jobId: string,
     updatedData: Partial<Job>,
@@ -604,7 +623,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       metadata,
     };
 
-    // 🔥 FIX: Optimistic Update - Update local state IMMEDIATELY
+    // Optimistic Update: อัปเดตหน้าจอทันทีไม่ต้องรอ Server ตอบกลับ
     setJobs((prevJobs) =>
       prevJobs.map((job) => {
         if (job.id === jobId) {
@@ -618,6 +637,7 @@ export const JobProvider = ({ children }: { children: ReactNode }) => {
       })
     );
 
+    // ส่งข้อมูลไปอัปเดตที่ Firestore
     (async () => {
       try {
         await updateDoc(doc(db, "jobs", jobId), {

@@ -466,7 +466,7 @@ const WorkOrderDetail: React.FC = () => {
     showSuccess("บันทึกลายเซ็นและปิดงานเรียบร้อย!");
   };
 
-  const workAreaRadius = 150;
+  const workAreaRadius = 100;
 
   return (
     <>

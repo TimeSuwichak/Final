@@ -56,6 +56,7 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
 
   const [title, setTitle] = useState("");
   const [jobType, setJobType] = useState("");
+  const [customJobType, setCustomJobType] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>();
@@ -144,6 +145,10 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
       showWarning("กรุณาระบุวันที่และเลือกหัวหน้างาน")
       return false
     }
+    if (jobType === "อื่นๆ" && !customJobType.trim()) {
+      showWarning("กรุณากรอกรายละเอียดประเภทงานอื่นๆ")
+      return false;
+    }
     if (!customerName) {
       showWarning("กรุณากรอกชื่อลูกค้า")
       return false
@@ -174,26 +179,30 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
 
     const adminName = user.fname;
 
+    const finalJobType = jobType === "อื่นๆ" ? customJobType.trim() : jobType;
+
     addJob(
       {
         title,
         description: description || "ไม่มีข้อมูล",
-        jobType: jobType,
+        jobType: finalJobType,
         customerName,
         customerPhone: customerPhone || "ไม่มีข้อมูล",
         customerContactOther: customerContactOther || "ไม่มีข้อมูล",
         location: location || "ไม่ได้ระบุสถานที่",
         latitude: mapPosition?.[0],
         longitude: mapPosition?.[1],
-        startDate,
-        endDate,
+        startDate: startDate as Date,
+        endDate: endDate as Date,
         assignmentMode: assignmentMode as "direct" | "leader",
-        leadId: Number(selectedLeadId),
+        leadId: selectedLeadId,
         imageUrl: imagePreview || "",
         otherFileUrl: "",
         pdfFiles: pdfPreviews.map(p => p.url), // Add PDF files
         assignedTechs: assignmentMode === "direct" ? selectedTechIds : [],
         tasks: [],
+        editHistory: [],
+        activityLog: [],
         status: "new",
       },
       adminName,
@@ -231,8 +240,13 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <Users className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
+<<<<<<< HEAD
                         <h3 className="font-semibold text-slate-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
+=======
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">ให้หัวหน้าเลือกช่าง</h3>
+                        <p className="text-sm text-slate-400">หัวหน้างานจะเลือกและมอบหมายช่างต่อไป (เหมือนกระบวนการเดิม)</p>
+>>>>>>> ba804bda49556c21191412422576b68fc9a980b8
                       </div>
                     </div>
                   </button>
@@ -248,8 +262,13 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <CheckCircle className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                       </div>
                       <div>
+<<<<<<< HEAD
                         <h3 className="font-semibold text-slate-900 dark:text-white mb-1">เลือกช่างเลย</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
+=======
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">เลือกช่างเลย</h3>
+                        <p className="text-sm text-slate-400">คุณจะเลือกและมอบหมายช่างโดยตรงในหน้านี้</p>
+>>>>>>> ba804bda49556c21191412422576b68fc9a980b8
                       </div>
                     </div>
                   </button>
@@ -298,7 +317,12 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                         <Label className="text-sm font-medium">
                           ประเภทงาน <span className="text-red-500">*</span>
                         </Label>
-                        <Select value={jobType} onValueChange={setJobType}>
+                        <Select value={jobType} onValueChange={(value) => {
+                          setJobType(value);
+                          if (value !== "อื่นๆ") {
+                            setCustomJobType("");
+                          }
+                        }}>
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="เลือกประเภทงาน..." />
                           </SelectTrigger>
@@ -310,6 +334,19 @@ export function CreateJobForm({ onFinished }: { onFinished: () => void }) {
                             ))}
                           </SelectContent>
                         </Select>
+                        {jobType === "อื่นๆ" && (
+                          <div className="mt-3">
+                            <Label className="text-xs font-medium text-slate-400">
+                              ระบุประเภทงานเพิ่มเติม <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              value={customJobType}
+                              onChange={(e) => setCustomJobType(e.target.value)}
+                              placeholder="เช่น ติดตั้งระบบ IoT, งานพิเศษ ฯลฯ"
+                              className="mt-1"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div>

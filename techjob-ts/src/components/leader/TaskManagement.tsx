@@ -1,6 +1,18 @@
 // src/components/leader/TaskManagement.tsx
 "use client";
 
+/**
+ * ไฟล์: TaskManagement.tsx
+ * วัตถุประสงค์: จัดการงานย่อย (Tasks) ภายในใบงาน (Job)
+ *
+ * คุณสมบัติหลัก:
+ * - แสดงรายการงานย่อยในรูปแบบ Grid (คล้าย Trello)
+ * - Leader: อนุมัติงาน (Advance Step), ตีกลับงาน (Reject), ดูความคืบหน้า
+ * - User (Tech): อัปเดตความคืบหน้า, เบิกวัสดุ, รับทราบงานที่ถูกตีกลับ
+ * - แสดงสถานะของแต่ละงาน (Pending, In-Progress, Completed)
+ * - ระบบแจ้งเตือน (Notifications) เมื่อมีการเปลี่ยนแปลงสถานะ
+ */
+
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { type Job, type Task } from "@/types/index";
 import { useJobs } from "@/contexts/JobContext";
@@ -59,10 +71,12 @@ import { user as ALL_USERS } from "@/Data/user";
 import { Users } from "lucide-react";
 import { showWarning, showSuccess } from "@/lib/sweetalert";
 
+// --- Interfaces ---
+
 interface TaskManagementProps {
-  job: Job;
-  mode?: "leader" | "user" | "admin";
-  onFinishJob?: () => void;
+  job: Job; // ข้อมูลงานหลัก
+  mode?: "leader" | "user" | "admin"; // โหมดการทำงาน (หัวหน้า, ช่าง, แอดมิน)
+  onFinishJob?: () => void; // Callback เมื่อกดจบงาน (เฉพาะ Leader)
 }
 
 export function TaskManagement({
@@ -70,21 +84,29 @@ export function TaskManagement({
   mode = "leader",
   onFinishJob,
 }: TaskManagementProps) {
+  // --- Hooks ---
   const { updateJobWithActivity } = useJobs();
   const { user } = useAuth();
   const { addNotification } = useNotifications();
+  const { materials: inventoryMaterials } = useMaterials();
 
+  // --- State Management ---
+
+  // Image Preview
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+
+  // Task Selection
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
-  // Leader State
+  // Leader Actions State
   const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     taskId: string;
     newStatus: "pending" | "in-progress" | "completed";
   } | null>(null);
+
   const [rejectTaskDialogOpen, setRejectTaskDialogOpen] = useState(false);
   const [pendingRejectTask, setPendingRejectTask] = useState<{
     taskId: string;
@@ -92,7 +114,7 @@ export function TaskManagement({
     imageUrl?: string;
   } | null>(null);
 
-  // User State
+  // User Actions State
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [materialDialogOpen, setMaterialDialogOpen] = useState(false);
   const [updateMessage, setUpdateMessage] = useState("");
@@ -101,11 +123,13 @@ export function TaskManagement({
   );
   const [updateImageName, setUpdateImageName] = useState("");
 
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateFileInputRef = useRef<HTMLInputElement>(null);
 
-  const { materials: inventoryMaterials } = useMaterials();
+  // --- Effects ---
 
+  // อัปเดต selectedTask เมื่อข้อมูล job เปลี่ยนแปลง (Real-time update)
   useEffect(() => {
     if (!selectedTask) return;
     const latestTask = job.tasks.find((t) => t.id === selectedTask.id);
@@ -115,6 +139,7 @@ export function TaskManagement({
       setSelectedTask(latestTask);
     }
 
+    // ปิด Dialog อัปเดต/เบิกของ หากงานถูกตีกลับ (Needs Acknowledgment)
     if (
       latestTask.needsAcknowledgment &&
       (updateDialogOpen || materialDialogOpen)
@@ -124,6 +149,9 @@ export function TaskManagement({
     }
   }, [job.tasks, selectedTask, updateDialogOpen, materialDialogOpen]);
 
+  // --- Memoized Data ---
+
+  // สร้าง Dictionary สำหรับค้นหาชื่อและหน่วยของวัสดุ
   const materialDictionary = useMemo(() => {
     const map = new Map<string, { name: string; unit?: string }>();
     inventoryMaterials.forEach((material) => {
@@ -132,18 +160,23 @@ export function TaskManagement({
     return map;
   }, [inventoryMaterials]);
 
+  // --- Helper Functions ---
+
+  // ตัด ID วัสดุให้สั้นลง (ถ้าจำเป็น)
   const normalizeMaterialId = (materialId: string) => {
     const parts = String(materialId).split("-");
     if (parts.length <= 2) return String(materialId);
     return parts.slice(-2).join("-");
   };
 
+  // ค้นหาชื่อวัสดุจาก ID
   const resolveMaterialName = (materialId: string, fallbackName?: string) => {
     if (fallbackName) return fallbackName;
     const normalized = normalizeMaterialId(materialId);
     return materialDictionary.get(normalized)?.name ?? materialId;
   };
 
+  // ค้นหาหน่วยวัสดุจาก ID
   const resolveMaterialUnit = (materialId: string, fallbackUnit?: string) => {
     if (fallbackUnit) return fallbackUnit;
     const normalized = normalizeMaterialId(materialId);
@@ -152,13 +185,13 @@ export function TaskManagement({
 
   if (!user) return null;
 
-  // --- Helper Functions ---
-
+  // เปิดดูรูปภาพขยาย
   const handleImageClick = (imageUrl: string) => {
     setSelectedImage(imageUrl);
     setImageDialogOpen(true);
   };
 
+  // ดาวน์โหลดรูปภาพ
   const handleDownloadImage = () => {
     if (!selectedImage) return;
     const link = document.createElement("a");
@@ -169,18 +202,21 @@ export function TaskManagement({
     document.body.removeChild(link);
   };
 
+  // เปิดดูรายละเอียดงาน
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
     setTaskDialogOpen(true);
   };
 
-  // --- Leader Actions ---
+  // --- Leader Actions (ส่วนการทำงานของหัวหน้า) ---
 
+  // เตรียมการอนุมัติงาน (เปลี่ยนสถานะเป็น Completed)
   const handleAdvanceTaskStep = (taskId: string) => {
     setPendingStatusChange({ taskId, newStatus: "completed" });
     setStatusChangeDialogOpen(true);
   };
 
+  // ยืนยันการเปลี่ยนสถานะงาน (อนุมัติงาน)
   const confirmStatusChange = () => {
     if (!pendingStatusChange) return;
 
@@ -191,6 +227,7 @@ export function TaskManagement({
     const currentIndex = job.tasks.findIndex((t) => t.id === taskId);
     if (currentIndex === -1) return;
 
+    // ตรวจสอบว่างานก่อนหน้าเสร็จหรือยัง (Sequential Workflow)
     const hasUnfinishedPreviousStep = job.tasks
       .slice(0, currentIndex)
       .some((t) => t.status !== "completed");
@@ -205,6 +242,7 @@ export function TaskManagement({
       return;
     }
 
+    // อัปเดตสถานะงาน: งานปัจจุบัน -> Completed, งานถัดไป -> In-Progress
     const updatedTasks: Task[] = job.tasks.map((t, index) => {
       if (t.id === taskId) {
         return { ...t, status: newStatus };
@@ -219,6 +257,7 @@ export function TaskManagement({
       return t;
     });
 
+    // บันทึก Activity Log
     updateJobWithActivity(
       job.id,
       { tasks: updatedTasks },
@@ -229,6 +268,7 @@ export function TaskManagement({
       { taskId: task.id, taskTitle: task.title, newStatus }
     );
 
+    // แจ้งเตือนช่างทุกคนในทีม
     job.assignedTechs?.forEach((techId) => {
       addNotification({
         title: "สถานะงานเปลี่ยน",
@@ -251,11 +291,13 @@ export function TaskManagement({
     setStatusChangeDialogOpen(false);
   };
 
+  // เตรียมการตีกลับงาน (Reject)
   const handleRejectTask = (taskId: string) => {
     setPendingRejectTask({ taskId, reason: "" });
     setRejectTaskDialogOpen(true);
   };
 
+  // เลือกรูปภาพประกอบการตีกลับ
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -268,6 +310,7 @@ export function TaskManagement({
     }
   };
 
+  // ยืนยันการตีกลับงาน
   const confirmRejectTask = () => {
     if (!pendingRejectTask || !pendingRejectTask.reason.trim()) {
       showWarning("กรุณาใส่เหตุผลในการตีกลับงาน");
@@ -278,6 +321,7 @@ export function TaskManagement({
     const task = job.tasks.find((t) => t.id === taskId);
     if (!task) return;
 
+    // สร้างรายการอัปเดตใหม่ (แจ้งเหตุผลการตีกลับ)
     const newUpdate: Task["updates"][number] = {
       message: `งานถูกตีกลับโดยหัวหน้า: ${reason}`,
       updatedBy: user.fname,
@@ -285,6 +329,7 @@ export function TaskManagement({
       imageUrl: imageUrl || undefined,
     };
 
+    // อัปเดตสถานะงานเป็น Pending และต้องการการรับทราบ (Needs Acknowledgment)
     const updatedTask: Task = {
       ...task,
       status: "pending",
@@ -298,6 +343,7 @@ export function TaskManagement({
       t.id === taskId ? updatedTask : t
     );
 
+    // บันทึก Activity Log
     updateJobWithActivity(
       job.id,
       { tasks: updatedTasks },
@@ -308,6 +354,7 @@ export function TaskManagement({
       { taskId: task.id, taskTitle: task.title, reason, imageUrl }
     );
 
+    // แจ้งเตือนช่างทุกคน
     job.assignedTechs?.forEach((techId) => {
       addNotification({
         title: "งานถูกตีกลับ",
@@ -328,8 +375,9 @@ export function TaskManagement({
     setRejectTaskDialogOpen(false);
   };
 
-  // --- User Actions ---
+  // --- User Actions (ส่วนการทำงานของช่าง) ---
 
+  // เปิด Dialog อัปเดตงาน
   const handleOpenUpdateDialog = (task: Task) => {
     if (task.needsAcknowledgment) {
       showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนส่งอัปเดต");
@@ -342,6 +390,7 @@ export function TaskManagement({
     setUpdateDialogOpen(true);
   };
 
+  // เปิด Dialog เบิกวัสดุ
   const handleOpenMaterialDialog = (task: Task) => {
     if (task.needsAcknowledgment) {
       showWarning("กรุณากดรับทราบงานที่ถูกตีกลับก่อนเบิกวัสดุ");
@@ -351,6 +400,7 @@ export function TaskManagement({
     setMaterialDialogOpen(true);
   };
 
+  // รับทราบงานที่ถูกตีกลับ (Acknowledge Rejected Task)
   const handleAcknowledgeRejectedTask = (task: Task) => {
     const now = new Date().toISOString();
     const acknowledgementUpdate = {
@@ -359,6 +409,7 @@ export function TaskManagement({
       updatedAt: now,
     };
 
+    // อัปเดตสถานะกลับเป็น In-Progress และเคลียร์ flag needsAcknowledgment
     const updatedTask: Task = {
       ...task,
       status: "in-progress",
@@ -382,6 +433,7 @@ export function TaskManagement({
       { taskId: task.id, taskTitle: task.title }
     );
 
+    // แจ้งเตือนหัวหน้า
     if (job.leadId) {
       addNotification({
         title: "ช่างรับทราบงานที่ถูกตีกลับ",
@@ -405,6 +457,7 @@ export function TaskManagement({
     );
   };
 
+  // เลือกรูปภาพสำหรับอัปเดตงาน
   const handleUpdateFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -422,6 +475,7 @@ export function TaskManagement({
     reader.readAsDataURL(file);
   };
 
+  // ส่งข้อมูลอัปเดตงาน (Submit Update)
   const submitUpdate = () => {
     if (!selectedTask || !updateMessage.trim()) {
       showWarning("กรุณากรอกข้อความอัปเดต");
@@ -443,7 +497,7 @@ export function TaskManagement({
     const updatedTask: Task = {
       ...selectedTask,
       updates: [...(selectedTask.updates || []), newUpdate],
-      // If it was pending (which shouldn't happen for active task actions, but just in case), set to in-progress
+      // ถ้าสถานะเป็น pending ให้เปลี่ยนเป็น in-progress อัตโนมัติเมื่อมีการอัปเดต
       status:
         selectedTask.status === "pending" ? "in-progress" : selectedTask.status,
     };
@@ -462,7 +516,7 @@ export function TaskManagement({
       { taskId: selectedTask.id, taskTitle: selectedTask.title }
     );
 
-    // Notify leader
+    // แจ้งเตือนหัวหน้า
     if (job.leadId) {
       addNotification({
         title: "ช่างอัปเดตงาน",
@@ -480,7 +534,7 @@ export function TaskManagement({
       });
     }
 
-    // Notify other team members (excluding the user who made the update)
+    // แจ้งเตือนเพื่อนร่วมทีม (ยกเว้นตัวเอง)
     job.assignedTechs?.forEach((techId) => {
       if (String(techId) !== String(user.id)) {
         addNotification({
@@ -511,15 +565,17 @@ export function TaskManagement({
     setUpdateImageName("");
   };
 
-  // --- Render Logic ---
+  // --- Render Logic (ส่วนการแสดงผล) ---
 
   return (
     <div className="space-y-6">
+      {/* ส่วนหัวของ Pipeline */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
           <h4 className="text-lg font-semibold">กระดานงาน (Pipeline)</h4>
         </div>
+        {/* ปุ่มจบงาน (แสดงเฉพาะ Leader และเมื่องานทุกขั้นตอนเสร็จสิ้น) */}
         {mode === "leader" &&
           onFinishJob &&
           job.tasks.length > 0 &&
@@ -534,7 +590,7 @@ export function TaskManagement({
           )}
       </div>
 
-      {/* Trello-like Grid - Responsive */}
+      {/* Trello-like Grid - Responsive Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
         {job.tasks.map((task, index) => {
           const isCompleted = task.status === "completed";
@@ -542,7 +598,7 @@ export function TaskManagement({
           const isPending = task.status === "pending";
           const isAwaitingAcknowledgement = Boolean(task.needsAcknowledgment);
 
-          // Determine visual style based on status
+          // กำหนดสไตล์ตามสถานะงาน
           let cardBorderColor = "border-gray-200";
           let headerColor = "bg-gray-50 text-gray-500";
           let icon = <Lock className="h-4 w-4" />;
@@ -574,7 +630,7 @@ export function TaskManagement({
                   "opacity-70 grayscale-[0.5]"
               )}
             >
-              {/* Header */}
+              {/* Card Header: แสดงลำดับและสถานะ */}
               <div
                 className={cn(
                   "px-4 py-3 flex items-center justify-between font-medium text-sm rounded-t-lg",
@@ -607,6 +663,7 @@ export function TaskManagement({
                 )}
               </div>
 
+              {/* Card Content: รายละเอียดงาน */}
               <CardContent className="p-4 flex-1 flex flex-col gap-4">
                 <div>
                   <h3 className="font-bold text-lg leading-tight mb-1">
@@ -619,6 +676,7 @@ export function TaskManagement({
                   )}
                 </div>
 
+                {/* Alert: แสดงเมื่อมีการตีกลับงาน */}
                 {isAwaitingAcknowledgement && (
                   <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" />
@@ -631,7 +689,7 @@ export function TaskManagement({
                   </div>
                 )}
 
-                {/* Updates Summary */}
+                {/* Updates Summary: สรุปจำนวนอัปเดตและรายการเบิก */}
                 <div className="mt-auto space-y-3">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
@@ -644,7 +702,7 @@ export function TaskManagement({
                     </span>
                   </div>
 
-                  {/* Latest Update Preview */}
+                  {/* Latest Update Preview: แสดงอัปเดตล่าสุด */}
                   {task.updates && task.updates.length > 0 && (
                     <div className="bg-muted/30 rounded-md p-2 text-xs border">
                       <div className="flex items-center gap-1 mb-1 font-medium text-primary">
@@ -665,7 +723,7 @@ export function TaskManagement({
 
               <Separator />
 
-              {/* Actions Footer */}
+              {/* Actions Footer: ปุ่มดำเนินการต่างๆ */}
               <CardFooter className="p-3 bg-gray-50/50 flex flex-col gap-2">
                 <Button
                   variant="ghost"
@@ -677,11 +735,13 @@ export function TaskManagement({
                   <Maximize2 className="h-3 w-3" />
                 </Button>
 
+                {/* ปุ่ม Action ตามสถานะและ Role */}
                 {((mode === "leader" && isInProgress) ||
                   (mode === "user" &&
                     (isInProgress || isAwaitingAcknowledgement))) && (
                   <div className="w-full pt-2 border-t">
                     {mode === "leader" ? (
+                      // Leader Actions: ตีกลับ / อนุมัติ
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
@@ -701,6 +761,7 @@ export function TaskManagement({
                         </Button>
                       </div>
                     ) : isAwaitingAcknowledgement ? (
+                      // User Action: รับทราบงานตีกลับ
                       <div className="space-y-2 text-xs text-amber-900">
                         <p>
                           หัวหน้าตีกลับงานนี้แล้ว
@@ -716,6 +777,7 @@ export function TaskManagement({
                         </Button>
                       </div>
                     ) : (
+                      // User Actions: เบิกของ / อัปเดต
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
@@ -744,9 +806,9 @@ export function TaskManagement({
         })}
       </div>
 
-      {/* --- Dialogs --- */}
+      {/* --- Dialogs (หน้าต่างเสริม) --- */}
 
-      {/* Image Preview Dialog */}
+      {/* 1. Image Preview Dialog (ดูรูปภาพขยาย) */}
       <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-0">
           <div className="relative flex items-center justify-center min-h-[400px]">
@@ -780,10 +842,10 @@ export function TaskManagement({
         </DialogContent>
       </Dialog>
 
-      {/* Task Detail Dialog */}
+      {/* 2. Task Detail Dialog (รายละเอียดงานย่อย) */}
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl h-[90vh] max-h-[90vh] flex flex-col overflow-hidden p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <div className="flex items-start justify-between gap-4 pr-6">
               <DialogTitle className="flex items-center gap-2 flex-1">
                 <MessageSquare className="h-5 w-5 shrink-0" />
@@ -819,9 +881,9 @@ export function TaskManagement({
 
           <Tabs
             defaultValue="updates"
-            className="w-full flex-1 flex flex-col min-h-0"
+            className="w-full flex-1 flex flex-col min-h-0 overflow-hidden"
           >
-            <div className="px-6 border-b">
+            <div className="px-6 border-b shrink-0">
               <TabsList className="w-full justify-start h-12 bg-transparent p-0 space-x-6">
                 <TabsTrigger
                   value="updates"
@@ -838,11 +900,11 @@ export function TaskManagement({
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-slate-50/50">
-              {/* Updates Tab */}
-              <TabsContent value="updates" className="h-full m-0 p-0">
-                <div className="h-full flex flex-col">
-                  <ScrollArea className="flex-1 h-[50vh]">
+            <div className="flex-1 overflow-hidden bg-slate-50/50 min-h-0">
+              {/* Updates Tab(ประวัติความคืบหน้า) */}
+              <TabsContent value="updates" className="h-full m-0 p-0 overflow-hidden">
+                <div className="h-full flex flex-col overflow-hidden">
+                  <ScrollArea className="flex-1 min-h-0 max-h-full">
                     <div className="p-6 space-y-6">
                       {selectedTask?.updates &&
                       selectedTask.updates.length > 0 ? (
@@ -868,13 +930,13 @@ export function TaskManagement({
                               </div>
                               <div
                                 className={cn(
-                                  "rounded-2xl rounded-tl-none p-3 text-sm shadow-sm inline-block max-w-[90%]",
+                                  "rounded-2xl rounded-tl-none p-3 text-sm shadow-sm inline-block max-w-[90%] w-full",
                                   update.message.includes("ตีกลับ")
                                     ? "bg-red-50 text-red-900 border border-red-100"
                                     : "bg-white border border-slate-100"
                                 )}
                               >
-                                <p className="whitespace-pre-wrap leading-relaxed">
+                                <p className="whitespace-pre-wrap leading-relaxed break-words overflow-wrap-anywhere">
                                   {update.message}
                                 </p>
                                 {update.imageUrl && (
@@ -882,7 +944,7 @@ export function TaskManagement({
                                     <img
                                       src={update.imageUrl}
                                       alt="attachment"
-                                      className="max-w-xs h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                      className="max-w-full max-h-64 w-auto h-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                       onClick={() =>
                                         handleImageClick(update.imageUrl!)
                                       }
@@ -906,10 +968,10 @@ export function TaskManagement({
                     </div>
                   </ScrollArea>
 
-                  {/* Quick Update Action */}
+                  {/* Quick Update Action (ปุ่มอัปเดตด่วนสำหรับช่าง) */}
                   {mode === "user" &&
                     selectedTask?.status === "in-progress" && (
-                      <div className="p-4 border-t bg-white">
+                      <div className="p-4 border-t bg-white shrink-0">
                         <Button
                           className="w-full gap-2"
                           onClick={() => {
@@ -925,10 +987,10 @@ export function TaskManagement({
                 </div>
               </TabsContent>
 
-              {/* Materials Tab */}
-              <TabsContent value="materials" className="h-full m-0 p-0">
-                <div className="h-full flex flex-col">
-                  <ScrollArea className="flex-1 h-[50vh]">
+              {/* Materials Tab (รายการวัสดุที่เบิก) */}
+              <TabsContent value="materials" className="h-full m-0 p-0 overflow-hidden">
+                <div className="h-full flex flex-col overflow-hidden">
+                  <ScrollArea className="flex-1 min-h-0 max-h-full">
                     <div className="p-6">
                       {selectedTask?.materials &&
                       selectedTask.materials.length > 0 ? (
@@ -938,12 +1000,12 @@ export function TaskManagement({
                               key={i}
                               className="flex items-center justify-between p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow"
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="bg-blue-50 p-2 rounded-md">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="bg-blue-50 p-2 rounded-md shrink-0">
                                   <Package className="h-4 w-4 text-blue-600" />
                                 </div>
-                                <div>
-                                  <p className="font-medium text-sm">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-sm break-words">
                                     {resolveMaterialName(
                                       m.materialId,
                                       m.materialName
@@ -954,7 +1016,7 @@ export function TaskManagement({
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="secondary" className="font-mono">
+                              <Badge variant="secondary" className="font-mono shrink-0">
                                 {m.quantity}{" "}
                                 {resolveMaterialUnit(m.materialId, m.unit)}
                               </Badge>
@@ -974,10 +1036,10 @@ export function TaskManagement({
                     </div>
                   </ScrollArea>
 
-                  {/* Quick Material Action */}
+                  {/* Quick Material Action (ปุ่มเบิกวัสดุเพิ่ม) */}
                   {mode === "user" &&
                     selectedTask?.status === "in-progress" && (
-                      <div className="p-4 border-t bg-white">
+                      <div className="p-4 border-t bg-white shrink-0">
                         <Button
                           variant="outline"
                           className="w-full gap-2 border-dashed"
@@ -1000,7 +1062,7 @@ export function TaskManagement({
 
       {/* --- Leader Dialogs --- */}
 
-      {/* Confirm Status Change Dialog */}
+      {/* 3. Confirm Status Change Dialog (ยืนยันการอนุมัติงาน) */}
       <AlertDialog
         open={statusChangeDialogOpen}
         onOpenChange={setStatusChangeDialogOpen}
@@ -1029,7 +1091,7 @@ export function TaskManagement({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reject Task Dialog */}
+      {/* 4. Reject Task Dialog (ฟอร์มตีกลับงาน) */}
       <AlertDialog
         open={rejectTaskDialogOpen}
         onOpenChange={setRejectTaskDialogOpen}
@@ -1098,7 +1160,7 @@ export function TaskManagement({
 
       {/* --- User Dialogs --- */}
 
-      {/* Update Task Dialog */}
+      {/* 5. Update Task Dialog (ฟอร์มอัปเดตความคืบหน้า) */}
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1173,6 +1235,7 @@ export function TaskManagement({
         </DialogContent>
       </Dialog>
 
+      {/* 6. Material Selection Dialog (Component ภายนอกสำหรับเลือกวัสดุ) */}
       {selectedTask && (
         <MaterialSelectionDialog
           open={materialDialogOpen}

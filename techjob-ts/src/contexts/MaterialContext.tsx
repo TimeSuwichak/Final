@@ -1,3 +1,10 @@
+// src/contexts/MaterialContext.tsx
+// Context สำหรับจัดการข้อมูลวัสดุอุปกรณ์ (Materials)
+// ทำหน้าที่:
+// 1. โหลดข้อมูลวัสดุเริ่มต้น (Seed Data)
+// 2. ซิงค์ข้อมูลกับ Firestore (Realtime)
+// 3. จัดการการเบิก-จ่าย และเติมสต็อกวัสดุ
+
 "use client";
 
 import {
@@ -21,47 +28,51 @@ import {
   addDoc,
   doc,
   updateDoc,
-  deleteDoc,
   query as firestoreQuery,
   orderBy,
-  getDocs,
   serverTimestamp,
+  getDoc,
 } from "firebase/firestore";
 
+// Key สำหรับเก็บข้อมูลใน LocalStorage
 const STORAGE_KEY = "techJobMaterials_v1";
 
+// ข้อมูลเริ่มต้น (Seed Data) - ใช้กรณีที่ยังไม่มีข้อมูลในระบบ หรือ Offline ครั้งแรก
 const SEED_MATERIALS: Material[] = [
   ...electricalMaterials,
   ...networkMaterials,
   ...toolMaterials,
   ...multimediaMaterials,
   ...consumableMaterials,
-  ...consumableMaterials,
-].map((item) => ({ ...item, isLocal: true })); // 🔥 FIX: Mark seeds as local so they survive sync
+].map((item) => ({ ...item, isLocal: true })); // Mark as local เพื่อให้รู้ว่าเป็นข้อมูลที่ยังไม่ได้ซิงค์
 
+// ประเภทข้อมูลสำหรับการขอเบิกวัสดุ
 type WithdrawRequest = {
   materialId: string;
   quantity: number;
 };
 
+// ผลลัพธ์การเบิกวัสดุ
 type WithdrawResult = { success: true } | { success: false; errors: string[] };
 
+// Interface ของ Context
 interface MaterialContextType {
-  materials: Material[];
-  addMaterial: (material: Omit<Material, "id"> & { id?: string }) => Material;
+  materials: Material[]; // รายการวัสดุทั้งหมด
+  addMaterial: (material: Omit<Material, "id"> & { id?: string }) => Material; // เพิ่มวัสดุใหม่
   updateMaterial: (
     materialId: string,
     updates: Partial<Omit<Material, "id">>
-  ) => void;
-  restockMaterial: (materialId: string, quantity: number) => void;
-  withdrawMaterials: (requests: WithdrawRequest[]) => WithdrawResult;
-  getMaterialById: (materialId: string) => Material | undefined;
+  ) => void; // แก้ไขข้อมูลวัสดุ
+  restockMaterial: (materialId: string, quantity: number) => void; // เติมสต็อก
+  withdrawMaterials: (requests: WithdrawRequest[]) => WithdrawResult; // เบิกวัสดุ (ตัดสต็อก)
+  getMaterialById: (materialId: string) => Material | undefined; // ค้นหาวัสดุตาม ID
 }
 
 const MaterialContext = createContext<MaterialContextType | undefined>(
   undefined
 );
 
+// ฟังก์ชันโหลดข้อมูลจาก LocalStorage
 function loadMaterialsFromStorage(): Material[] {
   if (typeof window === "undefined") {
     return SEED_MATERIALS;
@@ -71,7 +82,7 @@ function loadMaterialsFromStorage(): Material[] {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return SEED_MATERIALS;
     const parsed = JSON.parse(raw) as Material[];
-    // 🔥 FIX: If parsed list is empty (was wiped), restore seeds
+    // ถ้าข้อมูลว่างเปล่า (อาจเกิดจาก error) ให้ใช้ Seed Data แทน
     if (parsed.length === 0) return SEED_MATERIALS;
     return parsed.map((item) => ({ ...item }));
   } catch (error) {
@@ -81,11 +92,12 @@ function loadMaterialsFromStorage(): Material[] {
 }
 
 export function MaterialProvider({ children }: { children: ReactNode }) {
+  // State เก็บรายการวัสดุ
   const [materials, setMaterials] = useState<Material[]>(
     loadMaterialsFromStorage
   );
 
-  // Firestore realtime subscription for materials
+  // --- Effect 1: เชื่อมต่อ Firestore Realtime ---
   useEffect(() => {
     try {
       const q = firestoreQuery(
@@ -99,9 +111,10 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
             (d) => ({ id: d.id, ...(d.data() as any) } as Material)
           );
 
-          // 🔥 FIX: Merge server materials with existing local-only materials
+          // Merge ข้อมูลจาก Server กับข้อมูล Local-only (ที่ยังไม่ได้ซิงค์)
           setMaterials((prev) => {
             const localOnly = prev.filter((m) => m.isLocal);
+            // เอาเฉพาะ local item ที่ไม่มี id ซ้ำกับ server item
             const uniqueLocal = localOnly.filter(
               (l) => !items.some((s) => s.id === l.id)
             );
@@ -113,11 +126,13 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
 
       return () => unsub();
     } catch (e) {
-      // fallback to localStorage-driven behavior
+      // กรณีเชื่อมต่อไม่ได้ ให้ใช้ข้อมูล LocalStorage ต่อไป
+      console.error("Firestore connection failed", e);
       return;
     }
   }, []);
 
+  // --- Effect 2: บันทึกลง LocalStorage เมื่อข้อมูลเปลี่ยน ---
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(materials));
@@ -126,6 +141,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     }
   }, [materials]);
 
+  // --- ฟังก์ชัน: เพิ่มวัสดุใหม่ ---
   const addMaterial: MaterialContextType["addMaterial"] = (materialInput) => {
     const newMaterial: Material = {
       id: materialInput.id ?? `MAT-${Date.now()}`,
@@ -142,7 +158,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
         } as any);
       } catch (e) {
         console.error("Failed to add material to Firestore", e);
-        // 🔥 FIX: Mark as local-only
+        // Fallback: เพิ่มลง Local State และระบุว่าเป็น Local Only
         setMaterials((prev) => [{ ...newMaterial, isLocal: true }, ...prev]);
       }
     })();
@@ -150,6 +166,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     return newMaterial;
   };
 
+  // --- ฟังก์ชัน: แก้ไขข้อมูลวัสดุ ---
   const updateMaterial: MaterialContextType["updateMaterial"] = (
     materialId,
     updates
@@ -159,6 +176,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
         await updateDoc(doc(db, "materials", materialId), updates as any);
       } catch (e) {
         console.error("Failed to update material in Firestore", e);
+        // Fallback: อัปเดต Local State
         setMaterials((prev) =>
           prev.map((material) =>
             material.id === materialId ? { ...material, ...updates } : material
@@ -168,31 +186,30 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     })();
   };
 
+  // --- ฟังก์ชัน: เติมสต็อก (Restock) ---
   const restockMaterial: MaterialContextType["restockMaterial"] = (
     materialId,
     quantity
   ) => {
     if (quantity <= 0) return;
+
     (async () => {
       try {
         const targetRef = doc(db, "materials", materialId);
-        await updateDoc(targetRef, {
-          stock: (await (
-            await getDocs(firestoreQuery(collection(db, "materials")))
-          ).docs.find((d) => d.id === materialId))
-            ? undefined
-            : undefined,
-        } as any);
-        // Best-effort: increment locally as fallback if update API not suitable
-        setMaterials((prev) =>
-          prev.map((material) =>
-            material.id === materialId
-              ? { ...material, stock: material.stock + quantity }
-              : material
-          )
-        );
+        // อ่านค่าปัจจุบันจาก Firestore ก่อนอัปเดต (เพื่อความถูกต้อง)
+        const snapshot = await getDoc(targetRef);
+        if (snapshot.exists()) {
+          const currentStock = snapshot.data().stock || 0;
+          await updateDoc(targetRef, {
+            stock: currentStock + quantity,
+          } as any);
+        } else {
+          // ถ้าไม่พบใน Firestore (อาจเป็น Local Item) ให้อัปเดต Local State
+          throw new Error("Material not found in Firestore");
+        }
       } catch (e) {
         console.error("Failed to restock material in Firestore", e);
+        // Fallback: อัปเดต Local State
         setMaterials((prev) =>
           prev.map((material) =>
             material.id === materialId
@@ -204,6 +221,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
     })();
   };
 
+  // --- ฟังก์ชัน: เบิกวัสดุ (Withdraw) ---
   const withdrawMaterials: MaterialContextType["withdrawMaterials"] = (
     requests
   ) => {
@@ -211,6 +229,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
       return { success: false, errors: ["ไม่มีรายการเบิกวัสดุ"] };
     }
 
+    // รวมยอดเบิกของวัสดุเดียวกัน (กรณีมีการเลือกซ้ำ)
     const aggregated = requests.reduce((acc, req) => {
       const current = acc.get(req.materialId) ?? 0;
       acc.set(req.materialId, current + req.quantity);
@@ -219,6 +238,7 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
 
     const errors: string[] = [];
 
+    // ตรวจสอบสต็อกว่าพอหรือไม่
     aggregated.forEach((quantity, materialId) => {
       const target = materials.find((mat) => mat.id === materialId);
       if (!target) {
@@ -240,32 +260,39 @@ export function MaterialProvider({ children }: { children: ReactNode }) {
       return { success: false, errors };
     }
 
+    // ดำเนินการตัดสต็อก
     (async () => {
       try {
-        // Apply updates in Firestore per material
+        // อัปเดตทีละรายการ
         const updates = Array.from(aggregated.entries()).map(
           async ([materialId, qty]) => {
             const ref = doc(db, "materials", materialId);
-            // Best-effort: decrement by setting new value based on local state
-            const current =
-              materials.find((m) => m.id === materialId)?.stock ?? 0;
-            await updateDoc(ref, { stock: current - qty } as any);
+            // อ่านค่าปัจจุบันก่อนตัด
+            const snapshot = await getDoc(ref);
+            if (snapshot.exists()) {
+              const currentStock = snapshot.data().stock || 0;
+              // ป้องกันสต็อกติดลบ
+              const newStock = Math.max(0, currentStock - qty);
+              await updateDoc(ref, { stock: newStock } as any);
+            }
           }
         );
         await Promise.all(updates);
       } catch (e) {
         console.error("Failed to withdraw materials in Firestore", e);
+        // Fallback: อัปเดต Local State
         setMaterials((prev) =>
           prev.map((material) => {
             const requestedQty = aggregated.get(material.id);
             if (!requestedQty) return material;
-            return { ...material, stock: material.stock - requestedQty };
+            return {
+              ...material,
+              stock: Math.max(0, material.stock - requestedQty),
+            };
           })
         );
       }
     })();
-
-    return { success: true };
 
     return { success: true };
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { departmentMap } from "@/Data/departmentMapping";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FaImage } from "react-icons/fa";
 import { showWarning, showSuccess } from "@/lib/sweetalert";
+import type { SidebarOutletContext } from "@/components/sidebar/sidebar";
 
 const STORAGE_KEY = "techjob_personnel_data";
 
@@ -73,6 +75,7 @@ const normalizePerson = (p: any) => ({
 
 export default function MyProfile() {
   const { user: currentUser } = useAuth();
+  const { setPageHeader } = useOutletContext<SidebarOutletContext>();
   const [person, setPerson] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -174,6 +177,19 @@ export default function MyProfile() {
     };
   }, [loadPersonData]);
 
+  useEffect(() => {
+    setPageHeader(
+      <div className="flex flex-col gap-1">
+        <p className="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-muted-foreground">
+          Current Page
+        </p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">ข้อมูลส่วนตัว</h1>
+      </div>
+    );
+
+    return () => setPageHeader(null);
+  }, [setPageHeader]);
+
   // เติมข้อมูลใน form เมื่อเปิด dialog
   useEffect(() => {
     if (isDialogOpen && person) {
@@ -260,12 +276,11 @@ export default function MyProfile() {
 
   // UI แสดงข้อมูล
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8">
+    <div className="flex-1  md:p-8">
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">ข้อมูลส่วนตัว</h1>
-          <p className="text-muted-foreground mt-2">ดูและจัดการข้อมูลส่วนตัวของคุณ</p>
-        </div>
+
+        {/* <p className="text-muted-foreground mt-2 ">ดูและจัดการข้อมูลส่วนตัวของคุณ</p> */}
+
         {person?.role === "admin" && (
           <Button onClick={() => setIsDialogOpen(true)}>
             แก้ไขข้อมูล
@@ -352,8 +367,8 @@ export default function MyProfile() {
                   <p className="text-sm text-muted-foreground">สถานะ:</p>
                   <span
                     className={`capitalize px-3 py-1 rounded-full text-sm font-medium ${person.status === "available"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }`}
                   >
                     {person.status === "available" ? "พร้อมทำงาน" : "ไม่พร้อมทำงาน"}

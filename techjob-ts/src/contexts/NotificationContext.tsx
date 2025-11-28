@@ -1,4 +1,7 @@
 // src/contexts/NotificationContext.tsx
+// Context สำหรับจัดการระบบแจ้งเตือน (Notifications) ทั้งหมดในแอปพลิเคชัน
+// ทำหน้าที่รับ-ส่ง, บันทึก, และดึงข้อมูลการแจ้งเตือนสำหรับผู้ใช้แต่ละคน
+
 "use client";
 
 import React, {
@@ -24,22 +27,24 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
+// Key สำหรับเก็บข้อมูลสำรองใน LocalStorage กรณี Offline
 const STORAGE_KEY = "techJobNotifications_v1";
 
 type RoleType = NotificationItem["recipientRole"];
 
+// --- กำหนดโครงสร้างข้อมูลและฟังก์ชันของ Context ---
 interface NotificationContextType {
-  notifications: NotificationItem[];
+  notifications: NotificationItem[]; // รายการแจ้งเตือนทั้งหมด
   addNotification: (
     notification: Omit<NotificationItem, "id" | "createdAt" | "read">
-  ) => void;
-  markAsRead: (notificationId: string) => void;
-  markAllAsReadForUser: (role: RoleType, recipientId?: string) => void;
+  ) => void; // ฟังก์ชันเพิ่มการแจ้งเตือนใหม่
+  markAsRead: (notificationId: string) => void; // ฟังก์ชันระบุว่าอ่านแล้ว
+  markAllAsReadForUser: (role: RoleType, recipientId?: string) => void; // อ่านทั้งหมด
   getNotificationsForUser: (
     role: RoleType,
     recipientId?: string
-  ) => NotificationItem[];
-  getUnreadCount: (role: RoleType, recipientId?: string) => number;
+  ) => NotificationItem[]; // ดึงการแจ้งเตือนเฉพาะบุคคล
+  getUnreadCount: (role: RoleType, recipientId?: string) => number; // นับจำนวนที่ยังไม่อ่าน
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -104,6 +109,9 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
  * ===================================================================
  */
 
+// --- ฟังก์ชันแปลงข้อมูล (Helper Functions) ---
+
+// แปลงข้อมูลวันที่จาก JSON/Storage ให้กลับเป็น Date Object
 function reviveNotification(notification: NotificationItem): NotificationItem {
   return {
     ...notification,
@@ -111,6 +119,7 @@ function reviveNotification(notification: NotificationItem): NotificationItem {
   };
 }
 
+// โหลดข้อมูลจาก LocalStorage (ใช้เป็น Cache เริ่มต้น)
 function loadNotifications(): NotificationItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -123,11 +132,15 @@ function loadNotifications(): NotificationItem[] {
   }
 }
 
+// --- NotificationProvider Component ---
+// ให้บริการข้อมูลการแจ้งเตือนแก่ Component ลูกๆ
 export function NotificationProvider({ children }: { children: ReactNode }) {
+  // State เก็บรายการแจ้งเตือน (เริ่มต้นจาก LocalStorage)
   const [notifications, setNotifications] = useState<NotificationItem[]>(
     typeof window === "undefined" ? [] : loadNotifications
   );
 
+  // ฟังก์ชันสร้าง ID แบบสุ่ม (ใช้กรณี Offline หรือ Fallback)
   const generateId = () => {
     if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
       return crypto.randomUUID();
@@ -135,19 +148,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return `notif-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   };
 
+  // Effect: บันทึกข้อมูลลง LocalStorage ทุกครั้งที่ notifications เปลี่ยนแปลง
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
-      // Dispatch custom event so same-tab listeners know about the change
-      window.dispatchEvent(new CustomEvent("notificationsChanged", { detail: notifications }));
+      // ส่ง Event บอก Tab อื่นๆ ว่ามีการอัปเดต (กรณีเปิดหลาย Tab)
+      window.dispatchEvent(
+        new CustomEvent("notificationsChanged", { detail: notifications })
+      );
     } catch (error) {
       console.error("Failed to persist notifications", error);
     }
   }, [notifications]);
 
-  // Listen for storage changes (when notifications update from other tabs or localStorage changes)
+  // Effect: เชื่อมต่อ Firestore Realtime Listener
   useEffect(() => {
-    // Subscribe to Firestore 'notifications' collection (realtime)
     try {
       const q = firestoreQuery(
         collection(db, "notifications"),
@@ -156,7 +171,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const unsub = onSnapshot(
         q,
         (snap) => {
-          const toDate = (v: any) => (v && typeof v.toDate === "function" ? v.toDate() : v);
+          const toDate = (v: any) =>
+            v && typeof v.toDate === "function" ? v.toDate() : v;
           const items: NotificationItem[] = snap.docs.map((d) => {
             const data: any = d.data();
             return {
@@ -180,7 +196,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       return () => unsub();
     } catch (e) {
-      // Fallback: if Firestore not available, keep storage-based sync
+      // Fallback: ถ้าเชื่อมต่อ Firestore ไม่ได้ ให้ใช้ LocalStorage Sync แทน
       const handleStorageChange = (e: StorageEvent) => {
         if (e.key === STORAGE_KEY && e.newValue) {
           try {
@@ -192,7 +208,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
       };
 
-      const handleCustomEvent = (_e: any) => { };
+      const handleCustomEvent = (_e: any) => {};
 
       window.addEventListener("storage", handleStorageChange);
       window.addEventListener("notificationsChanged", handleCustomEvent);
@@ -203,19 +219,23 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // --- ฟังก์ชัน "เพิ่มการแจ้งเตือน" (Add Notification) ---
+  // ใช้สำหรับสร้างการแจ้งเตือนใหม่และบันทึกลง Firestore
   const addNotification: NotificationContextType["addNotification"] = (
     notificationInput
   ) => {
-    // Write to Firestore; fallback to local update on error
+    // ใช้ IIFE (Immediately Invoked Function Expression) เพื่อเรียก Async function
     (async () => {
       try {
+        // บันทึกลง Firestore
         await addDoc(collection(db, "notifications"), {
           ...notificationInput,
-          read: false,
-          createdAt: serverTimestamp(),
+          read: false, // เริ่มต้นสถานะเป็น "ยังไม่อ่าน"
+          createdAt: serverTimestamp(), // ใช้เวลาจาก Server
         } as any);
       } catch (e) {
         console.error("Failed to add notification to Firestore", e);
+        // Fallback: ถ้าบันทึกไม่สำเร็จ ให้เพิ่มลง Local State ชั่วคราว
         setNotifications((prev) => [
           {
             id: generateId(),
@@ -229,12 +249,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     })();
   };
 
-  const markAsRead: NotificationContextType["markAsRead"] = (notificationId) => {
+  // --- ฟังก์ชัน "ระบุว่าอ่านแล้ว" (Mark as Read) ---
+  // ใช้เมื่อผู้ใช้กดอ่านการแจ้งเตือนรายการเดียว
+  const markAsRead: NotificationContextType["markAsRead"] = (
+    notificationId
+  ) => {
     (async () => {
       try {
-        await updateDoc(doc(db, "notifications", notificationId), { read: true } as any);
+        await updateDoc(doc(db, "notifications", notificationId), {
+          read: true,
+        } as any);
       } catch (e) {
         console.error("Failed to mark notification as read in Firestore", e);
+        // Fallback: อัปเดต Local State
         setNotifications((prev) =>
           prev.map((notification) =>
             notification.id === notificationId
@@ -246,86 +273,92 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     })();
   };
 
-  const markAllAsReadForUser: NotificationContextType["markAllAsReadForUser"] = (
-    role,
-    recipientId
-  ) => {
-    (async () => {
-      try {
-        const q = recipientId
-          ? firestoreQuery(
-            collection(db, "notifications"),
-            where("recipientRole", "==", role),
-            where("recipientId", "==", String(recipientId)),
-            where("read", "==", false)
-          )
-          : firestoreQuery(
-            collection(db, "notifications"),
-            where("recipientRole", "==", role),
-            where("read", "==", false)
-          );
+  // --- ฟังก์ชัน "อ่านทั้งหมด" (Mark All as Read) ---
+  // ใช้เมื่อผู้ใช้กดปุ่ม "อ่านทั้งหมด" ในหน้าการแจ้งเตือน
+  const markAllAsReadForUser: NotificationContextType["markAllAsReadForUser"] =
+    (role, recipientId) => {
+      (async () => {
+        try {
+          // สร้าง Query หาการแจ้งเตือนที่ยังไม่อ่านของผู้ใช้นั้น
+          const q = recipientId
+            ? firestoreQuery(
+                collection(db, "notifications"),
+                where("recipientRole", "==", role),
+                where("recipientId", "==", String(recipientId)),
+                where("read", "==", false)
+              )
+            : firestoreQuery(
+                collection(db, "notifications"),
+                where("recipientRole", "==", role),
+                where("read", "==", false)
+              );
 
-        const snap = await getDocs(q as any);
-        const updates = snap.docs.map((d) => updateDoc(doc(db, "notifications", d.id), { read: true } as any));
-        await Promise.all(updates);
-      } catch (e) {
-        console.error("Failed to mark all as read in Firestore", e);
-        setNotifications((prev) =>
-          prev.map((notification) => {
-            const matchRole = notification.recipientRole === role;
-            const matchRecipient =
-              !notification.recipientId ||
-              !recipientId ||
-              String(notification.recipientId) === String(recipientId);
-            if (matchRole && matchRecipient) {
-              return { ...notification, read: true };
-            }
-            return notification;
-          })
-        );
-      }
-    })();
-  };
-  // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ user คนนี้ ==================
+          // ดึงข้อมูลและทำการอัปเดตทีละรายการ
+          const snap = await getDocs(q as any);
+          const updates = snap.docs.map((d) =>
+            updateDoc(doc(db, "notifications", d.id), { read: true } as any)
+          );
+          await Promise.all(updates);
+        } catch (e) {
+          console.error("Failed to mark all as read in Firestore", e);
+          // Fallback: อัปเดต Local State
+          setNotifications((prev) =>
+            prev.map((notification) => {
+              const matchRole = notification.recipientRole === role;
+              const matchRecipient =
+                !notification.recipientId ||
+                !recipientId ||
+                String(notification.recipientId) === String(recipientId);
+              if (matchRole && matchRecipient) {
+                return { ...notification, read: true };
+              }
+              return notification;
+            })
+          );
+        }
+      })();
+    };
+
+  // ================== ฟังก์ชัน: ดึงการแจ้งเตือนของ User ==================
+  // ใช้สำหรับกรองการแจ้งเตือนที่จะแสดงให้ผู้ใช้เห็น โดยเช็คจาก Role และ ID
   // ตัวอย่าง: getNotificationsForUser("leader", "101")
   //   → จะหา notification ที่มี recipientRole="leader" AND recipientId="101"
-  // 
-  // ⚠️ รองรับทั้ง originalId (ตัวเลข เช่น "101") และ id ใหม่ (เช่น "proj-101-21")
+  //
+  // ⚠️ รองรับทั้ง ID แบบเก่า (ตัวเลข เช่น "101") และ ID แบบใหม่ (เช่น "proj-101-21")
   const getNotificationsForUser: NotificationContextType["getNotificationsForUser"] =
     (role, recipientId) => {
       // ใช้ filter() เพื่อตรวจสอบแต่ละ notification ว่าตรงกันไหม
       return notifications.filter((notification) => {
-        // ✓ ขั้นตอที่ 1: ตรวจ role (บทบาท)
+        // 1. ตรวจสอบ Role (บทบาท) ว่าตรงกันหรือไม่
         if (notification.recipientRole !== role) return false;
 
-        // ✓ ขั้นตอที่ 2: ตรวจ recipientId
-        // ถ้า notification ไม่ระบุ recipientId → แสดงให้ทุกคน
+        // 2. ถ้า notification ไม่ระบุ recipientId → แสดงให้ทุกคนใน Role นั้นเห็น
         if (!notification.recipientId) return true;
 
-        // ✓ ขั้นตอที่ 3: ถ้า recipientId มีค่า แต่ user.id ไม่มี → ไม่แสดง
+        // 3. ถ้า recipientId มีค่า แต่ user.id ไม่มี → ไม่แสดง
         if (!recipientId) return false;
 
-        // ✓ ขั้นตอที่ 4: ตรวจสอบ recipientId ตรงกันหรือไม่
+        // 4. ตรวจสอบ recipientId ว่าตรงกันหรือไม่
         // รองรับทั้ง 2 รูปแบบ:
-        // 1. recipientId ตรงกับ recipientId ที่ส่งมา (เช่น "101" === "101")
-        // 2. recipientId ตรงกับส่วนตัวเลขใน id ใหม่ (เช่น "101" อยู่ใน "proj-101-21")
+        // - ตรงกันเป๊ะๆ (Exact Match)
+        // - เป็นส่วนหนึ่งของกันและกัน (Partial Match) สำหรับรองรับ ID แบบใหม่
         const notifRecipient = String(notification.recipientId);
         const userRecipient = String(recipientId);
 
         // ตรวจสอบแบบตรงทั้งหมด
         if (notifRecipient === userRecipient) return true;
 
-        // ตรวจสอบแบบ partial match (สำหรับ ID แบบใหม่)
-        // เช่น notification.recipientId = "101" และ recipientId = "proj-101-21"
-        // หรือ notification.recipientId = "proj-101-21" และ recipientId = "101"
-        if (userRecipient.includes(notifRecipient) || notifRecipient.includes(userRecipient)) {
+        // ตรวจสอบแบบ Partial Match
+        if (
+          userRecipient.includes(notifRecipient) ||
+          notifRecipient.includes(userRecipient)
+        ) {
           return true;
         }
 
         return false;
       });
     };
-  // ======================================================================
 
   const getUnreadCount: NotificationContextType["getUnreadCount"] = (
     role,
@@ -364,4 +397,3 @@ export const useNotifications = () => {
   }
   return ctx;
 };
-
